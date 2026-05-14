@@ -1,0 +1,312 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ==========================================================================
+   Vantage Terminal — Premium Fintech Design System
+   Deep obsidian base with emerald accents. Glass surfaces, hairline borders,
+   tabular numerics. Tuned for institutional data density.
+   ========================================================================== */
+
+:root {
+  --brand-bg: #07090D;
+  --brand-elevated: #0C1016;
+  --brand-surface-2: #11161F;
+  --brand-border: #1A2230;
+  --brand-border-strong: #243046;
+  --brand-accent: #34D399;          /* emerald */
+  --brand-accent-soft: #10B981;
+  --brand-text-dim: #7A8597;
+  --brand-text-bright: #E6ECF5;
+  --brand-success: #34D399;
+  --brand-danger: #F87171;
+  --brand-warning: #FBBF24;
+  --trade-long: #34D399;
+  --trade-short: #F87171;
+  --status-neutral: #6B7689;
+  --grid-line: rgba(255,255,255,0.04);
+  --hairline: rgba(255,255,255,0.06);
+}
+
+[data-theme='light'] {
+  --brand-bg: #F7F8FA;
+  --brand-elevated: #FFFFFF;
+  --brand-surface-2: #F1F3F7;
+  --brand-border: #E4E7EC;
+  --brand-border-strong: #CFD4DC;
+  --brand-accent: #059669;
+  --brand-accent-soft: #10B981;
+  --brand-text-dim: #5B6470;
+  --brand-text-bright: #0B0E14;
+  --brand-success: #059669;
+  --brand-danger: #DC2626;
+  --brand-warning: #D97706;
+  --trade-long: #059669;
+  --trade-short: #DC2626;
+  --hairline: rgba(0,0,0,0.06);
+  --grid-line: rgba(0,0,0,0.04);
+}
+
+[data-theme='tactical'] {
+  --brand-bg: #14160F;
+  --brand-elevated: #1B1E16;
+  --brand-surface-2: #232720;
+  --brand-border: #2E342A;
+  --brand-border-strong: #3D453A;
+  --brand-accent: #FF7E1A;
+  --brand-accent-soft: #FB923C;
+  --brand-text-dim: #8C9284;
+  --brand-text-bright: #F0F2EE;
+  --brand-success: #A3E635;
+  --brand-danger: #EF4444;
+  --brand-warning: #FBBF24;
+  --trade-long: #A3E635;
+  --trade-short: #EF4444;
+  --hairline: rgba(255,255,255,0.05);
+}
+
+[data-theme='cyber'] {
+  --brand-bg: #08080A;
+  --brand-elevated: #111114;
+  --brand-surface-2: #181820;
+  --brand-border: #26262E;
+  --brand-border-strong: #34343F;
+  --brand-accent: #FCEE0A;
+  --brand-accent-soft: #FDE047;
+  --brand-text-dim: #888A95;
+  --brand-text-bright: #FFFFFF;
+  --brand-success: #00FFA3;
+  --brand-danger: #FF3366;
+  --brand-warning: #FF8000;
+  --trade-long: #00FFA3;
+  --trade-short: #FF3366;
+  --hairline: rgba(255,255,255,0.06);
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-brand-bg: var(--brand-bg);
+  --color-brand-elevated: var(--brand-elevated);
+  --color-brand-surface-2: var(--brand-surface-2);
+  --color-brand-border: var(--brand-border);
+  --color-brand-border-strong: var(--brand-border-strong);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-soft: var(--brand-accent-soft);
+  --color-brand-text-dim: var(--brand-text-dim);
+  --color-brand-text-bright: var(--brand-text-bright);
+  --color-brand-success: var(--brand-success);
+  --color-brand-danger: var(--brand-danger);
+  --color-brand-warning: var(--brand-warning);
+
+  --color-trade-long: var(--trade-long);
+  --color-trade-short: var(--trade-short);
+  --color-status-neutral: var(--status-neutral);
+
+  --radius-card: 12px;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    @apply bg-brand-bg text-brand-text-dim font-sans antialiased;
+    font-feature-settings: "cv11", "ss01", "ss03";
+    background-image:
+      radial-gradient(900px 600px at 12% -10%, rgba(52,211,153,0.06), transparent 60%),
+      radial-gradient(800px 500px at 95% 0%, rgba(56,189,248,0.04), transparent 65%),
+      radial-gradient(700px 600px at 50% 110%, rgba(52,211,153,0.04), transparent 60%);
+    background-attachment: fixed;
+  }
+  ::selection { background: color-mix(in oklab, var(--brand-accent) 35%, transparent); color: var(--brand-text-bright); }
+  h1,h2,h3,h4 { color: var(--brand-text-bright); letter-spacing: -0.01em; }
+  .num, .font-mono, table td, table th { font-variant-numeric: tabular-nums; }
+}
+
+/* --- Surfaces ------------------------------------------------------------ */
+.technical-panel {
+  background: color-mix(in oklab, var(--brand-elevated) 92%, transparent);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.02) inset,
+    0 1px 2px rgba(0,0,0,0.35),
+    0 8px 24px -16px rgba(0,0,0,0.6);
+}
+
+.glass-card {
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--brand-elevated) 70%, transparent),
+    color-mix(in oklab, var(--brand-bg) 70%, transparent));
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.glass-card:hover { border-color: color-mix(in oklab, var(--brand-accent) 22%, var(--hairline)); }
+
+.hairline { border-color: var(--hairline) !important; }
+.hairline-b { border-bottom: 1px solid var(--hairline); }
+.hairline-t { border-top: 1px solid var(--hairline); }
+.hairline-r { border-right: 1px solid var(--hairline); }
+
+.glow-border {
+  border: 1px solid color-mix(in oklab, var(--brand-accent) 22%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--brand-accent) 12%, transparent),
+              0 8px 32px -12px color-mix(in oklab, var(--brand-accent) 25%, transparent);
+}
+
+.dot-matrix {
+  background-image: radial-gradient(var(--brand-border) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.35;
+}
+
+.neural-bg {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand-elevated) 96%, transparent), var(--brand-elevated));
+}
+
+/* --- Typography helpers ------------------------------------------------- */
+.monospace-data {
+  @apply font-mono text-sm tracking-tight text-brand-text-bright;
+  font-variant-numeric: tabular-nums;
+}
+.text-num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+.label-caps {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand-text-dim);
+}
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--brand-surface-2) 70%, transparent);
+  color: var(--brand-text-dim);
+}
+
+/* --- Pills / status ---------------------------------------------------- */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 500;
+  border: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--brand-surface-2) 60%, transparent);
+}
+.pill-positive { color: var(--brand-success); border-color: color-mix(in oklab, var(--brand-success) 28%, transparent); background: color-mix(in oklab, var(--brand-success) 10%, transparent); }
+.pill-negative { color: var(--brand-danger);  border-color: color-mix(in oklab, var(--brand-danger) 28%, transparent);  background: color-mix(in oklab, var(--brand-danger) 10%, transparent); }
+.pill-neutral  { color: var(--brand-text-dim); }
+
+/* --- Scrollbar --------------------------------------------------------- */
+.custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--brand-border-strong) 70%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--brand-accent) 60%, var(--brand-border-strong));
+  background-clip: padding-box;
+}
+
+/* --- Buttons ----------------------------------------------------------- */
+.btn-primary {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--brand-accent) 95%, white 5%), var(--brand-accent-soft));
+  color: #07120D;
+  border: 1px solid color-mix(in oklab, var(--brand-accent) 70%, black);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 18px -8px color-mix(in oklab, var(--brand-accent) 60%, transparent);
+  transition: transform .12s ease, filter .12s ease;
+}
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-primary:active { transform: translateY(1px); }
+
+.btn-ghost {
+  background: color-mix(in oklab, var(--brand-surface-2) 60%, transparent);
+  color: var(--brand-text-bright);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: background .12s ease, border-color .12s ease;
+}
+.btn-ghost:hover { background: color-mix(in oklab, var(--brand-surface-2) 90%, transparent); border-color: var(--brand-border-strong); }
+
+/* --- Tables ------------------------------------------------------------ */
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.data-table th {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--brand-text-dim); font-weight: 600;
+  text-align: left; padding: 10px 12px;
+  border-bottom: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--brand-surface-2) 40%, transparent);
+}
+.data-table td {
+  padding: 10px 12px; font-size: 13px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--brand-text-bright);
+}
+.data-table tr:hover td { background: color-mix(in oklab, var(--brand-accent) 5%, transparent); }
+
+/* --- Animations -------------------------------------------------------- */
+@keyframes pulseDot {
+  0%,100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-accent) 50%, transparent); }
+  50%     { box-shadow: 0 0 0 6px color-mix(in oklab, var(--brand-accent) 0%, transparent); }
+}
+.live-dot { animation: pulseDot 2s ease-out infinite; }
+
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.skeleton {
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--brand-surface-2) 80%, transparent) 0%,
+    color-mix(in oklab, var(--brand-border) 60%, transparent) 50%,
+    color-mix(in oklab, var(--brand-surface-2) 80%, transparent) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: 6px;
+}
+
+/* --- Recharts polish (works against existing components) -------------- */
+.recharts-cartesian-grid line { stroke: var(--grid-line) !important; }
+.recharts-cartesian-axis-line { stroke: var(--hairline) !important; }
+.recharts-cartesian-axis-tick text { fill: var(--brand-text-dim) !important; font-size: 11px; font-family: var(--font-mono); }
+.recharts-tooltip-wrapper { outline: none !important; }
+.recharts-default-tooltip {
+  background: color-mix(in oklab, var(--brand-elevated) 92%, transparent) !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 32px -12px rgba(0,0,0,0.6) !important;
+  padding: 8px 10px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  color: var(--brand-text-bright) !important;
+}
+.recharts-tooltip-label { color: var(--brand-text-dim) !important; font-size: 10px !important; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px !important; }
+.recharts-reference-line line { stroke: color-mix(in oklab, var(--brand-text-dim) 40%, transparent) !important; stroke-dasharray: 3 3; }
+
+/* --- Inputs ----------------------------------------------------------- */
+input, select, textarea {
+  background: color-mix(in oklab, var(--brand-surface-2) 70%, transparent);
+  border: 1px solid var(--hairline);
+  color: var(--brand-text-bright);
+  border-radius: 8px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: color-mix(in oklab, var(--brand-accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-accent) 18%, transparent);
+}

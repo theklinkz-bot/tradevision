@@ -1,0 +1,6 @@
+{
+  "name": "TradeVision Pro",
+  "description": "Professional trade analysis dashboard powered by Gemini Vision. Extract levels, targets, and symbols directly from TradingView screenshots.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
