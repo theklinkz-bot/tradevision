@@ -1,4 +1,4 @@
-import { RiskMetricCard, StabilityBar, VerdictTile, type ValidationTone, formatR, toneStyles } from './shared';
+import { MetricDrilldown, MicroBars, RiskMetricCard, ScoreTrendLine, StabilityBar, VerdictTile, type ValidationTone, formatR, toneStyles } from './shared';
 
 type PeriodBucket = {
   index: number;
@@ -78,11 +78,14 @@ export const ConsistencyEngineSection = ({
       <div className="strategy-scanline pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-transparent via-brand-accent/10 to-transparent" />
       <div className="relative z-10 grid grid-cols-1 gap-5 lg:grid-cols-[0.65fr_1.35fr]">
         <div>
-          <p className="label-caps !mb-2">Consistency Score</p>
+          <p className="label-caps !mb-2">
+            Consistency Score <MetricDrilldown tone={consistencyTone} content={{ title: 'Consistency Score', current: tradeReturnsLength < 30 ? 'Insufficient data' : `${consistencyScore}/100`, meaning: 'Measures repeatability across buckets, smoothness, drift, and rhythm.', signals: ['Green/red buckets', 'Smoothness', 'Drift delta', 'Recovery rhythm'], ranges: ['72+: stable', '45-71: developing', '<45: unstable'], why: consistencyStatus }} />
+          </p>
           <div className={`text-6xl font-black leading-none tracking-tighter ${toneStyles[consistencyTone].text}`}>
             {tradeReturnsLength < 30 ? '--' : consistencyScore}<span className="text-2xl opacity-50">/100</span>
           </div>
           <p className={`mt-2 text-lg font-black uppercase tracking-tight ${toneStyles[consistencyTone].text}`}>{consistencyStatus}</p>
+          <ScoreTrendLine score={consistencyScore} tone={consistencyTone} label="Consistency score trend" />
         </div>
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           <VerdictTile label="Buckets" value={`${greenPeriods}G/${redPeriods}R`} tone={greenPeriods >= redPeriods ? 'ready' : 'fail'} />
@@ -104,7 +107,7 @@ export const ConsistencyEngineSection = ({
           <RiskMetricCard label="Red" value={String(redPeriods)} tone={redPeriods <= greenPeriods ? 'caution' : 'fail'} />
           <RiskMetricCard label="Best" value={bestPeriod ? formatR(bestPeriod.net) : '0.00R'} tone="ready" />
           <RiskMetricCard label="Worst" value={worstPeriod ? formatR(worstPeriod.net) : '0.00R'} tone={worstPeriod && worstPeriod.net < 0 ? 'fail' : 'caution'} />
-          <RiskMetricCard label="Avg Period" value={formatR(avgPeriodR)} tone={avgPeriodR > 0 ? 'ready' : avgPeriodR === 0 ? 'caution' : 'fail'} />
+          <RiskMetricCard label="Avg Period" value={formatR(avgPeriodR)} tone={avgPeriodR > 0 ? 'ready' : avgPeriodR === 0 ? 'caution' : 'fail'} drilldown={{ title: 'Period Consistency', current: formatR(avgPeriodR), meaning: 'Average R across 20-trade validation buckets.', signals: ['Green buckets', 'Red buckets', 'Best/worst bucket'], ranges: ['Positive: stable', 'Flat: thin', 'Negative: unstable'], why: `${greenPeriods} green / ${redPeriods} red buckets.` }} />
         </div>
         <div className="mt-4 flex h-8 items-end gap-1 rounded border border-brand-border/40 bg-brand-bg/30 p-1.5">
           {periodBuckets.map((bucket) => (
@@ -115,6 +118,7 @@ export const ConsistencyEngineSection = ({
             />
           ))}
         </div>
+        <MicroBars values={periodBuckets.map((bucket) => bucket.net)} tone={consistencyTone} label="Bucket stability micro bars" />
       </div>
 
       <div className="technical-panel bg-brand-elevated/20 border-brand-border/60 p-5">
@@ -127,7 +131,7 @@ export const ConsistencyEngineSection = ({
             <StabilityBar label="Expectancy Stability" value={Math.max(0, 100 - stabilitySpread * 35)} tone={stabilitySpread <= 0.5 ? 'ready' : stabilitySpread <= 1 ? 'caution' : 'fail'} />
             <StabilityBar label="Winrate Stability" value={Math.max(0, 100 - winrateSpread * 1.5)} tone={winrateSpread <= 12 ? 'ready' : winrateSpread <= 25 ? 'caution' : 'fail'} />
             <StabilityBar label="Profit Factor Stability" value={Math.min(100, rollingProfitFactor * 30)} tone={rollingProfitFactor >= 1.5 ? 'ready' : rollingProfitFactor >= 1 ? 'caution' : 'fail'} />
-            <StabilityBar label="Recent vs Earlier Drift" value={Math.max(0, Math.min(100, 60 + driftDelta * 40))} tone={driftTone} />
+            <StabilityBar label="Recent vs Earlier Drift" value={Math.max(0, Math.min(100, 60 + driftDelta * 40))} tone={driftTone} drilldown={{ title: 'Drift Detection', current: driftLabel, meaning: 'Compares early expectancy against recent expectancy.', signals: ['Early expectancy', 'Recent expectancy', 'Rolling sample'], ranges: ['No drift', 'Mild drift', 'Performance drift'], why: `Early ${formatR(earlyExpectancy)} / Recent ${formatR(recentExpectancy)}` }} />
           </div>
         ) : (
           <div className="rounded-lg border border-brand-warning/30 bg-brand-warning/10 p-4 text-[10px] font-black uppercase tracking-[0.18em] text-brand-warning">
@@ -144,7 +148,7 @@ export const ConsistencyEngineSection = ({
           <span className="text-[8px] font-black uppercase tracking-[0.2em] text-brand-text-dim">Curve Rhythm</span>
         </div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-          <StabilityBar label="Smoothness" value={smoothnessScore} tone={smoothnessScore >= 70 ? 'ready' : smoothnessScore >= 45 ? 'caution' : 'fail'} />
+          <StabilityBar label="Smoothness" value={smoothnessScore} tone={smoothnessScore >= 70 ? 'ready' : smoothnessScore >= 45 ? 'caution' : 'fail'} drilldown={{ title: 'Equity Smoothness', current: `${Math.round(smoothnessScore)}%`, meaning: 'How cleanly equity advances without interruption.', signals: ['Bucket volatility', 'Drawdown interruption', 'Recovery rhythm'], ranges: ['70+: smooth', '45-69: uneven', '<45: unstable'], why: `Volatility pressure ${Math.round(volatilityPressure)}%.` }} />
           <StabilityBar label="Volatility Pressure" value={100 - volatilityPressure} tone={volatilityPressure <= 35 ? 'ready' : volatilityPressure <= 70 ? 'caution' : 'fail'} />
           <StabilityBar label="Drawdown Interrupt" value={100 - Math.min(100, maxDrawdown * 12)} tone={maxDrawdown <= 5 ? 'ready' : maxDrawdown <= 10 ? 'caution' : 'fail'} />
           <StabilityBar label="Recovery Rhythm" value={rhythmScore} tone={rhythmScore >= 70 ? 'ready' : rhythmScore >= 45 ? 'caution' : 'fail'} />
@@ -152,7 +156,9 @@ export const ConsistencyEngineSection = ({
       </div>
 
       <div className={`technical-panel border ${toneStyles[driftTone].border} ${toneStyles[driftTone].bg} p-5`}>
-        <p className="label-caps !mb-2">Drift Detection</p>
+        <p className="label-caps !mb-2">
+          Drift Detection <MetricDrilldown tone={driftTone} content={{ title: 'Drift Detection', current: driftLabel, meaning: 'Flags whether the recent edge is fading against the early sample.', signals: ['Early expectancy', 'Recent expectancy', 'Drift delta'], ranges: ['No drift', 'Mild drift', 'Performance drift'], why: `Early ${formatR(earlyExpectancy)} / Recent ${formatR(recentExpectancy)}` }} />
+        </p>
         <h4 className={`text-2xl font-black uppercase tracking-tight ${toneStyles[driftTone].text}`}>{driftLabel}</h4>
         <p className="mt-3 text-[10px] font-mono uppercase tracking-tight text-brand-text-dim">
           Early {formatR(earlyExpectancy)} / Recent {formatR(recentExpectancy)}

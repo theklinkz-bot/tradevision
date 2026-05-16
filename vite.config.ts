@@ -54,5 +54,18 @@ export default defineConfig(({mode}) => {
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined;
+            if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor')) return 'vendor-charts';
+            if (id.includes('motion')) return 'vendor-motion';
+            if (id.includes('@supabase') || id.includes('@google')) return 'vendor-services';
+            return undefined;
+          }
+        }
+      }
+    },
   };
 });

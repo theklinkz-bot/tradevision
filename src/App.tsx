@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Upload, 
@@ -60,7 +60,6 @@ import { StatsPanel, DataCard, PriceLevel } from './components/StatsPanel';
 import { EquityChart } from './components/EquityChart';
 import { InsightPanel } from './components/InsightPanel';
 import { PerformanceDashboard } from './components/PerformanceDashboard';
-import { StrategyLab } from './components/StrategyLab';
 import { SignalValidationOverlay, ExpandedImageOverlay } from './components/UploadModal';
 import { 
   fetchTradesFromSupabase, 
@@ -80,6 +79,24 @@ import {
 } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Strategy } from './types';
+
+const StrategyLab = lazy(() =>
+  import('./components/StrategyLab').then((module) => ({ default: module.StrategyLab }))
+);
+
+const StrategyLabLoading = () => (
+  <div className="technical-panel relative overflow-hidden border-brand-border/70 bg-brand-elevated/20 p-8">
+    <div className="absolute inset-0 dot-matrix opacity-10" />
+    <div className="absolute inset-x-0 top-0 h-20 animate-pulse bg-gradient-to-b from-transparent via-brand-accent/10 to-transparent" />
+    <div className="relative z-10 flex items-center justify-between gap-4">
+      <div>
+        <p className="label-caps !mb-2 text-brand-accent">Strategy Lab</p>
+        <p className="font-mono text-[11px] font-black uppercase tracking-[0.2em] text-brand-text-bright">Loading Strategy Lab...</p>
+      </div>
+      <span className="h-2 w-2 rounded-full bg-brand-accent animate-pulse shadow-[0_0_14px_rgba(52,211,153,0.45)]" />
+    </div>
+  </div>
+);
 
 const TRANSLATIONS: Record<'EN' | 'TH', TranslationSchema> = {
   EN: {
@@ -2583,7 +2600,9 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 <PerformanceDashboard stats={stats} t={t} isSidebarCollapsed={sidebarCollapsed} />
               </div>
             ) : mainTab === 'StrategyLab' ? (
-              <StrategyLab stats={stats} isAdmin={!!isAdmin} />
+              <Suspense fallback={<StrategyLabLoading />}>
+                <StrategyLab stats={stats} isAdmin={!!isAdmin} />
+              </Suspense>
             ) : mainTab === 'Gallery' ? (
               <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between">

@@ -1,6 +1,6 @@
 import { Activity, Radio, Target } from 'lucide-react';
 import type { TradeStats } from '../../types';
-import { MiniSparkline, RadialGauge, type ValidationTone, formatR, toneStyles } from './shared';
+import { MetricDrilldown, MicroBars, MiniDistribution, MiniSparkline, RadialGauge, ScoreTrendLine, TelemetryStrip, type ValidationTone, formatR, toneStyles } from './shared';
 
 type ChecklistItem = {
   label: string;
@@ -75,11 +75,21 @@ export const DeploymentValidationSection = ({
               <Target size={20} />
             </div>
             <div>
-              <p className="label-caps !mb-0">Strategy Status</p>
+              <p className="label-caps !mb-0">
+                Strategy Status <MetricDrilldown tone={statusTone} content={{ title: 'Strategy Status', current: status.label, meaning: 'Deployment readiness based on local validation gates.', signals: ['Expectancy', 'Profit factor', 'Drawdown', 'Closed trades'], ranges: ['Ready: all core gates pass', 'Caution: still validating', 'Fail: unsafe for capital'], why: reason }} />
+              </p>
               <h3 className={`text-4xl font-black tracking-tighter ${status.text}`}>{status.label}</h3>
             </div>
           </div>
           <p className="max-w-2xl text-sm text-brand-text-dim font-mono uppercase tracking-tight leading-relaxed">{reason}</p>
+          <TelemetryStrip
+            items={[
+              { label: 'READY', value: `${readinessScore}%`, tone: statusTone },
+              { label: 'RISK', value: riskState, tone: riskTone },
+              { label: 'NET', value: formatR(netR), tone: netR > 0 ? 'ready' : netR === 0 ? 'caution' : 'fail' }
+            ]}
+            label="Deployment telemetry strip"
+          />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {systemIndicators.map((label, index) => (
               <div key={label} className="rounded border border-brand-border/50 bg-brand-bg/35 px-2.5 py-2">
@@ -94,12 +104,15 @@ export const DeploymentValidationSection = ({
 
         <div className="rounded-xl border border-brand-border bg-brand-bg/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
           <div className="flex items-center justify-between gap-3">
-            <p className="label-caps !mb-0">Live Readiness Score</p>
+            <p className="label-caps !mb-0">
+              Live Readiness Score <MetricDrilldown tone={statusTone} content={{ title: 'Readiness Score', current: `${readinessScore}/100`, meaning: 'Checklist score for deployment validation.', signals: ['Positive expectancy', 'Profit factor', 'Drawdown limit', 'Sample depth', 'Winrate', 'Recovery'], ranges: ['85+: strong', '60-84: paper-ready', '<60: incomplete'], why: deploymentMeaning }} />
+            </p>
             <span className={`rounded-full border ${status.border} ${status.bg} px-2.5 py-1 text-[8px] font-black uppercase tracking-widest ${status.text}`}>
               {regime}
             </span>
           </div>
           <RadialGauge score={readinessScore} tone={statusTone} />
+          <ScoreTrendLine score={readinessScore} tone={statusTone} label="Readiness score trend" />
           <div className="grid grid-cols-6 gap-1">
             {[0, 1, 2, 3, 4, 5].map((index) => (
               <span key={index} className={`h-1 rounded-full ${index < Math.ceil(readinessScore / 17) ? status.bar : 'bg-brand-border/40'}`} />
@@ -137,7 +150,9 @@ export const DeploymentValidationSection = ({
 
     <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className={`technical-panel p-5 border ${reliability.tone.border} bg-brand-elevated/30 lg:col-span-1`}>
-        <p className="label-caps !mb-3">Statistical Confidence</p>
+        <p className="label-caps !mb-3">
+          Statistical Confidence <MetricDrilldown tone={closedTrades >= 100 ? 'ready' : closedTrades >= 30 ? 'caution' : 'fail'} content={{ title: 'Statistical Confidence', current: `${closedTrades} trades`, meaning: 'Sample depth behind the current validation result.', signals: ['Closed trade count', 'Checklist coverage'], ranges: ['100+: reliable', '30-99: developing', '<30: thin'], why: reliability.label }} />
+        </p>
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-4xl font-black text-brand-text-bright tracking-tighter">{closedTrades}</p>
@@ -150,6 +165,7 @@ export const DeploymentValidationSection = ({
         <div className="mt-5 h-2 rounded-full bg-brand-border/30 overflow-hidden">
           <div className={`h-full ${reliability.tone.bar}`} style={{ width: `${Math.min(100, closedTrades)}%` }} />
         </div>
+        <MicroBars values={[closedTrades, readinessScore, labStats.winRate, Math.max(0, 100 - labStats.maxDrawdown * 10)]} tone={statusTone} label="Validation confidence bars" />
         {closedTrades < 30 && (
           <p className="mt-4 text-[10px] font-bold uppercase tracking-widest text-brand-warning leading-relaxed">
             Sample exposure is below institutional validation threshold.
@@ -158,7 +174,9 @@ export const DeploymentValidationSection = ({
       </div>
 
       <div className="technical-panel p-5 bg-brand-elevated/20 border-brand-border/60 lg:col-span-2">
-        <p className="label-caps !mb-3">Core Validation Metrics</p>
+        <p className="label-caps !mb-3">
+          Core Validation Metrics <MetricDrilldown tone={statusTone} content={{ title: 'Core Validation Metrics', current: status.label, meaning: 'Primary raw metrics behind readiness.', signals: ['Win rate', 'Expectancy', 'Profit factor', 'Max drawdown', 'Net R'], ranges: ['Positive edge plus controlled risk is preferred'], why: reason }} />
+        </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             ['Win Rate', `${labStats.winRate.toFixed(1)}%`, labStats.winRate >= 50 ? 'ready' : labStats.winRate >= 45 ? 'caution' : 'fail'],
@@ -179,6 +197,7 @@ export const DeploymentValidationSection = ({
             </div>
           ))}
         </div>
+        <MiniDistribution values={labStats.equityCurve.map((point) => point.rMultiple || 0)} label="Core validation outcome distribution" />
       </div>
     </section>
 
@@ -187,7 +206,9 @@ export const DeploymentValidationSection = ({
           <div className="flex items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-2">
               <Activity size={14} className="text-brand-accent" />
-              <p className="label-caps !mb-0">Deployment Signal Feed</p>
+              <p className="label-caps !mb-0">
+                Deployment Signal Feed <MetricDrilldown tone={statusTone} content={{ title: 'Signal Feed', current: rotatingInsights[insightIndex] || 'Waiting', meaning: 'Rotating concise interpretation of the strongest local signal.', signals: rotatingInsights.slice(0, 3), ranges: ['Bright text marks the active signal'], why: deploymentMeaning }} />
+              </p>
             </div>
             <span className="text-[8px] font-black uppercase tracking-[0.18em] text-brand-accent/70">Rotating Signal Feed</span>
           </div>
@@ -207,7 +228,9 @@ export const DeploymentValidationSection = ({
       <div className={`technical-panel p-5 border ${toneStyles[riskTone].border} bg-brand-elevated/25`}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="label-caps !mb-1">Risk Pressure</p>
+            <p className="label-caps !mb-1">
+              Risk Pressure <MetricDrilldown tone={riskTone} content={{ title: 'Risk Pressure', current: riskState, meaning: 'Deployment risk summary inside the validation section.', signals: ['Market stress', 'Deployment risk', 'Max drawdown'], ranges: ['Low', 'Elevated', 'High'], why: `Drawdown is -${labStats.maxDrawdown.toFixed(2)}R.` }} />
+            </p>
             <h3 className={`text-3xl font-black tracking-tighter ${toneStyles[riskTone].text}`}>{riskState}</h3>
           </div>
           <div className={`h-10 w-10 rounded-lg ${toneStyles[riskTone].bg} ${toneStyles[riskTone].text} border ${toneStyles[riskTone].border} flex items-center justify-center`}>
@@ -229,6 +252,7 @@ export const DeploymentValidationSection = ({
             <span key={index} className={`flex-1 rounded-sm ${toneStyles[riskTone].bar}`} style={{ height: `${height}%`, opacity: 0.18 + index * 0.045 }} />
           ))}
         </div>
+        <MicroBars values={[labStats.maxDrawdown, labStats.maxConsecutiveLosses, labStats.recoveryFactor, labStats.expectancy]} tone={riskTone} label="Risk pressure micro bars" />
       </div>
     </section>
   </details>

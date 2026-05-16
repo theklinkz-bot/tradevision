@@ -1,4 +1,4 @@
-import { type ContextRow, type ValidationTone, formatR, toneStyles } from './shared';
+import { MetricDrilldown, MicroBars, ScoreTrendLine, type ContextRow, type ValidationTone, formatR, toneStyles } from './shared';
 
 interface MarketContextSectionProps {
   closedTrades: number;
@@ -59,11 +59,14 @@ export const MarketContextSection = ({
       <div className="strategy-scanline pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-transparent via-brand-accent/10 to-transparent" />
       <div className="relative z-10 grid grid-cols-1 gap-5 xl:grid-cols-[0.48fr_1.52fr]">
         <div>
-          <p className="label-caps !mb-2">Context Edge Score</p>
+          <p className="label-caps !mb-2">
+            Context Edge Score <MetricDrilldown tone={contextTone} content={{ title: 'Context Edge Score', current: closedTrades < 30 ? 'Insufficient data' : `${contextScore}/100`, meaning: 'Measures whether edge is tied to repeatable sessions, symbols, or weekdays.', signals: ['Best session', 'Best symbol', 'Best weekday', 'Concentration risk'], ranges: ['72+: strong', '45-71: developing', '<45: weak'], why: contextStatus }} />
+          </p>
           <div className={`text-6xl font-black leading-none tracking-tighter ${toneStyles[contextTone].text}`}>
             {closedTrades < 30 ? '--' : contextScore}<span className="text-2xl opacity-50">/100</span>
           </div>
           <p className={`mt-2 text-lg font-black uppercase tracking-tight ${toneStyles[contextTone].text}`}>{contextStatus}</p>
+          <ScoreTrendLine score={contextScore} tone={contextTone} label="Context edge score trend" />
           <div className={`mt-3 inline-flex rounded-full border px-3 py-1 text-[8px] font-black uppercase tracking-widest ${toneStyles[contextConfidenceTone].border} ${toneStyles[contextConfidenceTone].bg} ${toneStyles[contextConfidenceTone].text}`}>
             {contextConfidenceLabel}
           </div>
@@ -84,13 +87,16 @@ export const MarketContextSection = ({
               const tone = label === 'Confidence' ? contextConfidenceTone : contextRankTone(row as ContextRow | undefined);
               return (
                 <div key={label as string} className={`rounded-lg border ${toneStyles[tone].border} ${toneStyles[tone].bg} p-3`}>
-                  <p className="text-[7px] font-black uppercase tracking-widest text-brand-text-dim">{label as string}</p>
+                  <p className="text-[7px] font-black uppercase tracking-widest text-brand-text-dim">
+                    {label as string} <MetricDrilldown tone={tone} content={{ title: label as string, current: value as string, meaning: label === 'Best Symbol' ? 'Instrument where current sample performs best.' : label === 'Best Session' ? 'Session where current sample performs best.' : label === 'Best Weekday' ? 'Weekday with strongest timing evidence.' : label === 'Weakest Context' ? 'Context pocket with weaker results.' : 'Confidence in context evidence.', signals: row ? [`${(row as ContextRow).trades} trades`, `${(row as ContextRow).winRate.toFixed(1)}% win`, `${formatR((row as ContextRow).expectancy)} expectancy`] : ['Sample depth', 'Context concentration'], ranges: ['High: repeatable', 'Developing: watch', 'Weak: avoid relying on it'], why: row ? contextRankLabel(row as ContextRow) : contextConfidenceLabel }} />
+                  </p>
                   <p className={`mt-1 truncate text-lg font-black uppercase tracking-tight ${toneStyles[tone].text}`}>{value as string}</p>
                   {row && (
                     <p className="mt-1 text-[8px] font-mono uppercase tracking-tight text-brand-text-dim">
                       {(row as ContextRow).trades}T // {formatR((row as ContextRow).expectancy)} exp
                     </p>
                   )}
+                  {row && <MicroBars values={[(row as ContextRow).expectancy, (row as ContextRow).netR, (row as ContextRow).winRate / 20]} tone={tone} label={`${label as string} strength bars`} />}
                 </div>
               );
             })}
@@ -107,10 +113,13 @@ export const MarketContextSection = ({
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.05fr_0.95fr]">
       <div className="technical-panel bg-brand-elevated/20 border-brand-border/60 p-5">
         <div className="mb-4 flex items-center justify-between">
-          <p className="label-caps !mb-0">Session Ranking</p>
+          <p className="label-caps !mb-0">
+            Session Ranking <MetricDrilldown tone={contextTone} content={{ title: 'Session Edge', current: bestSession?.label || 'N/A', meaning: 'Ranks sessions by net R, expectancy, and win rate.', signals: rankedSessions.slice(0, 3).map((row) => `${row.label}: ${formatR(row.expectancy)} exp`), ranges: ['Best: scale evidence', 'Neutral: keep sampling', 'Weak: avoid bias'], why: bestSession ? `${bestSession.label} leads current sample.` : 'No session leader yet.' }} />
+          </p>
           <span className="text-[8px] font-black uppercase tracking-[0.2em] text-brand-text-dim">Best / Neutral / Weak</span>
         </div>
         <div className="space-y-2">
+          <MicroBars values={rankedSessions.map((session) => session.netR)} tone={contextTone} label="Session strength bars" />
           {rankedSessions.map((session, index) => {
             const tone = contextRankTone(session);
             return (
@@ -134,10 +143,13 @@ export const MarketContextSection = ({
 
       <div className="technical-panel bg-brand-elevated/20 border-brand-border/60 p-5">
         <div className="mb-4 flex items-center justify-between">
-          <p className="label-caps !mb-0">Symbol Ranking</p>
+          <p className="label-caps !mb-0">
+            Symbol Ranking <MetricDrilldown tone={contextTone} content={{ title: 'Symbol Concentration', current: bestSymbol?.label || 'N/A', meaning: 'Shows whether performance depends on one instrument.', signals: rankedSymbols.slice(0, 3).map((row) => `${row.label}: ${formatR(row.netR)} net`), ranges: ['Balanced: stronger', 'Concentrated: validate more', 'Weak: avoid scaling'], why: concentrationWarning || 'No active concentration warning.' }} />
+          </p>
           <span className="text-[8px] font-black uppercase tracking-[0.2em] text-brand-text-dim">Strongest Instruments</span>
         </div>
         <div className="space-y-2">
+          <MicroBars values={rankedSymbols.map((symbol) => symbol.netR)} tone={contextTone} label="Symbol strength bars" />
           {(rankedSymbols.length > 0 ? rankedSymbols : [{ label: 'N/A', trades: 0, winRate: 0, netR: 0, expectancy: 0 }]).slice(0, 5).map((symbol, index) => {
             const tone = contextRankTone(symbol);
             return (
@@ -164,7 +176,9 @@ export const MarketContextSection = ({
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="technical-panel bg-brand-elevated/20 border-brand-border/60 p-5 lg:col-span-2">
         <div className="mb-4 flex items-center justify-between">
-          <p className="label-caps !mb-0">Weekday Ranking</p>
+          <p className="label-caps !mb-0">
+            Weekday Ranking <MetricDrilldown tone={contextTone} content={{ title: 'Weekday Bias', current: bestDay?.label || 'N/A', meaning: 'Checks whether timing edge clusters on specific weekdays.', signals: rankedDays.slice(0, 3).map((row) => `${row.label}: ${formatR(row.expectancy)} exp`), ranges: ['Repeatable: useful', 'Mixed: sample more', 'Negative: avoid bias'], why: bestDay ? `${bestDay.label} leads weekday map.` : 'No weekday leader yet.' }} />
+          </p>
           <span className="text-[8px] font-black uppercase tracking-[0.2em] text-brand-text-dim">Timing Map</span>
         </div>
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
