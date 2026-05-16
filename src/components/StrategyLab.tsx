@@ -26,8 +26,138 @@ interface StrategyLabProps {
   isAdmin?: boolean;
 }
 
+const densityStorageKey = 'strategy-lab-density-mode';
+
+const strategyLabStyles = `
+  @keyframes strategyScan { 0% { transform: translateY(-100%); opacity: 0; } 18% { opacity: .22; } 100% { transform: translateY(260%); opacity: 0; } }
+  @keyframes strategyDrift { 0% { background-position: 0 0; } 100% { background-position: 32px 32px; } }
+  @keyframes radarPulse { 0%,100% { transform: scale(.92); opacity: .22; } 50% { transform: scale(1.04); opacity: .38; } }
+  @keyframes gaugeSweep { 0% { stroke-dashoffset: 339.3; } }
+  @keyframes pulseRing { 0%,100% { transform: scale(.96); opacity: .22; } 50% { transform: scale(1.06); opacity: .42; } }
+  @keyframes blinkNode { 0%,78%,100% { opacity: .35; } 84% { opacity: 1; } }
+  @keyframes chartPulse { 0%,100% { opacity: .72; } 50% { opacity: .95; } }
+  .strategy-scanline { animation: strategyScan 7s linear infinite; }
+  .strategy-dot-drift { animation: strategyDrift 18s linear infinite; }
+  .strategy-radar { animation: radarPulse 5s ease-in-out infinite; }
+  .strategy-gauge-sweep { animation: gaugeSweep 1.4s ease-out both; }
+  .strategy-pulse-ring { animation: pulseRing 4.8s ease-in-out infinite; }
+  .strategy-blink { animation: blinkNode 2.2s ease-in-out infinite; }
+  .strategy-chart-pulse { animation: chartPulse 4s ease-in-out infinite; }
+  .strategy-lab--dense { gap: .8rem !important; }
+  .strategy-lab--dense header { padding-bottom: .6rem !important; }
+  .strategy-lab--dense header h2 { font-size: 1.15rem !important; line-height: 1.2 !important; }
+  .strategy-lab--dense header p { font-size: .58rem !important; letter-spacing: .14em !important; }
+  .strategy-lab--dense details { gap: .65rem !important; scroll-margin-top: 5.5rem !important; }
+  .strategy-lab--dense summary { align-items: center !important; gap: .75rem !important; padding-bottom: .45rem !important; }
+  .strategy-lab--dense summary h3 { font-size: 1rem !important; line-height: 1.15 !important; }
+  .strategy-lab--dense summary p,
+  .strategy-lab--dense .label-caps { font-size: .46rem !important; letter-spacing: .15em !important; margin-bottom: .35rem !important; }
+  .strategy-lab--dense .technical-panel { border-radius: .38rem !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 0 0 1px rgba(52,211,153,.025) !important; }
+  .strategy-lab--dense .technical-panel,
+  .strategy-lab--dense .p-6,
+  .strategy-lab--dense .p-5,
+  .strategy-lab--dense .p-4,
+  .strategy-lab--dense .p-3 { padding: .7rem !important; }
+  .strategy-lab--dense .px-4 { padding-left: .75rem !important; padding-right: .75rem !important; }
+  .strategy-lab--dense .py-4,
+  .strategy-lab--dense .py-3 { padding-top: .55rem !important; padding-bottom: .55rem !important; }
+  .strategy-lab--dense .px-3 { padding-left: .6rem !important; padding-right: .6rem !important; }
+  .strategy-lab--dense .py-2,
+  .strategy-lab--dense .py-1\\.5 { padding-top: .35rem !important; padding-bottom: .35rem !important; }
+  .strategy-lab--dense .gap-6,
+  .strategy-lab--dense .gap-5,
+  .strategy-lab--dense .gap-4,
+  .strategy-lab--dense .gap-3 { gap: .65rem !important; }
+  .strategy-lab--dense .mb-5,
+  .strategy-lab--dense .mb-4,
+  .strategy-lab--dense .mb-3 { margin-bottom: .55rem !important; }
+  .strategy-lab--dense .mt-5,
+  .strategy-lab--dense .mt-4,
+  .strategy-lab--dense .mt-3 { margin-top: .55rem !important; }
+  .strategy-lab--dense .rounded-xl,
+  .strategy-lab--dense .rounded-lg { border-radius: .35rem !important; }
+  .strategy-lab--dense .rounded-full { border-radius: 999px !important; }
+  .strategy-lab--dense .text-6xl { font-size: 2.8rem !important; line-height: .92 !important; }
+  .strategy-lab--dense .text-5xl { font-size: 2.55rem !important; line-height: .92 !important; }
+  .strategy-lab--dense .text-4xl { font-size: 2rem !important; line-height: .95 !important; }
+  .strategy-lab--dense .text-3xl { font-size: 1.55rem !important; line-height: 1 !important; }
+  .strategy-lab--dense .text-2xl { font-size: 1.2rem !important; line-height: 1.05 !important; }
+  .strategy-lab--dense .text-xl { font-size: 1rem !important; line-height: 1.15 !important; }
+  .strategy-lab--dense .text-lg { font-size: .9rem !important; line-height: 1.15 !important; }
+  .strategy-lab--dense .text-sm { font-size: .72rem !important; line-height: 1.2 !important; }
+  .strategy-lab--dense .text-xs { font-size: .62rem !important; line-height: 1.15 !important; }
+  .strategy-lab--dense .text-\\[12px\\] { font-size: .64rem !important; line-height: 1.25 !important; }
+  .strategy-lab--dense .text-\\[11px\\],
+  .strategy-lab--dense .text-\\[10px\\] { font-size: .54rem !important; line-height: 1.25 !important; letter-spacing: .06em !important; }
+  .strategy-lab--dense .text-\\[9px\\],
+  .strategy-lab--dense .text-\\[8px\\],
+  .strategy-lab--dense .text-\\[7px\\] { font-size: .46rem !important; line-height: 1.2 !important; letter-spacing: .12em !important; }
+  .strategy-lab--dense .tracking-\\[0\\.24em\\],
+  .strategy-lab--dense .tracking-\\[0\\.22em\\],
+  .strategy-lab--dense .tracking-\\[0\\.2em\\],
+  .strategy-lab--dense .tracking-\\[0\\.18em\\],
+  .strategy-lab--dense .tracking-widest { letter-spacing: .12em !important; }
+  .strategy-lab--dense .leading-relaxed { line-height: 1.35 !important; }
+  .strategy-lab--dense .h-40,
+  .strategy-lab--dense .w-40 { width: 7.8rem !important; height: 7.8rem !important; }
+  .strategy-lab--dense .h-32 { height: 6rem !important; }
+  .strategy-lab--dense .h-24,
+  .strategy-lab--dense .h-16 { height: 3.5rem !important; }
+  .strategy-lab--dense .h-10,
+  .strategy-lab--dense .w-10 { width: 2rem !important; height: 2rem !important; }
+  .strategy-lab--dense .h-8 { height: 1.45rem !important; }
+  .strategy-lab--dense .h-7 { height: 1.2rem !important; }
+  .strategy-lab--dense .min-h-8 { min-height: 1.15rem !important; }
+  .strategy-lab--dense .strategy-verdict-bar { border-radius: .35rem !important; padding: .35rem .45rem !important; }
+  .strategy-lab--dense .strategy-verdict-bar > div { flex-direction: row !important; align-items: center !important; gap: .45rem !important; }
+  .strategy-lab--dense .strategy-verdict-bar .grid { display: flex !important; flex-wrap: wrap !important; gap: .35rem !important; }
+  .strategy-lab--dense .strategy-verdict-bar .grid > div { min-width: 5.5rem; padding: .28rem .45rem !important; }
+  .strategy-lab--dense .strategy-verdict-bar a,
+  .strategy-lab--dense .strategy-verdict-bar span { padding: .28rem .45rem !important; }
+  .strategy-lab--dense #strategy-context .space-y-2 > div { padding-top: .38rem !important; padding-bottom: .38rem !important; }
+  .strategy-lab--dense #strategy-context .grid-cols-3,
+  .strategy-lab--dense #strategy-context .grid-cols-2 { gap: .45rem !important; }
+  .strategy-lab--dense .strategy-empty-state { padding: 2rem !important; gap: .75rem !important; }
+`;
+
+const DensityToggle = ({
+  denseMode,
+  onChange
+}: {
+  denseMode: boolean;
+  onChange: (denseMode: boolean) => void;
+}) => (
+  <div className="inline-flex rounded border border-brand-border/70 bg-brand-bg/60 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+    {[
+      ['STANDARD', false],
+      ['DENSE', true]
+    ].map(([label, value]) => {
+      const active = denseMode === value;
+      return (
+        <button
+          key={label as string}
+          type="button"
+          onClick={() => onChange(value as boolean)}
+          className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
+            active
+              ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
+              : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
+          }`}
+          aria-pressed={active}
+        >
+          {label as string}
+        </button>
+      );
+    })}
+  </div>
+);
+
 export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false }) => {
   const [demoMode, setDemoMode] = useState(false);
+  const [denseMode, setDenseMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(densityStorageKey) === 'dense';
+  });
   const demoStats = useMemo(() => calculateTradeStatistics(createDemoTrades()), []);
   const labStats = isAdmin && demoMode ? demoStats : stats;
   const closedTrades = labStats.totalTrades;
@@ -277,6 +407,10 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
     }, 3600);
     return () => window.clearInterval(timer);
   }, [rotatingInsights.length]);
+
+  useEffect(() => {
+    window.localStorage.setItem(densityStorageKey, denseMode ? 'dense' : 'standard');
+  }, [denseMode]);
 
   const riskInsights = [
     riskPressureTone === 'ready' ? 'Capital preservation remains stable despite localized volatility.' : 'Capital preservation requires continued simulation monitoring.',
@@ -581,29 +715,15 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
 
   if (closedTrades === 0) {
     return (
-      <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <style>{`
-          @keyframes strategyScan { 0% { transform: translateY(-100%); opacity: 0; } 18% { opacity: .22; } 100% { transform: translateY(260%); opacity: 0; } }
-          @keyframes strategyDrift { 0% { background-position: 0 0; } 100% { background-position: 32px 32px; } }
-          @keyframes radarPulse { 0%,100% { transform: scale(.92); opacity: .22; } 50% { transform: scale(1.04); opacity: .38; } }
-          @keyframes gaugeSweep { 0% { stroke-dashoffset: 339.3; } }
-          @keyframes pulseRing { 0%,100% { transform: scale(.96); opacity: .22; } 50% { transform: scale(1.06); opacity: .42; } }
-          @keyframes blinkNode { 0%,78%,100% { opacity: .35; } 84% { opacity: 1; } }
-          @keyframes chartPulse { 0%,100% { opacity: .72; } 50% { opacity: .95; } }
-          .strategy-scanline { animation: strategyScan 7s linear infinite; }
-          .strategy-dot-drift { animation: strategyDrift 18s linear infinite; }
-          .strategy-radar { animation: radarPulse 5s ease-in-out infinite; }
-          .strategy-gauge-sweep { animation: gaugeSweep 1.4s ease-out both; }
-          .strategy-pulse-ring { animation: pulseRing 4.8s ease-in-out infinite; }
-          .strategy-blink { animation: blinkNode 2.2s ease-in-out infinite; }
-          .strategy-chart-pulse { animation: chartPulse 4s ease-in-out infinite; }
-        `}</style>
+      <div className={`strategy-lab ${denseMode ? 'strategy-lab--dense' : ''} flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+        <style>{strategyLabStyles}</style>
         <header className="flex items-center justify-between border-b border-brand-border pb-4">
           <div>
             <h2 className="text-2xl font-bold text-brand-text-bright uppercase tracking-tighter">STRATEGY LAB</h2>
             <p className="text-xs text-brand-text-dim uppercase tracking-[3px] font-mono">LIVE DEPLOYMENT VALIDATION // PHASE 1.2</p>
           </div>
           <div className="hidden md:flex items-center gap-2">
+            <DensityToggle denseMode={denseMode} onChange={setDenseMode} />
             {['AI VALIDATION ACTIVE', 'NEURAL ANALYSIS ONLINE'].map((tag) => (
               <span key={tag} className="rounded-full border border-brand-accent/25 bg-brand-accent/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-brand-accent shadow-[0_0_18px_rgba(52,211,153,0.08)]">
                 {tag}
@@ -619,7 +739,10 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
             )}
           </div>
         </header>
-        <div className="technical-panel relative overflow-hidden p-16 text-center flex flex-col items-center gap-4 bg-brand-elevated/30 border-brand-border/60">
+        <div className="flex md:hidden">
+          <DensityToggle denseMode={denseMode} onChange={setDenseMode} />
+        </div>
+        <div className="technical-panel strategy-empty-state relative overflow-hidden p-16 text-center flex flex-col items-center gap-4 bg-brand-elevated/30 border-brand-border/60">
           <div className="absolute inset-0 dot-matrix strategy-dot-drift opacity-10 pointer-events-none" />
           <div className="strategy-scanline pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-transparent via-brand-accent/10 to-transparent" />
           <div className="strategy-radar pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border border-brand-accent/20 bg-brand-accent/5 blur-[1px]" />
@@ -643,29 +766,15 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
   }
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <style>{`
-        @keyframes strategyScan { 0% { transform: translateY(-100%); opacity: 0; } 18% { opacity: .22; } 100% { transform: translateY(260%); opacity: 0; } }
-        @keyframes strategyDrift { 0% { background-position: 0 0; } 100% { background-position: 32px 32px; } }
-        @keyframes radarPulse { 0%,100% { transform: scale(.92); opacity: .22; } 50% { transform: scale(1.04); opacity: .38; } }
-        @keyframes gaugeSweep { 0% { stroke-dashoffset: 339.3; } }
-        @keyframes pulseRing { 0%,100% { transform: scale(.96); opacity: .22; } 50% { transform: scale(1.06); opacity: .42; } }
-        @keyframes blinkNode { 0%,78%,100% { opacity: .35; } 84% { opacity: 1; } }
-        @keyframes chartPulse { 0%,100% { opacity: .72; } 50% { opacity: .95; } }
-        .strategy-scanline { animation: strategyScan 7s linear infinite; }
-        .strategy-dot-drift { animation: strategyDrift 18s linear infinite; }
-        .strategy-radar { animation: radarPulse 5s ease-in-out infinite; }
-        .strategy-gauge-sweep { animation: gaugeSweep 1.4s ease-out both; }
-        .strategy-pulse-ring { animation: pulseRing 4.8s ease-in-out infinite; }
-        .strategy-blink { animation: blinkNode 2.2s ease-in-out infinite; }
-        .strategy-chart-pulse { animation: chartPulse 4s ease-in-out infinite; }
-      `}</style>
+    <div className={`strategy-lab ${denseMode ? 'strategy-lab--dense' : ''} flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+      <style>{strategyLabStyles}</style>
       <header className="flex items-center justify-between border-b border-brand-border pb-4">
         <div>
           <h2 className="text-2xl font-bold text-brand-text-bright uppercase tracking-tighter">STRATEGY LAB</h2>
           <p className="text-xs text-brand-text-dim uppercase tracking-[3px] font-mono">LIVE DEPLOYMENT VALIDATION // PHASE 1.2</p>
         </div>
         <div className="hidden md:flex items-center gap-2">
+          <DensityToggle denseMode={denseMode} onChange={setDenseMode} />
           {['AI VALIDATION ACTIVE', 'NEURAL ANALYSIS ONLINE'].map((tag) => (
             <span key={tag} className="rounded-full border border-brand-accent/25 bg-brand-accent/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-brand-accent shadow-[0_0_18px_rgba(52,211,153,0.08)]">
               {tag}
@@ -685,14 +794,17 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
           )}
         </div>
       </header>
+      <div className="flex md:hidden">
+        <DensityToggle denseMode={denseMode} onChange={setDenseMode} />
+      </div>
 
       {demoMode && (
         <div className="rounded-lg border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-sky-300 shadow-[0_0_24px_rgba(56,189,248,0.08)]">
-          DEMO MODE — LOCAL PREVIEW ONLY
+          DEMO MODE // LOCAL PREVIEW ONLY
         </div>
       )}
 
-      <div className="sticky top-0 z-30 rounded-lg border border-brand-border/70 bg-brand-bg/90 px-3 py-2 shadow-xl backdrop-blur-md">
+      <div className="strategy-verdict-bar sticky top-0 z-30 rounded-lg border border-brand-border/70 bg-brand-bg/90 px-3 py-2 shadow-xl backdrop-blur-md">
         <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
           <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
             {[
