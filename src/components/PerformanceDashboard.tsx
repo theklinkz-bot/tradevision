@@ -98,27 +98,124 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
     : null;
 
   // Color logic helpers
-  const getWinRateColor = (wr: number) => {
-    if (wr >= 65) return 'text-brand-success'; // Exceptional
-    if (wr >= 55) return 'text-brand-text-bright'; // Acceptable (Neutral)
-    return 'text-brand-text-dim'; // Low
+  const getWinRateState = (wr: number) => {
+    if (wr >= 60) {
+      return {
+        text: 'text-brand-success',
+        border: 'border-brand-success/30',
+        bg: 'bg-brand-success/10',
+        bar: 'bg-brand-success',
+        glow: 'shadow-brand-success/10',
+        dot: 'bg-brand-success'
+      };
+    }
+    if (wr >= 45) {
+      return {
+        text: 'text-brand-warning',
+        border: 'border-brand-warning/30',
+        bg: 'bg-brand-warning/10',
+        bar: 'bg-brand-warning',
+        glow: 'shadow-brand-warning/10',
+        dot: 'bg-brand-warning'
+      };
+    }
+    return {
+      text: 'text-brand-danger',
+      border: 'border-brand-danger/30',
+      bg: 'bg-brand-danger/10',
+      bar: 'bg-brand-danger',
+      glow: 'shadow-brand-danger/10',
+      dot: 'bg-brand-danger'
+    };
   };
 
   const currentEquity = stats.equityCurve[stats.equityCurve.length - 1]?.equity || 0;
   const peakEquity = Math.max(...stats.equityCurve.map(d => d.equity));
+  const closedTradeNodes = stats.equityCurve.filter(point => typeof point.rMultiple === 'number');
+  const wins = closedTradeNodes.filter(point => (point.rMultiple || 0) > 0).length;
+  const losses = closedTradeNodes.filter(point => (point.rMultiple || 0) < 0).length;
+  const breakEvens = Math.max(0, stats.totalTrades - wins - losses);
+  const hasClosedTrades = stats.totalTrades > 0;
+  const winRateState = getWinRateState(stats.winRate);
 
   return (
     <div className="flex flex-col gap-6 pb-12">
-      {/* 1. Scannable Insights Bar (AI Section from Analytics) */}
+      {/* 1. Primary Winrate Hero */}
+      <div className={`grid grid-cols-1 gap-4 transition-all duration-300 ${isSidebarCollapsed ? 'md:grid-cols-3 xl:grid-cols-5' : 'md:grid-cols-2 lg:grid-cols-5'}`}>
+        <div className={`md:col-span-2 min-h-[220px] bg-brand-elevated rounded-xl border ${winRateState.border} p-6 shadow-2xl ${winRateState.glow} relative overflow-hidden ring-1 ring-white/[0.03]`}>
+          <div className="absolute inset-0 dot-matrix opacity-10 pointer-events-none" />
+          <div className={`absolute inset-x-0 top-0 h-1 ${winRateState.bar}`} />
+          <div className="relative z-10 flex h-full flex-col justify-between gap-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`h-2 w-2 rounded-full ${winRateState.dot} shadow-[0_0_12px_currentColor]`} />
+                  <span className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.24em]">{p.win_rate}</span>
+                  <MetricTooltip 
+                    content="Win Rate: The percentage of total closed trades that resulted in a profit."
+                    thaiContent="อัตราการชนะ: เปอร์เซ็นต์ของไม้ที่ปิดแล้วและจบด้วยกำไร"
+                  />
+                </div>
+                <h3 className="text-sm font-bold text-brand-text-bright uppercase tracking-widest">Winning Trade Ratio</h3>
+              </div>
+              <div className={`px-3 py-1 rounded-full border ${winRateState.border} ${winRateState.bg} text-[9px] font-black uppercase tracking-widest ${winRateState.text}`}>
+                {hasClosedTrades ? `${wins}/${stats.totalTrades}` : 'No Data'}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_170px] gap-6 items-end">
+              <div className="min-w-0">
+                {hasClosedTrades ? (
+                  <div className={`text-7xl lg:text-8xl font-black tracking-tighter leading-none ${winRateState.text}`}>
+                    {stats.winRate.toFixed(1)}
+                    <span className="text-3xl lg:text-4xl opacity-50 ml-1">%</span>
+                  </div>
+                ) : (
+                  <div className="text-3xl lg:text-4xl font-black tracking-tighter text-brand-text-bright leading-tight">
+                    No closed trades yet
+                  </div>
+                )}
+                <div className="mt-4 h-2 w-full rounded-full bg-brand-bg border border-brand-border overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${hasClosedTrades ? Math.min(100, Math.max(0, stats.winRate)) : 0}%` }}
+                    transition={{ duration: 1.2, ease: "easeOut" }}
+                    className={`h-full ${winRateState.bar}`}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-1 gap-2">
+                <div className="rounded-lg border border-brand-border bg-brand-bg/40 p-3">
+                  <span className="text-[8px] font-black text-brand-text-dim uppercase tracking-widest">Wins / Closed</span>
+                  <div className="mt-1 text-xl font-black font-mono text-brand-text-bright">
+                    {wins}<span className="text-brand-text-dim/50 mx-1">/</span>{stats.totalTrades}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-brand-border bg-brand-bg/40 p-3">
+                  <span className="text-[8px] font-black text-brand-text-dim uppercase tracking-widest">Losses + Break-even</span>
+                  <div className="mt-1 text-xl font-black font-mono text-brand-text-bright">
+                    <span className="text-brand-danger">{losses}</span>
+                    <span className="text-brand-text-dim/50 mx-1">+</span>
+                    <span className="text-brand-text-dim">{breakEvens}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Scannable Insights Bar (AI Section from Analytics) */}
       <div className="flex flex-col gap-2">
         <h4 className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.2em] ml-1">{t.ui.ai_neural_insights}</h4>
         <InsightPanel stats={stats} t={t} />
       </div>
 
-      {/* 2. Primary Metrics Bar */}
+      {/* 3. Supporting Metrics Bar */}
       <div className={`grid grid-cols-1 gap-4 transition-all duration-300 ${isSidebarCollapsed ? 'md:grid-cols-3 xl:grid-cols-5' : 'md:grid-cols-2 lg:grid-cols-5'}`}>
         {/* Net Profit */}
-        <div className="bg-brand-elevated/40 p-6 rounded-xl border border-brand-border flex flex-col justify-between shadow-sm group">
+        <div className="bg-brand-elevated/25 p-5 rounded-xl border border-brand-border/70 flex flex-col justify-between shadow-sm group opacity-90">
           <div>
             <div className="flex justify-between items-center mb-1">
               <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest block">{p.net_profit}</span>
@@ -134,13 +231,13 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
           <p className="text-[10px] text-brand-text-dim font-medium uppercase mt-4">{p.net_profit_desc}</p>
         </div>
 
-        {/* Expectancy (HERO CARD) */}
-        <div className="md:col-span-2 bg-brand-elevated p-6 rounded-xl border border-brand-accent/30 flex flex-col justify-between shadow-lg relative overflow-hidden ring-1 ring-brand-accent/10">
+        {/* Expectancy */}
+        <div className="md:col-span-2 bg-brand-elevated/35 p-5 rounded-xl border border-brand-border/80 flex flex-col justify-between shadow-sm relative overflow-hidden">
           <div className="relative z-10 flex flex-col h-full justify-between gap-4">
             <div className="flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[10px] font-black text-brand-accent uppercase tracking-[0.2em] block">{p.system_edge}</span>
+                  <span className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.2em] block">{p.system_edge}</span>
                   <MetricTooltip 
                     content="Expectancy: average profit per trade (you gain/lose this per trade on average)"
                     thaiContent="ค่าเฉลี่ยกำไรต่อไม้ (โดยรวมเล่น 1 ไม้ ได้/เสียเท่าไหร่)"
@@ -148,13 +245,13 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
                 </div>
                 <span className="text-base font-bold text-brand-text-bright">{p.expectancy}</span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-brand-accent/10 flex items-center justify-center text-brand-accent">
+              <div className="w-8 h-8 rounded-full bg-brand-bg border border-brand-border flex items-center justify-center text-brand-text-dim">
                 <Target size={18} strokeWidth={2.5} />
               </div>
             </div>
             
             <div className="flex items-baseline gap-2">
-              <div className="text-5xl font-black tracking-tighter text-brand-accent">
+              <div className="text-4xl font-black tracking-tighter text-brand-text-bright">
                 {stats.expectancy.toFixed(2)}
                 <span className="text-xl opacity-50 ml-1 italic">R</span>
               </div>
@@ -167,7 +264,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
         </div>
 
         {/* Max Drawdown */}
-        <div className={`bg-brand-elevated/40 p-6 rounded-xl border flex flex-col justify-between shadow-sm transition-colors duration-300 ${stats.maxDrawdown > 5 ? 'border-brand-danger/40 bg-brand-danger/5' : 'border-brand-border'}`}>
+        <div className={`bg-brand-elevated/25 p-5 rounded-xl border flex flex-col justify-between shadow-sm transition-colors duration-300 opacity-90 ${stats.maxDrawdown > 5 ? 'border-brand-danger/40 bg-brand-danger/5' : 'border-brand-border/70'}`}>
           <div>
             <div className="flex justify-between items-center mb-1">
               <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest block">{p.max_drawdown}</span>
@@ -183,25 +280,25 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
           <p className="text-[10px] text-brand-text-dim font-medium uppercase mt-4">{p.max_dd_desc}</p>
         </div>
 
-        {/* Win Rate */}
-        <div className="bg-brand-elevated/40 p-6 rounded-xl border border-brand-border flex flex-col justify-between shadow-sm">
+        {/* Closed Trades */}
+        <div className="bg-brand-elevated/25 p-5 rounded-xl border border-brand-border/70 flex flex-col justify-between shadow-sm opacity-90">
           <div>
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest block">{p.win_rate}</span>
+              <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest block">Closed Trades</span>
               <MetricTooltip 
-                content="Win Rate: The percentage of total trades that resulted in a profit."
-                thaiContent="อัตราการชนะ (Win Rate): เปอร์เซ็นต์ของไม้ที่ชนะเมื่อเทียบกับจำนวนไม้ทั้งหมด"
+                content="Closed Trades: Completed Win, Loss, and Break-even trades included in the analytics engine."
+                thaiContent="ไม้ที่ปิดแล้ว: รวม Win, Loss และ Break-even ที่ถูกนำไปคำนวณใน Analytics"
               />
             </div>
-            <div className={`text-2xl font-bold tracking-tighter ${getWinRateColor(stats.winRate)}`}>
-              {stats.winRate.toFixed(1)}%
+            <div className="text-2xl font-bold tracking-tighter text-brand-text-bright">
+              {stats.totalTrades}
             </div>
           </div>
-          <p className="text-[10px] text-brand-text-dim font-medium uppercase mt-4">{p.win_rate_desc}</p>
+          <p className="text-[10px] text-brand-text-dim font-medium uppercase mt-4">Wins {wins} / Losses {losses} / BE {breakEvens}</p>
         </div>
       </div>
 
-      {/* 3. Charts Section (Reused from Analytics) */}
+      {/* 4. Charts Section (Reused from Analytics) */}
       <div className="bg-brand-elevated/30 rounded-2xl border border-brand-border/50 p-1 px-4 pb-4">
         <div className="flex items-baseline justify-between pt-4 mb-2">
           <h4 className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.2em] ml-1">Analytics Architecture</h4>

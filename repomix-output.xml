@@ -1,3 +1,115 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/**
+- Files matching these patterns are excluded: node_modules/**, .next/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/admin_logic_example.ts
+src/App.tsx
+src/components/EquityChart.tsx
+src/components/InsightPanel.tsx
+src/components/PerformanceDashboard.tsx
+src/components/StatsPanel.tsx
+src/components/StrategyManager.tsx
+src/components/TradeCard.tsx
+src/components/UploadModal.tsx
+src/index.css
+src/lib/supabase.ts
+src/lib/tradeUtils.ts
+src/main.tsx
+src/services/geminiService.ts
+src/services/statsEngine.ts
+src/types.ts
+src/vite-env.d.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/admin_logic_example.ts">
+/**
+ * Example Admin Logic for Fetching and Updating Feedback
+ * 
+ * You can use these patterns in an admin dashboard or component.
+ */
+
+import { fetchFeedbackFromSupabase, updateFeedbackStatus } from './lib/supabase';
+
+// 1. Fetching all feedback (Admin view)
+// Note: Requires RLS policies that allow select for admins
+export const getAllFeedback = async () => {
+    try {
+        const feedback = await fetchFeedbackFromSupabase(); // Pass nothing to get all if RLS allows
+        console.log('All Feedback:', feedback);
+        return feedback;
+    } catch (error) {
+        console.error('Error fetching feedback:', error);
+    }
+};
+
+// 2. Updating status (e.g., from 'pending' to 'fixed')
+export const markAsFixed = async (feedbackId: string) => {
+    try {
+        await updateFeedbackStatus(feedbackId, 'fixed');
+        alert('Status updated to Fixed');
+    } catch (error) {
+        console.error('Error updating status:', error);
+    }
+};
+
+/**
+ * UI Example for Admin List:
+ * 
+ * feedback.map(item => (
+ *   <div key={item.id} className="p-4 border">
+ *     <h4>{item.subject}</h4>
+ *     <p>{item.message}</p>
+ *     <p>Status: {item.status}</p>
+ *     <button onClick={() => markAsFixed(item.id)}>Mark Fixed</button>
+ *   </div>
+ * ))
+ */
+</file>
+
+<file path="src/App.tsx">
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -60,7 +172,6 @@ import { StatsPanel, DataCard, PriceLevel } from './components/StatsPanel';
 import { EquityChart } from './components/EquityChart';
 import { InsightPanel } from './components/InsightPanel';
 import { PerformanceDashboard } from './components/PerformanceDashboard';
-import { StrategyLab } from './components/StrategyLab';
 import { SignalValidationOverlay, ExpandedImageOverlay } from './components/UploadModal';
 import { 
   fetchTradesFromSupabase, 
@@ -566,7 +677,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'visual' | 'json'>('visual');
-  const [mainTab, setMainTab] = useState<'Dashboard' | 'Analytics' | 'Performance' | 'StrategyLab' | 'Log' | 'Gallery' | 'System' | 'Admin'>('Dashboard');
+  const [mainTab, setMainTab] = useState<'Dashboard' | 'Analytics' | 'Performance' | 'Log' | 'Gallery' | 'System' | 'Admin'>('Dashboard');
   const [selectedGalleryItem, setSelectedGalleryItem] = useState<AnalysisHistoryItem | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<TradeStatus>("Pending");
   const [isSaving, setIsSaving] = useState(false);
@@ -1370,7 +1481,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 <div className="flex flex-col gap-4">
                   <h3 className="label-caps mb-0 text-[10px] text-brand-accent">{t.ui.neural_hub}</h3>
                   <nav className="flex flex-col gap-1">
-                    {(isAdmin ? ['Dashboard', 'Performance', 'StrategyLab', 'Log', 'Gallery', 'System', 'Admin'] : ['Dashboard', 'Performance', 'StrategyLab', 'Log', 'Gallery', 'System']).map((tab) => (
+                    {(isAdmin ? ['Dashboard', 'Performance', 'Log', 'Gallery', 'System', 'Admin'] : ['Dashboard', 'Performance', 'Log', 'Gallery', 'System']).map((tab) => (
                       <button 
                         key={tab} 
                         onClick={() => {
@@ -1380,7 +1491,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                         className={`w-full p-3 text-left text-[11px] font-bold uppercase tracking-[2px] rounded transition-all flex items-center justify-between
                           ${mainTab === tab ? 'bg-brand-accent/20 text-brand-accent border border-brand-accent/20' : 'text-brand-text-dim hover:text-brand-text-bright'}`}
                       >
-                        {tab === 'StrategyLab' ? 'Strategy Lab' : (t.ui as any)[tab.toLowerCase()] || tab}
+                        {(t.ui as any)[tab.toLowerCase()] || tab}
                         <div className={`w-1 h-1 rounded-full ${mainTab === tab ? 'bg-brand-accent animate-pulse' : 'bg-transparent'}`} />
                       </button>
                     ))}
@@ -1980,14 +2091,14 @@ const NoteTooltip = ({ note }: { note: string }) => {
           </div>
 
           <nav className="hidden lg:flex gap-1 h-full items-center">
-            {(isAdmin ? ['Dashboard', 'Performance', 'StrategyLab', 'Log', 'Gallery', 'System', 'Admin'] : ['Dashboard', 'Performance', 'StrategyLab', 'Log', 'Gallery', 'System']).map((tab) => (
+            {(isAdmin ? ['Dashboard', 'Performance', 'Log', 'Gallery', 'System', 'Admin'] : ['Dashboard', 'Performance', 'Log', 'Gallery', 'System']).map((tab) => (
               <button 
                 key={tab} 
                 onClick={() => setMainTab(tab as any)}
                 className={`px-4 h-14 sm:h-16 text-xs font-bold uppercase tracking-wider transition-colors border-b-2
                   ${mainTab === tab ? 'text-brand-accent border-brand-accent' : 'text-brand-text-dim border-transparent hover:text-brand-text-bright'}`}
               >
-                {tab === 'StrategyLab' ? 'Strategy Lab' : (t.ui as any)[tab.toLowerCase()] || tab}
+                {(t.ui as any)[tab.toLowerCase()] || tab}
               </button>
             ))}
           </nav>
@@ -2582,8 +2693,6 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 </div>
                 <PerformanceDashboard stats={stats} t={t} isSidebarCollapsed={sidebarCollapsed} />
               </div>
-            ) : mainTab === 'StrategyLab' ? (
-              <StrategyLab stats={stats} isAdmin={!!isAdmin} />
             ) : mainTab === 'Gallery' ? (
               <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between">
@@ -3236,3 +3345,3971 @@ create policy "Allow individual update" on profiles for update using (auth.uid()
     </div>
   );
 }
+</file>
+
+<file path="src/components/EquityChart.tsx">
+import React from 'react';
+import { 
+  ResponsiveContainer, 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip,
+  ReferenceLine
+} from 'recharts';
+import { TrendingUp, ArrowDownRight } from 'lucide-react';
+import { InfoTooltip } from './StatsPanel';
+import { TradeStats } from '../types';
+
+interface EquityChartProps {
+  stats: TradeStats;
+  t: any;
+}
+
+export const EquityChart = ({ stats, t }: EquityChartProps) => {
+  const { chartData, maxDrawdownInfo, maxRecoveryTrades } = React.useMemo(() => {
+    let maxEquity = 0;
+    let maxDD = 0;
+    let maxDDIndex = -1;
+    let peakIndex = -1;
+    
+    // For recovery time calculation
+    let currentRecoveryStart = -1;
+    let maxRecovery = 0;
+
+    const data = stats.equityCurve.map((d, i, arr) => {
+      // High Water Mark
+      if (d.equity > maxEquity) {
+        maxEquity = d.equity;
+        peakIndex = i;
+        currentRecoveryStart = -1; // We hit a new peak
+      } else {
+        // We are below peak
+        const currentDD = maxEquity - d.equity;
+        if (currentDD > maxDD) {
+          maxDD = currentDD;
+          maxDDIndex = i;
+        }
+
+        const recoveryTime = i - peakIndex;
+        if (recoveryTime > maxRecovery) {
+          maxRecovery = recoveryTime;
+        }
+      }
+      
+      // Calculate 5-trade Moving Average
+      const windowSize = 5;
+      const start = Math.max(0, i - windowSize + 1);
+      const sub = arr.slice(start, i + 1);
+      const ma = sub.reduce((acc, curr) => acc + curr.equity, 0) / sub.length;
+
+      const currentDDValue = maxEquity > 0 ? maxEquity - d.equity : 0;
+      const currentDDPercent = maxEquity > 0 ? (currentDDValue / maxEquity) * 100 : 0;
+
+      return {
+        ...d,
+        hwm: maxEquity,
+        movingAverage: Number(ma.toFixed(2)),
+        drawdownValue: currentDDValue,
+        drawdownPercent: currentDDPercent
+      };
+    });
+
+    const maxDDPeak = maxDDIndex !== -1 ? data[maxDDIndex].hwm : 0;
+    const maxDDPercent = maxDDPeak > 0 ? (maxDD / maxDDPeak) * 100 : 0;
+
+    return { 
+      chartData: data, 
+      maxDrawdownInfo: { value: maxDD, percent: maxDDPercent, index: maxDDIndex },
+      maxRecoveryTrades: maxRecovery
+    };
+  }, [stats.equityCurve]);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[65fr_35fr] gap-4 mt-4">
+      {/* Enhanced Equity Curve Chart */}
+      <div className="technical-panel p-4 flex flex-col gap-4 bg-brand-elevated/20 backdrop-blur-md border border-brand-border/40 hover:border-brand-border/60 transition-colors shadow-lg relative overflow-hidden group/chart">
+        <div className="absolute inset-0 dot-matrix opacity-20 pointer-events-none" />
+        
+        <div className="flex flex-col border-b border-brand-border/30 pb-3 relative z-10 gap-2">
+          <div className="flex items-center justify-between">
+            <h3 className="label-caps flex items-center text-brand-text-bright mb-0 text-[10px]">
+              <TrendingUp size={12} className="text-brand-accent mr-2" />
+              {t.ui.performance_architecture}
+              <InfoTooltip content="Comprehensive yield curve with drawdown zones and moving average smoothing." />
+            </h3>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-0.5 bg-brand-accent" />
+                <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">Equity</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-0.5 bg-brand-warning opacity-50" />
+                <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">MA(5)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 text-[9px] font-mono">
+            <span className="text-trade-short font-bold">{t.ui.max_drawdown_label}: {maxDrawdownInfo.value.toFixed(2)}R</span>
+            <span className="opacity-20 border-r border-brand-border h-2" />
+            <span className="text-brand-accent font-bold">{t.ui.resistance}: {maxRecoveryTrades} NODES</span>
+          </div>
+        </div>
+
+        <div className="h-[280px] w-full pt-2 relative z-10">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+              <defs>
+                <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--brand-accent)" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="var(--brand-accent)" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="drawdownFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--trade-short)" stopOpacity={0.15}/>
+                  <stop offset="95%" stopColor="var(--trade-short)" stopOpacity={0.05}/>
+                </linearGradient>
+              </defs>
+              
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--brand-border)" vertical={false} opacity={0.05} />
+              
+              <XAxis 
+                dataKey="trade" 
+                stroke="var(--brand-text-dim)" 
+                fontSize={9} 
+                tickLine={false} 
+                axisLine={false}
+                tickFormatter={(val) => `T${val}`}
+                tick={{ fill: 'var(--brand-text-dim)', fontFamily: 'monospace', opacity: 0.3 }}
+                dy={10}
+              />
+              
+              <YAxis 
+                stroke="var(--brand-text-dim)" 
+                fontSize={9} 
+                tickLine={false} 
+                axisLine={false}
+                tickFormatter={(val) => `${val}R`}
+                tick={{ fill: 'var(--brand-text-dim)', fontFamily: 'monospace', opacity: 0.3 }}
+                dx={-10}
+              />
+
+              <Tooltip 
+                cursor={{ stroke: 'var(--brand-text-dim)', strokeWidth: 1, strokeDasharray: '4 4', opacity: 0.2 }}
+                content={(props) => {
+                  const { active, payload } = props;
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    const dd = data.hwm - data.equity;
+                    return (
+                      <div className="bg-brand-elevated/95 backdrop-blur-xl border border-brand-border/40 p-3 rounded shadow-2xl flex flex-col gap-2 z-50 min-w-[170px]">
+                        <div className="flex justify-between items-center border-b border-brand-border/20 pb-2 mb-1">
+                          <span className="text-[10px] font-mono font-bold text-brand-accent tracking-tighter">{data.symbol || 'SYSTEM'}</span>
+                          <span className="text-[8px] font-mono opacity-40">{data.date ? new Date(data.date).toLocaleDateString() : 'T'+data.trade}</span>
+                        </div>
+                        
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center text-[10px] font-mono">
+                            <span className="opacity-40 uppercase">Equity</span>
+                            <span className="font-bold text-brand-text-bright">{data.equity.toFixed(2)}R</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[10px] font-mono">
+                            <span className="opacity-40 uppercase">Delta</span>
+                            <span className={`font-bold ${data.rMultiple > 0 ? 'text-trade-long' : data.rMultiple < 0 ? 'text-trade-short' : 'text-brand-text-dim'}`}>
+                              {data.rMultiple > 0 ? '+' : ''}{data.rMultiple?.toFixed(2)}R
+                            </span>
+                          </div>
+                          {dd > 0 && (
+                            <div className="flex justify-between items-center text-[10px] font-mono">
+                              <span className="text-trade-short uppercase font-bold">Drawdown</span>
+                              <span className="font-bold text-trade-short">-{dd.toFixed(2)}R</span>
+                            </div>
+                          )}
+                          <div className="pt-1.5 mt-1.5 border-t border-brand-border/10 flex justify-between items-center text-[8px] font-mono opacity-30">
+                            <span>ROLL_MA(5)</span>
+                            <span>{data.movingAverage.toFixed(2)}R</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+
+              {/* High Water Mark Shaded Area */}
+              <Area
+                type="monotone"
+                dataKey="hwm"
+                stroke="none"
+                fill="url(#drawdownFill)"
+                connectNulls
+                baseLine={0}
+                isAnimationActive={false}
+              />
+
+              {/* Main Equity Area */}
+              <Area 
+                type="monotone" 
+                dataKey="equity" 
+                stroke="var(--brand-accent)" 
+                strokeWidth={2} 
+                fill="var(--brand-bg)" // Use background color to 'mask' the hwm area, leaving only the gap
+                fillOpacity={0.9}
+                dot={(props: any) => {
+                  const { cx, cy, payload, index } = props;
+                  if (payload.trade === 0) return null;
+                  const isMaxDD = index === maxDrawdownInfo.index;
+                  return (
+                    <g key={`dot-${index}`}>
+                      <circle 
+                        cx={cx} 
+                        cy={cy} 
+                        r={isMaxDD ? 5 : (payload.rMultiple > 0 ? 3 : 2)} 
+                        fill={isMaxDD ? 'var(--trade-short)' : (payload.rMultiple > 0 ? 'var(--trade-long)' : payload.rMultiple < 0 ? 'var(--trade-short)' : 'var(--status-neutral)')}
+                        className={isMaxDD ? "animate-pulse" : "opacity-80"}
+                      />
+                      {isMaxDD && (
+                        <circle 
+                          cx={cx} 
+                          cy={cy} 
+                          r={10} 
+                          fill="var(--trade-short)"
+                          className="opacity-20 animate-ping"
+                        />
+                      )}
+                    </g>
+                  );
+                }}
+                activeDot={{ r: 6, strokeWidth: 2, fill: 'var(--brand-text-bright)', stroke: 'var(--brand-accent)' }}
+              />
+
+              {/* Peak to Trough Indicator at Max DD */}
+              {maxDrawdownInfo.index !== -1 && (
+                <ReferenceLine 
+                  x={chartData[maxDrawdownInfo.index].trade} 
+                  stroke="var(--trade-short)" 
+                  strokeDasharray="3 3" 
+                  opacity={0.3}
+                  label={{ 
+                    position: 'top', 
+                    value: t.ui.max_drawdown_label.toUpperCase(), 
+                    fill: 'var(--trade-short)', 
+                    fontSize: 8, 
+                    fontFamily: 'monospace',
+                    className: 'font-bold'
+                  }} 
+                />
+              )}
+
+              {/* Moving Average Line */}
+              <Area
+                type="monotone"
+                dataKey="movingAverage"
+                stroke="var(--brand-warning)"
+                strokeWidth={1}
+                strokeDasharray="4 4"
+                strokeOpacity={0.4}
+                fill="none"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Numerical Drawdown Chart (Focusing on Delta decay) */}
+      <div className="technical-panel p-4 flex flex-col gap-4 bg-brand-elevated/20 backdrop-blur-md border border-brand-border/30 hover:border-brand-border/60 transition-colors shadow-lg relative overflow-hidden group/drawdown">
+        <div className="absolute inset-0 dot-matrix opacity-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-trade-short/[0.03] to-transparent pointer-events-none" />
+        
+        <div className="flex items-center justify-between border-b border-brand-border/20 pb-3 relative z-10">
+          <h3 className="label-caps flex items-center text-trade-short/70 mb-0 text-[10px]">
+            <ArrowDownRight size={12} className="mr-2" />
+            {t.ui.strict_delta_excursion}
+            <InfoTooltip content="Magnified view of capital decay. Each point represents the distance from the current High Water Mark." />
+          </h3>
+          <div className="text-[8px] font-mono text-trade-short font-bold animate-pulse tracking-widest">{t.ui.risk_boundary}</div>
+        </div>
+
+        <div className="h-[280px] w-full pt-2 relative z-10">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+              <defs>
+                <linearGradient id="drawdownGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--trade-short)" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="var(--trade-short)" stopOpacity={0.05}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--brand-border)" vertical={false} opacity={0.05} />
+              <XAxis 
+                dataKey="trade" 
+                stroke="var(--brand-text-dim)" 
+                fontSize={9} 
+                tickLine={false} 
+                axisLine={false}
+                tickFormatter={(val) => `T${val}`}
+                tick={{ fill: 'var(--brand-text-dim)', fontFamily: 'monospace', opacity: 0.3 }}
+                dy={10}
+              />
+              <YAxis 
+                stroke="var(--brand-text-dim)" 
+                fontSize={9} 
+                tickLine={false} 
+                axisLine={false}
+                tick={{ fill: 'var(--brand-text-dim)', fontFamily: 'monospace', opacity: 0.2 }}
+                tickFormatter={(val) => `-${val}R`}
+                dx={-10}
+              />
+              <Tooltip 
+                content={(props) => {
+                  const { active, payload } = props;
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-brand-elevated/95 backdrop-blur-xl border border-trade-short/30 p-2 rounded shadow-xl flex flex-col gap-1 z-50">
+                        <span className="text-[8px] font-mono opacity-40 uppercase">Drawdown at T{data.trade}</span>
+                        <span className="text-sm font-bold font-mono text-trade-short">-{data.drawdownValue.toFixed(2)}R</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="drawdownValue" 
+                stroke="var(--trade-short)" 
+                strokeWidth={1.5}
+                fill="url(#drawdownGradient)"
+                dot={(props: any) => {
+                  const { cx, cy, index } = props;
+                  if (index === maxDrawdownInfo.index) {
+                    return (
+                      <circle cx={cx} cy={cy} r={4} fill="var(--trade-short)" className="animate-ping" />
+                    );
+                  }
+                  return null;
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        
+        <div className="flex justify-between items-end relative z-10 px-2 mt-[-10px]">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[7px] label-caps opacity-30">{t.ui.peak_decay}</span>
+            <span className="text-lg font-bold font-mono text-trade-short">
+              -{maxDrawdownInfo.value.toFixed(2)}R 
+            </span>
+          </div>
+          <div className="flex flex-col items-end gap-0.5">
+            <span className="text-[7px] label-caps opacity-30">{t.ui.resistance}</span>
+            <span className="text-xs font-bold font-mono text-brand-text-bright opacity-60">{maxRecoveryTrades} Trades</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/InsightPanel.tsx">
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Lightbulb, 
+  TrendingUp, 
+  AlertTriangle, 
+  BrainCircuit, 
+  Zap,
+  Target,
+  ArrowUpRight,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  EyeOff
+} from 'lucide-react';
+import { TradeStats } from '../types';
+
+interface InsightPanelProps {
+  stats: TradeStats;
+  t: any;
+}
+
+interface Insight {
+  id: string;
+  type: 'positive' | 'warning' | 'neutral';
+  icon: any;
+  title: string;
+  description: string;
+  action?: string;
+}
+
+export const InsightPanel = ({ stats, t }: InsightPanelProps) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const isTH = t.ui.dashboard === "แดชบอร์ด";
+
+  const insights = React.useMemo(() => {
+    const list: Insight[] = [];
+
+    // 1. Profit Leader
+    if (stats.symbolEfficiency && stats.symbolEfficiency.length > 0) {
+      const best = [...stats.symbolEfficiency].sort((a, b) => b.profit - a.profit)[0];
+      if (best && best.profit > 0) {
+        list.push({
+          id: 'best-symbol',
+          type: 'positive',
+          icon: TrendingUp,
+          title: isTH ? `พบสินทรัพย์ที่ทำกำไรสูงสุด: ${best.symbol}` : `Alpha Asset Identified: ${best.symbol}`,
+          description: isTH 
+            ? `ทำกำไรสุทธิได้ถึง ${best.profit.toFixed(2)}R แนะนำให้โฟกัสการเทรดสินทรัพย์นี้เป็นหลัก`
+            : `Generating ${best.profit.toFixed(2)}R net yield. Focus on capturing high-probability flows for this node.`,
+          action: isTH ? `เพิ่มสัดส่วนการเทรดใน ${best.symbol}` : 'Weight allocation towards ' + best.symbol
+        });
+      }
+    }
+
+    // 2. Winrate Consistency
+    if (stats.winRate >= 60) {
+      list.push({
+        id: 'high-winrate',
+        type: 'positive',
+        icon: ShieldCheck,
+        title: isTH ? 'ตรวจพบความได้เปรียบของระบบ' : 'Neural Edge Detected',
+        description: isTH
+          ? `Win Rate ปัจจุบันอยู่ที่ ${stats.winRate.toFixed(1)}% ระบบของคุณได้รับการปรับแต่งมาอย่างดีเยี่ยม`
+          : `Current win probability is ${stats.winRate.toFixed(1)}%. Your execution matrix is highly calibrated for current volatility.`,
+        action: isTH ? 'รักษาวินัยและแผนการเทรดอย่างเคร่งครัด' : 'Maintain strict risk parameters'
+      });
+    }
+
+    // 3. Directional Bias
+    const longWr = stats.biasAnalysis.long.winRate;
+    const shortWr = stats.biasAnalysis.short.winRate;
+    if (Math.abs(longWr - shortWr) > 15 && stats.totalTrades > 5) {
+      const betterSide = longWr > shortWr ? (isTH ? 'ขาขึ้น (Long)' : 'Bullish') : (isTH ? 'ขาลง (Short)' : 'Bearish');
+      list.push({
+        id: 'bias-insight',
+        type: 'neutral',
+        icon: BrainCircuit,
+        title: isTH ? `ความแม่นยำโน้มเอียงไปทางฝั่ง ${betterSide}` : `${betterSide} Efficiency Skew`,
+        description: isTH
+          ? `สถิติบ่งบอกถึงความน่าจะเป็นที่สูงกว่าในฝั่ง ${betterSide} (${Math.max(longWr, shortWr).toFixed(1)}% WR)`
+          : `Probability distribution favors ${betterSide} expansions (${Math.max(longWr, shortWr).toFixed(1)}% WR).`,
+        action: isTH ? `เน้นหาจังหวะเทรดฝั่ง ${betterSide} เป็นหลัก` : `Filter for ${betterSide} high-timeframe setups`
+      });
+    }
+
+    // 4. Consecutive Loss Warning
+    if (stats.maxConsecutiveLosses >= 3) {
+      list.push({
+        id: 'loss-streak',
+        type: 'warning',
+        icon: AlertTriangle,
+        title: isTH ? 'คำเตือน: ความเสี่ยงจากการแพ้ติดกัน' : 'Sequential Failure Risk',
+        description: isTH
+          ? `พบการแพ้ติดต่อกันถึง ${stats.maxConsecutiveLosses} ครั้ง อาจเกิดจากความล้าในการเทรด`
+          : `Peak sequence of ${stats.maxConsecutiveLosses} losses detected. Neural fatigue may be impacting execution quality.`,
+        action: isTH ? 'ควรหยุดพักทันทีหากแพ้ติดต่อกันเกิน 2 ครั้ง' : 'Implement mandatory cooldown after 2 losses'
+      });
+    }
+
+    // 5. Recovery / Resilience
+    if (stats.recoveryFactor > 3) {
+      list.push({
+        id: 'recovery-strength',
+        type: 'positive',
+        icon: Zap,
+        title: isTH ? 'ความแข็งแกร่งในการฟื้นตัว' : 'Architectural Resilience',
+        description: isTH
+          ? `ค่า Recovery Factor อยู่ที่ ${stats.recoveryFactor.toFixed(2)} แสดงถึงความสามารถในการทำกำไรคืนหลังจากขาดทุนได้เร็ว`
+          : `Recovery Factor of ${stats.recoveryFactor.toFixed(2)} indicates high capacity to regain capital after drawdown events.`,
+        action: isTH ? 'เทรดด้วยแผน R-multiple ต่อไป' : 'Continue disciplined R-multiple extraction'
+      });
+    }
+
+    // 6. Low Volume Warning
+    if (stats.totalTrades < 10) {
+      list.push({
+        id: 'low-data',
+        type: 'neutral',
+        icon: Target,
+        title: isTH ? 'ข้อมูลยังไม่เพียงพอ' : 'Sparse Data Matrix',
+        description: isTH 
+          ? 'ชุดข้อมูลยังน้อยเกินไปสำหรับการวิเคราะห์ที่แม่นยำ แนะนำให้เพิ่มบันทึกการเทรด'
+          : 'Dataset nodes are insufficient for high-confidence predictive modeling. Continued node entry required.',
+        action: isTH ? 'สะสมบันทึกการเทรดเพิ่มเติม' : 'Acquire more trade event data'
+      });
+    }
+
+    return list.slice(0, 4); // Show top 4 insights
+  }, [stats, isTH]);
+
+  if (insights.length === 0) return null;
+
+  return (
+    <div className="lg:col-span-6 mt-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-full bg-brand-accent/20 flex items-center justify-center border border-brand-accent/40">
+            <Lightbulb size={14} className="text-brand-accent animate-pulse" />
+          </div>
+          <div>
+            <h2 className="label-caps !mb-0 text-brand-text-bright flex items-center gap-2 text-[10px]">
+              {t.ui.ai_neural_insights}
+              <span className="text-[7px] bg-brand-accent/10 border border-brand-accent/20 px-1.5 py-0.5 rounded text-brand-accent">LIVE</span>
+            </h2>
+          </div>
+        </div>
+
+        <button 
+          onClick={() => setIsVisible(!isVisible)}
+          className="flex items-center gap-2 px-2 py-1 rounded bg-brand-elevated border border-brand-border/30 text-[8px] font-mono uppercase tracking-wider text-brand-text-dim hover:text-brand-accent hover:border-brand-accent/40 transition-all group"
+        >
+          {isVisible ? (
+            <>
+              <EyeOff size={12} className="opacity-40 group-hover:opacity-100" />
+              {t.ui.hide_insights}
+            </>
+          ) : (
+            <>
+              <Eye size={12} className="opacity-40 group-hover:opacity-100" />
+              {t.ui.show_insights}
+            </>
+          )}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-1">
+              {insights.map((insight, idx) => (
+                <motion.div
+                  key={insight.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className={`technical-panel p-4 flex flex-col gap-3 relative overflow-hidden group transition-all hover:bg-brand-elevated/40 border-brand-border/40 ${
+                    insight.type === 'positive' ? 'hover:border-trade-long/30' : 
+                    insight.type === 'warning' ? 'hover:border-trade-short/30' : 
+                    'hover:border-brand-accent/30'
+                  }`}
+                >
+                  {/* Background Accent */}
+                  <div className={`absolute -right-4 -top-4 w-20 h-20 rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none ${
+                    insight.type === 'positive' ? 'bg-trade-long' : 
+                    insight.type === 'warning' ? 'bg-trade-short' : 
+                    'bg-brand-accent'
+                  }`} />
+
+                  <div className="flex items-start justify-between relative z-10">
+                    <div className={`p-2 rounded-lg bg-brand-elevated border border-brand-border/30 shadow-inner ${
+                      insight.type === 'positive' ? 'text-trade-long shadow-trade-long/5' : 
+                      insight.type === 'warning' ? 'text-trade-short shadow-trade-short/5' : 
+                      'text-brand-accent shadow-brand-accent/5'
+                    }`}>
+                      <insight.icon size={18} />
+                    </div>
+                    <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-20 transition-opacity" />
+                  </div>
+
+                  <div className="flex flex-col gap-1 relative z-10">
+                    <h4 className="text-[11px] font-bold uppercase tracking-tight text-brand-text-bright/90 leading-tight">
+                      {insight.title}
+                    </h4>
+                    <p className="text-[10px] text-brand-text-dim leading-relaxed font-mono opacity-60">
+                      {insight.description}
+                    </p>
+                  </div>
+
+                  {insight.action && (
+                    <div className="mt-auto pt-3 border-t border-brand-border/10 flex items-center gap-2 relative z-10">
+                      <div className={`w-1 h-1 rounded-full animate-pulse ${
+                        insight.type === 'positive' ? 'bg-trade-long' : 
+                        insight.type === 'warning' ? 'bg-trade-short' : 
+                        'bg-brand-accent'
+                      }`} />
+                      <span className={`text-[8px] font-black uppercase tracking-widest opacity-80 ${
+                        insight.type === 'positive' ? 'text-trade-long' : 
+                        insight.type === 'warning' ? 'text-trade-short' : 
+                        'text-brand-accent'
+                      }`}>
+                        Action: {insight.action}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Scanning line animation */}
+                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-brand-accent/20 to-transparent translate-y-[-100%] group-hover:animate-scan pointer-events-none" />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/PerformanceDashboard.tsx">
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import * as RadixTooltip from "@radix-ui/react-tooltip";
+import { 
+  BarChart, 
+  Bar, 
+  LineChart, 
+  Line, 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  Cell,
+  ReferenceLine
+} from 'recharts';
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Target, 
+  Zap, 
+  ShieldAlert, 
+  Clock, 
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Info
+} from 'lucide-react';
+import { TradeStats, TranslationSchema } from '../types';
+import { EquityChart } from './EquityChart';
+import { InsightPanel } from './InsightPanel';
+
+interface PerformanceDashboardProps {
+  stats: TradeStats;
+  t: TranslationSchema;
+  isSidebarCollapsed?: boolean;
+}
+
+const MetricTooltip = ({ content, thaiContent }: { content: string, thaiContent: string }) => (
+  <RadixTooltip.Provider delayDuration={200}>
+    <RadixTooltip.Root>
+      <RadixTooltip.Trigger asChild>
+        <button className="p-1 hover:text-brand-accent transition-colors opacity-40 hover:opacity-100 outline-none">
+          <Info size={12} />
+        </button>
+      </RadixTooltip.Trigger>
+      <RadixTooltip.Portal>
+        <RadixTooltip.Content 
+          side="top" 
+          align="center" 
+          sideOffset={5}
+          className="z-[100] bg-brand-elevated/95 backdrop-blur-md border border-brand-border p-3 rounded-lg shadow-2xl max-w-[280px] animate-in fade-in zoom-in duration-200"
+        >
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] font-medium text-brand-text-bright leading-relaxed italic">
+              "{content}"
+            </p>
+            <div className="h-[1px] bg-brand-border opacity-30" />
+            <p className="text-[11px] text-brand-text-dim font-medium leading-relaxed">
+              {thaiContent}
+            </p>
+          </div>
+          <RadixTooltip.Arrow className="fill-brand-border" />
+        </RadixTooltip.Content>
+      </RadixTooltip.Portal>
+    </RadixTooltip.Root>
+  </RadixTooltip.Provider>
+);
+
+export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stats, t, isSidebarCollapsed }) => {
+  const p = t.performance;
+
+  // Mock data for session if missing
+  const sessionData = stats.performanceBySession || [
+    { session: 'Asia', winRate: 50, profit: 0, count: 0 },
+    { session: 'London', winRate: 50, profit: 0, count: 0 },
+    { session: 'New York', winRate: 50, profit: 0, count: 0 }
+  ];
+
+  // Helper to determine best/worst
+  const bestSession = [...sessionData].sort((a, b) => b.profit - a.profit)[0];
+  const worstSession = [...sessionData].sort((a, b) => a.profit - b.profit)[0];
+
+  const bestSetup = stats.strategyAnalysis && stats.strategyAnalysis.length > 0 
+    ? [...stats.strategyAnalysis].sort((a, b) => b.profit - a.profit)[0]
+    : null;
+
+  const worstSetup = stats.strategyAnalysis && stats.strategyAnalysis.length > 0
+    ? [...stats.strategyAnalysis].sort((a, b) => a.profit - b.profit)[0]
+    : null;
+
+  // Color logic helpers
+  const getWinRateColor = (wr: number) => {
+    if (wr >= 65) return 'text-brand-success'; // Exceptional
+    if (wr >= 55) return 'text-brand-text-bright'; // Acceptable (Neutral)
+    return 'text-brand-text-dim'; // Low
+  };
+
+  const currentEquity = stats.equityCurve[stats.equityCurve.length - 1]?.equity || 0;
+  const peakEquity = Math.max(...stats.equityCurve.map(d => d.equity));
+
+  return (
+    <div className="flex flex-col gap-6 pb-12">
+      {/* 1. Scannable Insights Bar (AI Section from Analytics) */}
+      <div className="flex flex-col gap-2">
+        <h4 className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.2em] ml-1">{t.ui.ai_neural_insights}</h4>
+        <InsightPanel stats={stats} t={t} />
+      </div>
+
+      {/* 2. Primary Metrics Bar */}
+      <div className={`grid grid-cols-1 gap-4 transition-all duration-300 ${isSidebarCollapsed ? 'md:grid-cols-3 xl:grid-cols-5' : 'md:grid-cols-2 lg:grid-cols-5'}`}>
+        {/* Net Profit */}
+        <div className="bg-brand-elevated/40 p-6 rounded-xl border border-brand-border flex flex-col justify-between shadow-sm group">
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest block">{p.net_profit}</span>
+              <MetricTooltip 
+                content="Net Profit: The total profit or loss generated by all closed trades, adjusted for risk units (R)."
+                thaiContent="กำไรสุทธิ: ผลรวมกำไรหรือขาดทุนจากทุกไม้ที่ปิดแล้ว โดยคิดเป็นหน่วยความเสี่ยง (R)"
+              />
+            </div>
+            <div className={`text-2xl font-bold tracking-tighter ${currentEquity >= 0 ? 'text-brand-success' : 'text-brand-danger'}`}>
+              {currentEquity >= 0 ? '+' : ''}{currentEquity.toFixed(2)}R
+            </div>
+          </div>
+          <p className="text-[10px] text-brand-text-dim font-medium uppercase mt-4">{p.net_profit_desc}</p>
+        </div>
+
+        {/* Expectancy (HERO CARD) */}
+        <div className="md:col-span-2 bg-brand-elevated p-6 rounded-xl border border-brand-accent/30 flex flex-col justify-between shadow-lg relative overflow-hidden ring-1 ring-brand-accent/10">
+          <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-black text-brand-accent uppercase tracking-[0.2em] block">{p.system_edge}</span>
+                  <MetricTooltip 
+                    content="Expectancy: average profit per trade (you gain/lose this per trade on average)"
+                    thaiContent="ค่าเฉลี่ยกำไรต่อไม้ (โดยรวมเล่น 1 ไม้ ได้/เสียเท่าไหร่)"
+                  />
+                </div>
+                <span className="text-base font-bold text-brand-text-bright">{p.expectancy}</span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-brand-accent/10 flex items-center justify-center text-brand-accent">
+                <Target size={18} strokeWidth={2.5} />
+              </div>
+            </div>
+            
+            <div className="flex items-baseline gap-2">
+              <div className="text-5xl font-black tracking-tighter text-brand-accent">
+                {stats.expectancy.toFixed(2)}
+                <span className="text-xl opacity-50 ml-1 italic">R</span>
+              </div>
+            </div>
+            
+            <div className="text-[10px] text-brand-text-dim font-medium leading-relaxed max-w-[240px]">
+              EACH VERIFIED SIGNAL GENERATES AN ESTIMATED RETURN OF <span className="text-brand-text-bright font-bold">{stats.expectancy.toFixed(2)} UNIT(S)</span> PER RISK NODE.
+            </div>
+          </div>
+        </div>
+
+        {/* Max Drawdown */}
+        <div className={`bg-brand-elevated/40 p-6 rounded-xl border flex flex-col justify-between shadow-sm transition-colors duration-300 ${stats.maxDrawdown > 5 ? 'border-brand-danger/40 bg-brand-danger/5' : 'border-brand-border'}`}>
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest block">{p.max_drawdown}</span>
+              <MetricTooltip 
+                content="Max Drawdown: The largest peak-to-trough decline in equity, representing your maximum exposure/risk."
+                thaiContent="Drawdown สูงสุด: ระยะขาดทุนที่ลึกที่สุดจากจุดสูงสุด สื่อถึงความเสี่ยงสูงสุดที่คุณเคยเผชิญ"
+              />
+            </div>
+            <div className={`text-2xl font-bold tracking-tighter ${stats.maxDrawdown > 5 ? 'text-brand-danger' : 'text-brand-text-bright'}`}>
+              -{stats.maxDrawdown.toFixed(2)}R
+            </div>
+          </div>
+          <p className="text-[10px] text-brand-text-dim font-medium uppercase mt-4">{p.max_dd_desc}</p>
+        </div>
+
+        {/* Win Rate */}
+        <div className="bg-brand-elevated/40 p-6 rounded-xl border border-brand-border flex flex-col justify-between shadow-sm">
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest block">{p.win_rate}</span>
+              <MetricTooltip 
+                content="Win Rate: The percentage of total trades that resulted in a profit."
+                thaiContent="อัตราการชนะ (Win Rate): เปอร์เซ็นต์ของไม้ที่ชนะเมื่อเทียบกับจำนวนไม้ทั้งหมด"
+              />
+            </div>
+            <div className={`text-2xl font-bold tracking-tighter ${getWinRateColor(stats.winRate)}`}>
+              {stats.winRate.toFixed(1)}%
+            </div>
+          </div>
+          <p className="text-[10px] text-brand-text-dim font-medium uppercase mt-4">{p.win_rate_desc}</p>
+        </div>
+      </div>
+
+      {/* 3. Charts Section (Reused from Analytics) */}
+      <div className="bg-brand-elevated/30 rounded-2xl border border-brand-border/50 p-1 px-4 pb-4">
+        <div className="flex items-baseline justify-between pt-4 mb-2">
+          <h4 className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.2em] ml-1">Analytics Architecture</h4>
+          <div className="text-[9px] font-mono opacity-20 uppercase">Core Systems Synchronized</div>
+        </div>
+        <EquityChart stats={stats} t={t} />
+      </div>
+
+      {/* 4. Strategic Analysis & Edge Controls */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="md:col-span-3 bg-brand-elevated/50 rounded-xl border border-brand-border p-8 shadow-md">
+          <div className="flex justify-between items-start mb-10">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-brand-bg border border-brand-border flex items-center justify-center text-brand-text-dim">
+                <Activity size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-brand-text-bright uppercase tracking-widest">{p.edge_analysis}</h3>
+                <p className="text-[10px] text-brand-text-dim font-bold uppercase tracking-[0.2em]">Metadata Analytics Matrix</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col text-right">
+              <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest mb-1">{p.suggested_action}</span>
+              <div className={`text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full border shadow-sm ${stats.maxConsecutiveLosses >= 3 ? 'text-brand-danger border-brand-danger/30 bg-brand-danger/5' : 'text-brand-success border-brand-success/30 bg-brand-success/5'}`}>
+                {stats.maxConsecutiveLosses >= 3 ? 'Protocol: Suspend' : 'Protocol: Maintain'}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Setup Perf */}
+            <div className={`flex flex-col gap-4 ${isSidebarCollapsed ? 'xl:col-span-1' : ''}`}>
+              <div className="flex justify-between items-center">
+                <h4 className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.2em]">{p.setup_performance}</h4>
+                <MetricTooltip 
+                  content="Setup Performance: Efficiency of individual trading strategies based on average R-multiple."
+                  thaiContent="ประสิทธิภาพตามรูปแบบการเทรด: สรุปความได้เปรียบของแต่ละกลยุทธ์ตามค่าเฉลี่ย R-multiple"
+                />
+              </div>
+              <div className="space-y-3">
+                {stats.strategyAnalysis?.slice(0, 3).map((strat, idx) => (
+                  <div key={idx} className="flex justify-between items-center p-3.5 bg-brand-bg/40 rounded-lg border border-brand-border">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-bold text-brand-text-bright uppercase">{strat.name}</span>
+                      <span className={`text-[9px] font-black uppercase transition-opacity ${strat.avgR > 0.5 ? 'text-brand-success' : strat.avgR < 0 ? 'text-brand-danger' : 'opacity-0'}`}>
+                        {strat.avgR > 0.5 ? p.trade_more : p.avoid}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold monospace-data text-brand-text-bright">{strat.avgR.toFixed(2)}R</div>
+                      <div className="text-[9px] font-bold text-brand-text-dim uppercase tracking-tighter">{strat.count} Trades</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Session Perf */}
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <h4 className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.2em]">{p.session_performance}</h4>
+                <MetricTooltip 
+                  content="Session Performance: Win rate and yield distribution across different global trading sessions."
+                  thaiContent="ประสิทธิภาพตามช่วงเวลา: ผลตอบแทนและอัตราการชนะแบ่งตามช่วงเวลาตลาดโลก"
+                />
+              </div>
+              <div className="space-y-3">
+                {sessionData.map((session, idx) => (
+                  <div key={idx} className={`flex justify-between items-center p-3.5 rounded-lg border ${session.session === bestSession.session ? 'bg-brand-accent/5 border-brand-accent/30 ring-1 ring-brand-accent/10' : 'bg-brand-bg/40 border-brand-border'}`}>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-brand-text-bright uppercase">{(p as any)[session.session.toLowerCase()] || session.session}</span>
+                      <span className="text-[9px] font-bold text-brand-text-dim uppercase">{session.count} Executions</span>
+                    </div>
+                    <div className="text-right flex items-center gap-4">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-bold text-brand-text-dim uppercase mb-0.5">Win%</span>
+                        <span className="text-xs font-bold tabular-nums text-brand-text-bright">{session.winRate.toFixed(0)}%</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-bold text-brand-text-dim uppercase mb-0.5">Yield</span>
+                        <span className={`text-xs font-black tabular-nums ${session.profit >= 0 ? 'text-brand-success' : 'text-brand-danger'}`}>{session.profit.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Behavior Node */}
+            <div className="flex flex-col gap-5">
+              <div className="flex justify-between items-center">
+                <h4 className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.2em]">{p.risk_behavior}</h4>
+                <MetricTooltip 
+                  content="Risk Behavior: Analysis of trading discipline and negative streak endurance."
+                  thaiContent="พฤติกรรมความเสี่ยง: การวิเคราะห์วินัยและการรับมือช่วงที่แพ้ติดต่อกัน"
+                />
+              </div>
+              <div className="space-y-6">
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-baseline">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest">{p.discipline_rate}</span>
+                      <MetricTooltip 
+                        content="Discipline Rate: Percentage of trades that strictly followed the predefined entry and exit protocols."
+                        thaiContent="อัตราวินัย: เปอร์เซ็นต์ของไม้ที่เทรดตามกฎจุดเข้าและจุดออกที่วางไว้อย่างเคร่งครัด"
+                      />
+                    </div>
+                    <span className="text-lg font-bold text-brand-text-bright italic">94%</span>
+                  </div>
+                  <div className="w-full h-1 bg-brand-elevated rounded-full overflow-hidden">
+                    <div className="h-full bg-brand-accent/80 rounded-full" style={{ width: '94%' }} />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-baseline">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-brand-text-dim uppercase tracking-widest">{p.consecutive_losses}</span>
+                      <MetricTooltip 
+                        content="Consecutive Losses: The current or maximum number of losing trades in a row."
+                        thaiContent="จำนวนการแพ้ติดต่อกัน: จำนวนไม้ที่แพ้ต่อเนื่องกัน ณ ปัจจุบัน หรือสูงสุดที่เคยเกิดขึ้น"
+                      />
+                    </div>
+                    <span className={`text-lg font-bold italic ${stats.maxConsecutiveLosses >= 3 ? 'text-brand-danger' : 'text-brand-text-bright'}`}>
+                      {stats.maxConsecutiveLosses} Nodes
+                    </span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {[...Array(6)].map((_, i) => (
+                      <div 
+                        key={i} 
+                        className={`w-2.5 h-2.5 rounded shadow-sm ${i < stats.maxConsecutiveLosses ? 'bg-brand-danger' : 'bg-brand-elevated border border-brand-border'}`} 
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Professional Lockdown Access */}
+        <div className={`rounded-xl border p-8 flex flex-col justify-between transition-all shadow-lg backdrop-blur-md ${stats.maxConsecutiveLosses >= 3 ? 'bg-brand-danger/20 border-brand-danger/40 ring-2 ring-brand-danger/10' : 'bg-brand-elevated/50 border-brand-border opacity-60 hover:opacity-100'}`}>
+          <div className="flex flex-col items-center text-center gap-6">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center border shadow-xl transition-all duration-700 ${stats.maxConsecutiveLosses >= 3 ? 'bg-brand-danger text-white border-brand-danger/40 animate-pulse' : 'bg-brand-elevated text-brand-text-dim border-brand-border'}`}>
+              <ShieldAlert size={32} />
+            </div>
+            
+            <div className="space-y-1">
+              <h4 className={`text-sm font-black uppercase tracking-[0.2em] ${stats.maxConsecutiveLosses >= 3 ? 'text-brand-danger' : 'text-brand-text-dim'}`}>
+                {stats.maxConsecutiveLosses >= 3 ? 'Active Suspension' : 'Protocol Ready'}
+              </h4>
+              <p className="text-[10px] text-brand-text-dim font-bold uppercase leading-relaxed max-w-[200px]">
+                {stats.maxConsecutiveLosses >= 3 
+                  ? "SYSTEM HAS DETECTED NEURAL FATIGUE. ALL MARKETS SUSPENDED."
+                  : "BEHAVIORAL OVERRIDE IS ARMED BUT DISENGAGED."}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6 pt-6 border-t border-brand-border">
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-[9px] font-black text-brand-text-dim uppercase tracking-widest">{p.lockdown_timer}</span>
+              <div className="text-3xl font-black tabular-nums tracking-tighter text-brand-text-bright">
+                {stats.maxConsecutiveLosses >= 3 ? "23:59:42" : "00:00:00"}
+              </div>
+            </div>
+            
+            <button className={`w-full py-4 rounded-lg text-xs font-black uppercase tracking-[0.2em] transition-all shadow-md active:scale-[0.98] ${stats.maxConsecutiveLosses >= 3 ? 'bg-brand-danger text-white hover:opacity-90 shadow-brand-danger/40' : 'bg-brand-bg text-brand-text-dim border border-brand-border hover:bg-brand-elevated hover:text-brand-text-bright'}`}>
+              {p.initiate_lockdown}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/StatsPanel.tsx">
+import React from 'react';
+import { motion } from 'motion/react';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
+import { 
+  PieChart, 
+  Activity, 
+  TrendingUp, 
+  Zap, 
+  ArrowDownRight, 
+  RefreshCcw, 
+  TrendingDown, 
+  Database,
+  Info,
+  BarChart3,
+  Target,
+  Clock,
+  LayoutDashboard, 
+  ListFilter
+} from 'lucide-react';
+import * as RadixTooltip from '@radix-ui/react-tooltip';
+import { TradeStats, AnalysisHistoryItem, Strategy } from '../types';
+import { StrategyManager } from './StrategyManager';
+
+export const InfoTooltip = ({ content, language = 'EN' }: { content: string, language?: 'EN' | 'TH' }) => {
+  return (
+    <RadixTooltip.Provider delayDuration={200}>
+      <RadixTooltip.Root>
+        <RadixTooltip.Trigger asChild>
+          <button className="text-brand-text-dim hover:text-brand-accent transition-colors ml-1 focus:outline-none">
+            <Info size={12} />
+          </button>
+        </RadixTooltip.Trigger>
+        <RadixTooltip.Portal>
+          <RadixTooltip.Content
+            className="z-[100] select-none rounded-[4px] bg-brand-elevated px-[15px] py-[10px] text-[11px] leading-tight text-brand-text-bright shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] border border-brand-accent/20 animate-in fade-in zoom-in-95 duration-200"
+            sideOffset={5}
+          >
+            <div className="max-w-[200px] uppercase font-mono tracking-tighter leading-relaxed">
+              {content}
+            </div>
+            <RadixTooltip.Arrow className="fill-brand-elevated stroke-brand-accent/20" />
+          </RadixTooltip.Content>
+        </RadixTooltip.Portal>
+      </RadixTooltip.Root>
+    </RadixTooltip.Provider>
+  );
+};
+
+export const ProgressCircle = ({ value, size = 100, strokeWidth = 8, color = "var(--brand-accent)" }: { value: number, size?: number, strokeWidth?: number, color?: string }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (value / 100) * circumference;
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="transform -rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          className="text-brand-border/30"
+        />
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          strokeLinecap="round"
+        />
+      </svg>
+      <div className="absolute flex flex-col items-center">
+        <span className="text-xl font-bold font-mono tracking-tight text-brand-text-bright">{value.toFixed(1)}%</span>
+      </div>
+    </div>
+  );
+};
+
+export const Sparkline = ({ data, color = "var(--brand-accent)" }: { data: number[], color?: string }) => {
+  if (!data || data.length < 2) return <div className="h-full w-full opacity-10 flex items-center justify-center">--</div>;
+  
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  
+  const points = data.map((val, i) => {
+    const x = (i / (data.length - 1)) * 100;
+    const y = 90 - ((val - min) / range) * 80;
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+        <motion.polyline
+          fill="none"
+          stroke={color}
+          strokeWidth="3"
+          points={points}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1, delay: 0.5 }}
+        />
+      </svg>
+    </div>
+  );
+};
+
+export const DataCard = ({ label, value, mono = true, subValue }: { label: string; value: string | number | null; mono?: boolean; subValue?: string }) => {
+  return (
+    <div className="bg-brand-bg/50 p-4 rounded-lg border border-brand-border">
+      <label className="label-caps block">{label}</label>
+      <div className="flex flex-col">
+        <span className={`${mono ? 'monospace-data text-xl' : 'text-xl font-bold text-brand-text-bright'}`}>
+          {value ?? '--'}
+        </span>
+        {subValue && <span className="text-[10px] opacity-40 uppercase mt-1">{subValue}</span>}
+      </div>
+    </div>
+  );
+};
+
+export const PriceLevel = ({ label, value, color, icon: Icon }: { label: string; value: number | null; color: string; icon: any }) => {
+  return (
+    <div className="flex items-center justify-between p-4 bg-brand-bg/30 rounded-lg border border-brand-border/50 group hover:border-brand-accent transition-colors">
+      <div className="flex items-center gap-4">
+        <div className={`w-1.5 h-10 rounded-full ${color}`} />
+        <div>
+          <span className="label-caps block mb-0">{label}</span>
+          <div className="flex items-center gap-2">
+            <Icon size={14} className="opacity-40" />
+            <span className="monospace-data text-2xl tracking-normal">{value?.toLocaleString(undefined, { minimumFractionDigits: 2 }) ?? '0.00'}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface StatsPanelProps {
+  stats: TradeStats;
+  history: AnalysisHistoryItem[];
+  t: any;
+  tradingMode: 'live' | 'backtest';
+  strategies: Strategy[];
+  onAddStrategy: (name: string, color: string) => Promise<Strategy>;
+  onUpdateStrategy: (id: string, name: string, color: string) => Promise<void>;
+  onDeleteStrategy: (id: string) => Promise<void>;
+}
+
+export const StatsPanel = ({ 
+  stats, 
+  history, 
+  t, 
+  tradingMode,
+  strategies,
+  onAddStrategy,
+  onUpdateStrategy,
+  onDeleteStrategy
+}: StatsPanelProps) => {
+  const showStrategyAnalysis = tradingMode === 'backtest' && (stats.strategyAnalysis?.length ?? 0) > 0;
+
+  const winRateColor = stats.winRate >= 60 ? 'var(--trade-long)' : stats.winRate >= 45 ? 'var(--brand-accent)' : 'var(--trade-short)';
+  const pfColor = stats.profitFactor >= 2 ? 'var(--trade-long)' : stats.profitFactor >= 1 ? 'var(--brand-accent)' : 'var(--trade-short)';
+  const expectancyColor = stats.expectancy > 0 ? 'var(--trade-long)' : stats.expectancy < 0 ? 'var(--trade-short)' : 'var(--status-neutral)';
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 lg:gap-4">
+      {/* Primary Large Metrics: Win Rate (3 cols) */}
+      <motion.div 
+        whileHover={{ y: -3, scale: 1.005 }}
+        className="lg:col-span-3 min-h-[160px] technical-panel p-4 flex flex-col items-center justify-center gap-3 bg-brand-elevated relative group overflow-hidden shadow-lg border-brand-border/40"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-text-bright/[0.02] to-transparent pointer-events-none" />
+        
+        <div className="flex items-center justify-between w-full relative z-10">
+          <label className="label-caps !mb-0 flex items-center text-brand-text-dim text-[10px]">
+            <PieChart size={12} className="mr-2 opacity-50" />
+            {t.ui.probability_spectrum}
+            <InfoTooltip content={t.analytics.winrate} />
+          </label>
+          <span className="text-[8px] font-mono opacity-20 uppercase tracking-widest text-[8px]">{t.ui.system_accuracy}</span>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-8">
+          <ProgressCircle value={stats.winRate} size={100} strokeWidth={8} color={winRateColor} />
+          <div className="grid grid-cols-1 gap-2">
+            <div className="flex flex-col">
+              <span className="text-[8px] label-caps !mb-0 opacity-40">Positive</span>
+              <span className="text-xl font-bold font-mono text-trade-long tracking-tighter">
+                {history.filter(h => h.status === 'Win').length.toString().padStart(2, '0')}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[8px] label-caps !mb-0 opacity-40">Negative</span>
+              <span className="text-xl font-bold font-mono text-trade-short tracking-tighter">
+                {history.filter(h => h.status === 'Loss').length.toString().padStart(2, '0')}
+              </span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Primary Large Metrics: Profit Factor (3 cols) */}
+      <motion.div 
+        whileHover={{ y: -3, scale: 1.005 }}
+        className="lg:col-span-3 min-h-[160px] technical-panel p-4 flex flex-col justify-between bg-brand-elevated relative group overflow-hidden shadow-lg border-brand-border/40"
+      >
+        <div className="absolute inset-0 bg-gradient-to-tr from-brand-text-bright/[0.01] to-transparent pointer-events-none" />
+        <Sparkline data={stats.equityCurve.map(e => e.equity)} color={pfColor} />
+        
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-3">
+            <label className="label-caps !mb-0 flex items-center text-brand-text-dim text-[10px]">
+              <Activity size={12} className="mr-2 opacity-50" />
+              {t.ui.profit_factor}
+              <InfoTooltip content={t.analytics.pf} />
+            </label>
+            <span className="text-[8px] font-mono opacity-20 uppercase tracking-widest">{t.ui.eff_coeff}</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-bold text-brand-text-bright font-mono tracking-tighter">
+              {stats.profitFactor > 0 ? stats.profitFactor.toFixed(2) : '0.00'}
+            </span>
+            <span className={`text-[8px] font-bold font-mono px-1.5 py-0.5 rounded ${stats.profitFactor >= 2 ? 'bg-trade-long/10 text-trade-long' : stats.profitFactor >= 1 ? 'bg-brand-accent/10 text-brand-accent' : 'bg-trade-short/10 text-trade-short'}`}>
+              {stats.profitFactor >= 2 ? 'HIGH' : stats.profitFactor >= 1 ? 'OPTIMAL' : 'LOW'}
+            </span>
+          </div>
+        </div>
+
+        <div className="relative z-10 pt-2 border-t border-brand-border/10 mt-3 flex justify-between items-center text-[9px] font-mono uppercase">
+          <div className="flex flex-col">
+            <span className="opacity-20 lowercase italic">Baseline</span>
+            <span className="text-brand-text-bright/40 text-[8px]">1.00 PF</span>
+          </div>
+          <div className="flex flex-col text-right">
+            <span className="opacity-20 lowercase italic">Contr.</span>
+            <span className={`font-bold ${stats.profitFactor >= 1 ? "text-trade-long" : "text-trade-short"}`}>
+              {stats.profitFactor >= 1 ? '+' : ''}{((stats.profitFactor - 1) * 100).toFixed(1)}%
+            </span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Medium Metrics: R:R, Expectancy, Max DD (2 cols each) */}
+      <motion.div 
+        whileHover={{ y: -3 }}
+        className="lg:col-span-2 technical-panel py-2 px-3 flex flex-col gap-1 relative group transition-all hover:border-brand-border shadow-md"
+      >
+        <div className="flex items-center justify-between">
+          <label className="label-caps !mb-0 flex items-center opacity-60">
+            <TrendingUp size={10} className="mr-2 opacity-50" />
+            {t.ui.risk_reward}
+            <InfoTooltip content={t.analytics.avgrr} />
+          </label>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-2xl font-bold text-brand-text-bright font-mono tracking-tighter leading-none mb-1">
+            1:{stats.avgRR.toFixed(2)}
+          </span>
+          <div className="w-full bg-brand-border/20 h-1 rounded-full overflow-hidden">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(100, (stats.avgRR / 5) * 100)}%` }}
+              className={`h-full ${stats.avgRR >= 2 ? 'bg-trade-long' : stats.avgRR >= 1 ? 'bg-brand-accent' : 'bg-trade-short'}`}
+              style={{ opacity: 0.6 }}
+            />
+          </div>
+        </div>
+        <p className="text-[7px] text-brand-text-dim/20 uppercase tracking-widest font-mono text-center">STATISTICAL MEAN RETURN NODE</p>
+      </motion.div>
+
+      <motion.div 
+        whileHover={{ y: -3 }}
+        className="lg:col-span-2 technical-panel py-2 px-3 flex flex-col gap-1 bg-brand-elevated relative group transition-all hover:border-brand-border shadow-md overflow-hidden"
+      >
+        <div className="absolute inset-0 dot-matrix opacity-10 group-hover:opacity-20 transition-opacity" />
+        
+        <div className="flex items-center justify-between relative z-10">
+          <label className="label-caps !mb-0 flex items-center opacity-60">
+            <Zap size={10} className="mr-2 opacity-30" />
+            {t.ui.statistical_edge}
+            <InfoTooltip content={t.analytics.expectancy} />
+          </label>
+          <div className="text-[8px] font-mono text-brand-text-dim opacity-20 uppercase tracking-tighter">{t.ui.yield_node}</div>
+        </div>
+
+        <div className="flex flex-col relative z-10">
+          <div className="flex items-baseline justify-between">
+            <span className={`text-2xl font-bold font-mono tracking-tighter leading-none mb-1 ${expectancyColor === 'var(--trade-long)' ? 'text-trade-long' : expectancyColor === 'var(--trade-short)' ? 'text-trade-short' : 'text-brand-text-dim'}`}>
+              {stats.expectancy > 0 ? '+' : ''}{stats.expectancy.toFixed(2)}
+              <span className="text-xs ml-0.5 opacity-40">R</span>
+            </span>
+            <span className={`text-[10px] font-mono font-bold opacity-60`}>
+               {(stats.expectancy * 100).toFixed(0)}% <span className="text-[8px] opacity-40">EFF</span>
+            </span>
+          </div>
+          
+          <div className="mt-1 h-1 w-full bg-brand-border/20 rounded-full overflow-hidden flex">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(100, Math.max(0, (Math.abs(stats.expectancy) / 1.5) * 100))}%` }}
+              className={`h-full ${expectancyColor === 'var(--trade-long)' ? 'bg-trade-long' : expectancyColor === 'var(--trade-short)' ? 'bg-trade-short' : 'bg-status-neutral'}`}
+              transition={{ duration: 1, ease: "easeOut" }}
+              style={{ opacity: 0.6 }}
+            />
+          </div>
+        </div>
+        
+        <p className="text-[7px] text-brand-text-dim/20 uppercase tracking-widest font-mono text-center relative z-10">
+          Mean System Yield Capability
+        </p>
+      </motion.div>
+
+      <motion.div 
+        whileHover={{ y: -3 }}
+        className="lg:col-span-2 technical-panel py-2 px-3 flex flex-col gap-1 relative group transition-all hover:border-trade-short/30 shadow-md"
+      >
+        <div className="flex items-center justify-between">
+          <label className="label-caps !mb-0 flex items-center text-trade-short/70 font-bold">
+            <ArrowDownRight size={10} className="mr-2" />
+            {t.ui.max_drawdown_label}
+            <InfoTooltip content={t.analytics.maxdd} />
+          </label>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-2xl font-bold text-trade-short font-mono tracking-tighter leading-none mb-1">
+            -{stats.maxDrawdown.toFixed(2)}R
+          </span>
+          <div className="flex gap-1 h-1">
+            {[1,2,3,4,5,6,7,8,9,10].map(i => (
+              <div key={i} className={`h-full flex-1 rounded-sm ${i <= Math.min(10, Math.ceil(stats.maxDrawdown)) ? 'bg-trade-short/40' : 'bg-brand-border/20'}`} />
+            ))}
+          </div>
+        </div>
+        <p className="text-[7px] text-brand-text-dim/20 uppercase tracking-widest font-mono text-trade-short/40 text-center">{t.ui.risk_boundary}</p>
+      </motion.div>
+
+      {/* Small Tiles */}
+      <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-3 gap-2 mt-0.5">
+        {[
+          { label: 'Recovery Factor', value: stats.recoveryFactor > 0 ? stats.recoveryFactor.toFixed(2) : '--', icon: RefreshCcw, tooltip: 'recovery', desc: 'NET PROFIT / MAX DD', hasSpark: true, sparkColor: 'var(--brand-accent)' },
+          { label: 'Consecutive Loss', value: stats.maxConsecutiveLosses || '0', icon: TrendingDown, tooltip: 'consecutive_loss', desc: 'MAX SEQUENCE RISK', color: 'text-trade-short' },
+          { label: 'Dataset Nodes', value: stats.totalTrades, icon: Database, tooltip: 'total_trades', desc: 'TOTAL TRADE EVENTS', color: 'text-brand-text-dim' }
+        ].map((tile, i) => (
+          <motion.div 
+            key={i}
+            whileHover={{ y: -1 }}
+            className="technical-panel py-2 px-3 flex flex-col gap-0.5 relative overflow-hidden group shadow-sm transition-colors border-brand-border/30 hover:border-brand-border/60"
+          >
+            {tile.hasSpark && stats.equityCurve.length > 1 && (
+              <div className="absolute inset-x-0 bottom-0 h-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <Sparkline data={stats.equityCurve.map(e => e.equity).slice(-10)} color={tile.sparkColor} />
+              </div>
+            )}
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex items-center gap-1.5 min-w-0 font-mono">
+                <tile.icon size={10} className={`${tile.color || 'text-brand-text-dim'} opacity-50`} />
+                <span className="text-[7px] label-caps !mb-0 font-bold truncate opacity-60">{tile.label}</span>
+              </div>
+              <InfoTooltip content={t.analytics[tile.tooltip] || tile.desc} />
+            </div>
+            <div className="flex flex-col relative z-20">
+              <span className={`text-lg font-bold font-mono tracking-tighter leading-tight ${tile.color || 'text-brand-text-bright'}`}>
+                {tile.value}
+              </span>
+              <span className="text-[6px] font-mono text-brand-text-dim/20 uppercase tracking-tighter italic">{tile.desc}</span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Secondary Metrics Section */}
+      <div className="lg:col-span-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+        <div className="technical-panel p-4 flex flex-col gap-3 bg-brand-elevated/20 overflow-hidden border-brand-border/40">
+          <h3 className="label-caps border-b border-brand-border/20 pb-2 flex items-center shrink-0 opacity-80">
+            <BarChart3 size={14} className="mr-2 opacity-40" />
+            {t.ui.leading_symbols}
+            <InfoTooltip content="Asset-specific performance attribution." />
+          </h3>
+          <div className="flex flex-col gap-2 overflow-y-auto max-h-[300px] scrollbar-hide">
+            {stats.symbolEfficiency.slice(0, 5).map((s) => (
+              <div key={s.symbol} className="flex items-center justify-between p-2.5 bg-brand-text-bright/[0.01] rounded border border-brand-border/20 group hover:border-brand-border/40 transition-all min-w-[200px] sm:min-w-0">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className={`w-1 h-6 rounded-full shrink-0 ${s.profit > 0 ? 'bg-trade-long' : s.profit < 0 ? 'bg-trade-short' : 'bg-status-neutral'}`} />
+                    <div className="flex flex-col min-w-0">
+                      <span className="monospace-data font-bold text-xs truncate">{s.symbol}</span>
+                      <span className="text-[8px] uppercase font-bold opacity-20 tracking-tight truncate">{s.count} NODES</span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4 text-right shrink-0 ml-4">
+                  <div className="hidden xs:block">
+                    <p className="text-[7px] uppercase font-bold whitespace-nowrap opacity-40">Win Rate</p>
+                    <p className="text-[10px] font-mono font-bold text-brand-text-bright opacity-80">{s.winRate.toFixed(1)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-[7px] uppercase font-bold whitespace-nowrap opacity-40">Profit</p>
+                    <p className={`text-[10px] font-mono font-bold ${s.profit > 0 ? 'text-trade-long' : s.profit < 0 ? 'text-trade-short' : 'text-brand-text-dim'}`}>
+                      {s.profit > 0 ? '+' : ''}{s.profit.toFixed(1)}R
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="technical-panel p-4 flex flex-col gap-3 bg-brand-elevated/20 overflow-hidden border-brand-border/40">
+          <h3 className="label-caps border-b border-brand-border/20 pb-2 flex items-center shrink-0 opacity-80">
+            <Target size={14} className="mr-2 opacity-40" />
+            {t.ui.directional_bias}
+            <InfoTooltip content="Performance split between Bullish (Long) and Bearish (Short) setups." />
+          </h3>
+          <div className="flex flex-col gap-2 h-full justify-center">
+            <div className="flex items-center justify-between p-3 bg-brand-text-bright/[0.01] border border-brand-border/20 rounded-xl group hover:border-trade-long/20 transition-colors">
+              <div className="flex flex-col min-w-0 mr-2">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <TrendingUp className="text-trade-long/40 group-hover:text-trade-long shrink-0 transition-colors" size={13} />
+                  <span className="label-caps !mb-0 text-brand-text-dim group-hover:text-trade-long text-[9px] truncate transition-colors">Bullish Exp.</span>
+                </div>
+                <span className="text-[8px] font-mono opacity-20 uppercase truncate">{stats.biasAnalysis.long.count} Nodes</span>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-xl font-bold font-mono text-brand-text-bright opacity-80 group-hover:text-trade-long transition-colors">{stats.biasAnalysis.long.winRate.toFixed(1)}%</span>
+                <div className="text-[8px] uppercase font-bold opacity-30 whitespace-nowrap">Win Prob</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-brand-text-bright/[0.01] border border-brand-border/20 rounded-xl group hover:border-trade-short/20 transition-colors">
+              <div className="flex flex-col min-w-0 mr-2">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <TrendingDown className="text-trade-short/40 group-hover:text-trade-short shrink-0 transition-colors" size={13} />
+                  <span className="label-caps !mb-0 text-brand-text-dim group-hover:text-trade-short text-[9px] truncate transition-colors">Bearish Cont.</span>
+                </div>
+                <span className="text-[8px] font-mono opacity-20 uppercase truncate">{stats.biasAnalysis.short.count} Nodes</span>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-xl font-bold font-mono text-brand-text-bright opacity-80 group-hover:text-trade-short transition-colors">{stats.biasAnalysis.short.winRate.toFixed(1)}%</span>
+                <div className="text-[8px] uppercase font-bold opacity-30 whitespace-nowrap">Win Prob</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="technical-panel p-4 flex flex-col gap-3 bg-brand-elevated/10 backdrop-blur-sm border border-brand-border/40 hover:border-brand-border transition-colors shadow-lg relative overflow-hidden md:col-span-2 lg:col-span-1">
+          <div className="absolute inset-0 dot-matrix opacity-10 pointer-events-none" />
+          <h3 className="label-caps border-b border-brand-border/20 pb-2 flex items-center shrink-0 text-brand-text-dim relative z-10">
+            <Clock size={14} className="mr-2 opacity-40" />
+            {t.ui.day_profile}
+            <InfoTooltip content="Daily probability distribution of returns." />
+          </h3>
+          <div className="relative w-full h-[150px] overflow-hidden pt-2 z-10">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.performanceByDay} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--brand-border)" vertical={false} opacity={0.05} />
+                <XAxis 
+                  dataKey="day" 
+                  stroke="var(--brand-text-dim)" 
+                  fontSize={9} 
+                  axisLine={false} 
+                  tickLine={false}
+                  tick={{ fill: 'var(--brand-text-dim)', fontFamily: 'monospace', opacity: 0.3 }}
+                />
+                <YAxis hide />
+                <Tooltip 
+                  cursor={{fill: 'var(--brand-text-dim)', fillOpacity: 0.05}} 
+                  contentStyle={{ backgroundColor: 'var(--brand-elevated)', border: '1px solid var(--brand-border)', borderRadius: '4px', fontSize: '10px', fontFamily: 'monospace', backdropFilter: 'blur(10px)'}} 
+                  itemStyle={{ color: 'var(--brand-accent)', fontFamily: 'monospace' }}
+                />
+                <Bar 
+                  dataKey="profit" 
+                  radius={[2, 2, 0, 0]} 
+                  barSize={16}
+                >
+                  {stats.performanceByDay.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.profit > 0 ? 'var(--trade-long)' : entry.profit < 0 ? 'var(--trade-short)' : 'var(--brand-text-dim)'} 
+                      fillOpacity={Math.abs(entry.profit) > 0 ? 0.3 + (Math.abs(entry.profit) / 10) : 0.1}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-auto pt-4 border-t border-brand-border/10 text-[9px] font-mono italic lowercase tracking-widest text-center opacity-20 relative z-10">
+            Intraday Volatility Cycles
+          </div>
+        </div>
+      </div>
+
+      {showStrategyAnalysis && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="lg:col-span-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8"
+        >
+          <div className="technical-panel p-6 flex flex-col gap-6 bg-brand-elevated/20 overflow-hidden border-brand-border/40 lg:col-span-2">
+            <h3 className="label-caps border-b border-brand-border/20 pb-3 flex items-center shrink-0 opacity-80">
+              <Zap size={14} className="mr-2 opacity-40 text-brand-accent" />
+              Strategy Alpha Distribution
+              <InfoTooltip content="Profit/Loss attribution per execution strategy Algorithm." />
+            </h3>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats.strategyAnalysis} layout="vertical" margin={{ left: 10, right: 30 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.05} />
+                    <XAxis type="number" hide />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      fontSize={10} 
+                      width={100}
+                      tick={{ fill: 'var(--brand-text-dim)', fontStyle: 'italic', fontWeight: 'bold' }} 
+                    />
+                    <Tooltip 
+                      cursor={{ fill: 'var(--brand-text-bright)', opacity: 0.05 }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-brand-bg/95 backdrop-blur-md border border-brand-border p-2 rounded shadow-2xl">
+                              <p className="text-[10px] font-bold text-brand-text-bright mb-1 uppercase tracking-widest">{payload[0].payload.name}</p>
+                              <p className="text-[12px] font-mono font-bold text-brand-accent">{payload[0].value?.toFixed(2)}R Net</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="profit" radius={[0, 4, 4, 0]}>
+                      {stats.strategyAnalysis?.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color || 'var(--brand-accent)'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="flex flex-col gap-2 overflow-y-auto max-h-[220px] scrollbar-hide pr-1">
+                {stats.strategyAnalysis?.map((s) => (
+                  <div key={s.name} className="flex items-center justify-between p-3 bg-brand-text-bright/[0.01] rounded border border-brand-border/20 group hover:border-brand-border/40 transition-all">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-1 h-6 rounded-full shrink-0" style={{ backgroundColor: s.color || 'var(--brand-border)' }} />
+                      <div className="flex flex-col min-w-0">
+                        <span className="monospace-data font-bold text-xs truncate">{s.name}</span>
+                        <span className="text-[8px] uppercase font-bold opacity-20 tracking-tight truncate">{s.count} NODES</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-right shrink-0 ml-4">
+                      <div>
+                        <p className="text-[7px] uppercase font-bold whitespace-nowrap opacity-40">Win Rate</p>
+                        <p className="text-[10px] font-mono font-bold text-brand-text-bright opacity-80">{s.winRate.toFixed(1)}%</p>
+                      </div>
+                      <div>
+                        <p className="text-[7px] uppercase font-bold whitespace-nowrap opacity-40">Profit</p>
+                        <p className={`text-[10px] font-mono font-bold ${s.profit > 0 ? 'text-trade-long' : s.profit < 0 ? 'text-trade-short' : 'text-brand-text-dim'}`}>
+                          {s.profit > 0 ? '+' : ''}{s.profit.toFixed(1)}R
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <StrategyManager 
+            strategies={strategies}
+            onAdd={onAddStrategy}
+            onUpdate={onUpdateStrategy}
+            onDelete={onDeleteStrategy}
+          />
+        </motion.div>
+      )}
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/StrategyManager.tsx">
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { 
+  Zap, 
+  Trash2, 
+  Edit2, 
+  Check, 
+  X, 
+  Plus,
+  Palette
+} from 'lucide-react';
+import { Strategy } from '../types';
+
+interface StrategyManagerProps {
+  strategies: Strategy[];
+  onAdd: (name: string, color: string) => Promise<Strategy>;
+  onUpdate: (id: string, name: string, color: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}
+
+const STRATEGY_COLORS = [
+  '#6366f1', // Indigo
+  '#22d3ee', // Cyan
+  '#10b981', // Emerald
+  '#f59e0b', // Amber
+  '#ef4444', // Red
+  '#a855f7'  // Purple
+];
+
+export const StrategyManager = ({ strategies, onAdd, onUpdate, onDelete }: StrategyManagerProps) => {
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [color, setColor] = useState(STRATEGY_COLORS[0]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAdd = async () => {
+    if (!name.trim()) return;
+    setIsLoading(true);
+    try {
+      await onAdd(name.trim(), color);
+      setName('');
+      setIsAdding(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdate = async (id: string) => {
+    if (!name.trim()) return;
+    setIsLoading(true);
+    try {
+      await onUpdate(id, name.trim(), color);
+      setEditingId(null);
+      setName('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startEdit = (s: Strategy) => {
+    setEditingId(s.id);
+    setName(s.name);
+    setColor(s.color);
+  };
+
+  return (
+    <div className="technical-panel p-4 flex flex-col gap-4 bg-brand-elevated/20 border-brand-border/40">
+      <div className="flex items-center justify-between border-b border-brand-border/20 pb-3">
+        <h3 className="label-caps !mb-0 flex items-center text-brand-text-dim text-[10px]">
+          <Zap size={14} className="mr-2 text-brand-accent opacity-50" />
+          Strategy Manager
+        </h3>
+        <button 
+          onClick={() => {
+            setIsAdding(true);
+            setName('');
+            setColor(STRATEGY_COLORS[0]);
+          }}
+          className="text-[9px] font-mono text-brand-accent hover:underline flex items-center gap-1 uppercase"
+        >
+          <Plus size={10} /> Add New
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {isAdding && (
+          <div className="p-3 bg-brand-bg border border-brand-accent/30 rounded flex flex-col gap-3 animate-in fade-in slide-in-from-top-1">
+            <input 
+              autoFocus
+              className="w-full bg-brand-elevated border border-brand-border p-2 monospace-data rounded text-xs focus:border-brand-accent outline-none"
+              placeholder="Strategy Name..."
+              value={name}
+              onChange={e => setName(e.target.value)}
+            />
+            <div className="flex items-center justify-between">
+              <div className="flex gap-1.5">
+                {STRATEGY_COLORS.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setColor(c)}
+                    className={`w-4 h-4 rounded-full border border-white/10 transition-transform ${color === c ? 'scale-125 border-white' : 'hover:scale-110'}`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setIsAdding(false)}
+                  className="p-1 px-2 text-[8px] font-bold uppercase text-brand-text-dim hover:text-brand-text-bright"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleAdd}
+                  disabled={isLoading || !name}
+                  className="p-1 px-3 bg-brand-accent text-white rounded text-[8px] font-bold uppercase disabled:opacity-50"
+                >
+                  {isLoading ? '...' : 'Create'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {strategies.map((s) => (
+          <div key={s.id} className="flex items-center justify-between p-2.5 bg-brand-text-bright/[0.02] border border-brand-border/10 rounded group hover:border-brand-border/30 transition-all">
+            {editingId === s.id ? (
+              <div className="flex-1 flex flex-col gap-2">
+                <input 
+                  autoFocus
+                  className="w-full bg-brand-bg border border-brand-accent/50 p-1.5 monospace-data rounded text-xs outline-none"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                />
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-1.5">
+                    {STRATEGY_COLORS.map(c => (
+                      <button
+                        key={c}
+                        onClick={() => setColor(c)}
+                        className={`w-3.5 h-3.5 rounded-full border border-white/10 transition-transform ${color === c ? 'scale-125 border-white' : 'hover:scale-110'}`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => setEditingId(null)} className="p-1 text-trade-short"><X size={14} /></button>
+                    <button onClick={() => handleUpdate(s.id)} className="p-1 text-trade-long"><Check size={14} /></button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-5 rounded-full" style={{ backgroundColor: s.color }} />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-brand-text-bright/90">{s.name}</span>
+                    <span className="text-[8px] font-mono opacity-30 uppercase tracking-widest">{s.tradeCount || 0} Trades</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => startEdit(s)}
+                    className="p-1.5 text-brand-text-dim hover:text-brand-accent transition-colors"
+                  >
+                    <Edit2 size={12} />
+                  </button>
+                  <button 
+                    onClick={() => window.confirm('Delete strategy? Associated trades will be unlinked.') && onDelete(s.id)}
+                    className="p-1.5 text-brand-text-dim hover:text-trade-short transition-colors"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+
+        {!isAdding && strategies.length === 0 && (
+          <p className="text-[9px] text-center font-mono opacity-20 py-4 uppercase">No custom strategies mapped</p>
+        )}
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/TradeCard.tsx">
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
+import { 
+  Trash2, 
+  Activity, 
+  ChevronRight, 
+  StickyNote, 
+  Plus 
+} from 'lucide-react';
+import * as RadixTooltip from '@radix-ui/react-tooltip';
+import { AnalysisHistoryItem, TranslationSchema } from '../types';
+import { calculateRMultiple } from '../lib/tradeUtils';
+
+export const NoteTooltip = ({ note, t }: { note: string, t: TranslationSchema }) => {
+  return (
+    <RadixTooltip.Provider delayDuration={200}>
+      <RadixTooltip.Root>
+        <RadixTooltip.Trigger asChild>
+          <button className="text-brand-accent hover:text-brand-accent/80 transition-all flex items-center justify-center p-1 rounded-full bg-brand-accent/10 border border-brand-accent/20">
+            <StickyNote size={12} />
+          </button>
+        </RadixTooltip.Trigger>
+        <RadixTooltip.Portal>
+          <RadixTooltip.Content
+            className="z-[150] select-none rounded bg-brand-bg/80 backdrop-blur-md px-4 py-3 text-[11px] leading-relaxed text-brand-text-bright shadow-2xl border border-brand-accent/30 animate-in fade-in zoom-in-95 duration-200 w-64"
+            sideOffset={5}
+          >
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 border-b border-brand-border/50 pb-2">
+                <StickyNote size={12} className="text-brand-accent" />
+                <span className="label-caps mb-0 text-[10px]">{t.capture.trade_notes}</span>
+              </div>
+              <p className="font-mono whitespace-pre-wrap break-words opacity-90">{note}</p>
+            </div>
+          </RadixTooltip.Content>
+        </RadixTooltip.Portal>
+      </RadixTooltip.Root>
+    </RadixTooltip.Provider>
+  );
+};
+
+export const PurgeButton = ({ onPurge, tradeId, t }: { onPurge: (id: string) => void, tradeId: string, t: TranslationSchema }) => {
+  const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    if (confirming) {
+      const timer = setTimeout(() => setConfirming(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [confirming]);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirming) {
+      onPurge(tradeId);
+      setConfirming(false);
+    } else {
+      setConfirming(true);
+    }
+  };
+
+  return (
+    <RadixTooltip.Provider>
+      <RadixTooltip.Root delayDuration={200}>
+        <RadixTooltip.Trigger asChild>
+          <button
+            onClick={handleClick}
+            className={`
+              relative min-w-10 h-[34px] px-2 flex items-center justify-center rounded border transition-all duration-300 overflow-hidden
+              ${confirming ? 'bg-brand-danger border-brand-danger shadow-lg shadow-brand-danger/20' : 'bg-brand-bg/40 border-white/5 hover:bg-brand-danger/10 hover:border-brand-danger/30'}
+              group
+            `}
+          >
+            {confirming ? (
+              <span className="text-[9px] font-black text-white uppercase tracking-tighter relative z-10 whitespace-nowrap px-1">
+                {t.ui.confirm_purge}
+              </span>
+            ) : (
+              <Trash2 
+                size={14} 
+                className="relative z-10 transition-all duration-300 text-brand-danger/60 group-hover:text-brand-danger group-hover:opacity-100" 
+              />
+            )}
+            
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                <div className="absolute inset-0 bg-brand-danger/5 blur-xl" />
+            </div>
+
+            {confirming && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0.1, 0.3, 0.1] }}
+                transition={{ repeat: Infinity, duration: 1 }}
+                className="absolute inset-0 bg-white"
+              />
+            )}
+          </button>
+        </RadixTooltip.Trigger>
+        <RadixTooltip.Portal>
+          <RadixTooltip.Content
+            className="z-50 bg-brand-bg border border-brand-danger/30 p-2 rounded shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            sideOffset={5}
+          >
+            <div className="flex flex-col items-center">
+              <p className="text-[9px] font-mono font-bold text-brand-danger uppercase tracking-widest leading-none">
+                {t.ui.purge_node}
+              </p>
+            </div>
+            <RadixTooltip.Arrow className="fill-brand-bg" />
+          </RadixTooltip.Content>
+        </RadixTooltip.Portal>
+      </RadixTooltip.Root>
+    </RadixTooltip.Provider>
+  );
+};
+
+export const TradeRow: React.FC<{ 
+  item: AnalysisHistoryItem, 
+  onEdit: (item: AnalysisHistoryItem) => void, 
+  onDelete: (id: string) => void,
+  t: TranslationSchema
+}> = ({ 
+  item, 
+  onEdit, 
+  onDelete,
+  t
+}) => {
+  return (
+    <motion.tr 
+      layout
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ 
+        opacity: 0, 
+        scale: 0.95,
+        filter: 'blur(10px) brightness(2)',
+        transition: { duration: 0.6 }
+      }}
+      className="hover:bg-brand-elevated/30 transition-colors group"
+    >
+      <td className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="p-1 rounded bg-brand-bg border border-brand-border group-hover:border-brand-accent transition-colors">
+            <Activity size={14} className="text-brand-accent" />
+          </div>
+          <span className="monospace-data font-bold">{item.symbol}</span>
+          {item.strategyName && (
+            <span className="text-[8px] px-1.5 py-0.5 rounded bg-brand-accent/10 border border-brand-accent/20 text-brand-accent font-mono uppercase tracking-tighter">
+              {item.strategyName}
+            </span>
+          )}
+        </div>
+      </td>
+      <td className="p-4">
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${item.side === 'Long' ? 'bg-trade-long/20 text-trade-long' : 'bg-trade-short/20 text-trade-short'}`}>
+          {item.side}
+        </span>
+      </td>
+      <td className="p-4">
+        <span className="monospace-data opacity-80">{item.levels.entry?.toLocaleString()}</span>
+      </td>
+      <td className="p-4">
+        <div className="flex flex-col gap-0.5">
+          <span className="monospace-data text-[10px] text-trade-long">+{item.levels.takeProfit?.toLocaleString()}</span>
+          <span className="monospace-data text-[10px] text-trade-short">-{item.levels.stopLoss?.toLocaleString()}</span>
+        </div>
+      </td>
+      <td className="p-4">
+        <div className="flex items-center gap-2">
+          <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'Win' ? 'bg-trade-long' : item.status === 'Loss' ? 'bg-trade-short' : 'bg-status-neutral opacity-40 animate-pulse'}`} />
+          <span className={`text-[10px] uppercase font-bold tracking-wider ${item.status === 'Win' ? 'text-trade-long/80' : item.status === 'Loss' ? 'text-trade-short/80' : 'opacity-40'}`}>{item.status}</span>
+        </div>
+      </td>
+      <td className="p-4">
+        {item.status !== 'Pending' ? (
+          <span className={`monospace-data text-[10px] font-bold ${calculateRMultiple(item) > 0 ? 'text-trade-long' : calculateRMultiple(item) < 0 ? 'text-trade-short' : 'text-brand-text-dim opacity-50'}`}>
+            {calculateRMultiple(item) > 0 ? '+' : ''}{calculateRMultiple(item).toFixed(2)}R
+          </span>
+        ) : (
+          <span className="monospace-data text-[10px] opacity-20">---</span>
+        )}
+      </td>
+      <td className="p-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono opacity-40 uppercase">{item.date}</span>
+          {item.notes && (
+            <NoteTooltip note={item.notes} t={t} />
+          )}
+        </div>
+      </td>
+      <td className="p-4 text-right">
+        <div className="flex items-center justify-end gap-2">
+          {!item.notes && (
+            <button
+              onClick={() => onEdit({ ...item, notes: '' })}
+              className="p-2 bg-brand-bg border border-brand-border rounded text-brand-text-dim hover:text-brand-accent hover:border-brand-accent transition-all"
+              title={t.ui.save + " Note"}
+            >
+              <Plus size={14} />
+            </button>
+          )}
+          <button 
+            onClick={() => onEdit(item)}
+            className="px-3 py-1.5 bg-brand-elevated border border-brand-border rounded text-[10px] font-bold uppercase tracking-widest hover:bg-brand-accent hover:border-brand-accent hover:text-white transition-all active:scale-95 h-[34px]"
+          >
+            {t.ui.edit_node}
+          </button>
+          <PurgeButton 
+            tradeId={item.id}
+            onPurge={onDelete}
+            t={t}
+          />
+        </div>
+      </td>
+    </motion.tr>
+  );
+};
+
+export const MobileLogItem: React.FC<{ 
+  item: AnalysisHistoryItem, 
+  onDelete: (id: string) => void, 
+  onEdit: (item: AnalysisHistoryItem) => void,
+  t: TranslationSchema
+}> = ({ 
+  item, 
+  onDelete, 
+  onEdit,
+  t
+}) => {
+  const [isSwiped, setIsSwiped] = useState(false);
+  const dragX = React.useRef(0);
+
+  return (
+    <div className="relative overflow-hidden bg-brand-bg group">
+      {/* Purge Action Layer (Behind) */}
+      <div className="absolute inset-0 flex justify-end bg-trade-short/20">
+        <div className="w-20 h-full flex items-center justify-center border-l border-trade-short/30">
+          <PurgeButton tradeId={item.id} onPurge={onDelete} t={t} />
+        </div>
+      </div>
+
+      {/* Main Content Layer (Draggable) */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -80, right: 0 }}
+        dragElastic={0.1}
+        onDrag={(_, info) => {
+          dragX.current = info.offset.x;
+        }}
+        onDragEnd={(_, info) => {
+          if (info.offset.x < -40) {
+            setIsSwiped(true);
+          } else {
+            setIsSwiped(false);
+          }
+        }}
+        animate={{ x: isSwiped ? -80 : 0 }}
+        className="relative z-10 bg-brand-bg border-b border-brand-border/30 p-4 flex flex-col gap-3 active:bg-brand-elevated/50 transition-colors"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-1.5 rounded bg-brand-elevated border border-brand-border">
+              <Activity size={14} className="text-brand-accent" />
+            </div>
+            <div className="flex flex-col">
+              <span className="monospace-data font-bold text-sm tracking-tight">{item.symbol}</span>
+              {item.strategyName && (
+                <span className="text-[8px] font-mono text-brand-accent uppercase tracking-tighter opacity-80 border-b border-brand-accent/20 w-fit">
+                  {item.strategyName}
+                </span>
+              )}
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-mono opacity-40 uppercase tracking-tighter">{item.date}</span>
+                {item.notes && (
+                  <div className="flex items-center gap-1 px-1 py-0.5 rounded bg-brand-accent/10 border border-brand-accent/20">
+                    <StickyNote size={10} className="text-brand-accent" />
+                    <span className="text-[8px] font-bold text-brand-accent uppercase">Note</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${item.side === 'Long' ? 'bg-trade-long/10 text-trade-long border border-trade-long/20' : 'bg-trade-short/10 text-trade-short border border-trade-short/20'}`}>
+              {item.side}
+            </span>
+            <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'Win' ? 'bg-trade-long' : item.status === 'Loss' ? 'bg-trade-short' : 'bg-status-neutral animate-pulse opacity-40'}`} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[8px] label-caps opacity-40">Entry</span>
+            <span className="monospace-data text-[10px]">{item.levels.entry?.toLocaleString() || '---'}</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[8px] label-caps opacity-40">SL / TP</span>
+            <div className="flex flex-col">
+              <span className="monospace-data text-[10px] text-trade-long">+{item.levels.takeProfit?.toLocaleString() || '---'}</span>
+              <span className="monospace-data text-[10px] text-trade-short">-{item.levels.stopLoss?.toLocaleString() || '---'}</span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-0.5 items-end">
+            <span className="text-[8px] label-caps opacity-40">Result</span>
+            {item.status !== 'Pending' ? (
+              <span className={`monospace-data text-[10px] font-black ${calculateRMultiple(item) > 0 ? 'text-trade-long' : calculateRMultiple(item) < 0 ? 'text-trade-short' : 'text-brand-text-dim opacity-40'}`}>
+                {calculateRMultiple(item) > 0 ? '+' : ''}{calculateRMultiple(item).toFixed(2)}R
+              </span>
+            ) : (
+              <span className="monospace-data text-[10px] opacity-30 italic">ANALYZING...</span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-1">
+          <button 
+            onClick={() => onEdit(item)}
+            className="flex-1 py-2 bg-brand-elevated border border-brand-border rounded text-[9px] font-bold uppercase tracking-[2px] active:bg-brand-accent active:text-white transition-all flex items-center justify-center gap-2"
+          >
+            <ChevronRight size={12} className="text-brand-accent" />
+            {t.ui.edit_protocol}
+          </button>
+          <div className="lg:hidden text-[8px] font-mono opacity-20 uppercase flex items-center gap-1">
+            <ChevronRight size={10} className="animate-pulse" />
+            {t.ui.slide_to_purge}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/UploadModal.tsx">
+import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Camera, 
+  ShieldCheck, 
+  Zap, 
+  X, 
+  AlertTriangle, 
+  Search, 
+  CheckCircle2,
+  Activity,
+  Plus,
+  Palette,
+  Check
+} from 'lucide-react';
+import { AnalysisHistoryItem, TradeStatus, Strategy, TranslationSchema } from '../types';
+
+interface SignalValidationOverlayProps {
+  isOpen: boolean;
+  onClose: () => void;
+  data: AnalysisHistoryItem | null;
+  onConfirm: () => void;
+  onDataChange: (data: AnalysisHistoryItem) => void;
+  recentSymbols: string[];
+  strategies: Strategy[];
+  onAddStrategy: (name: string, color: string) => Promise<Strategy>;
+  t: TranslationSchema;
+}
+
+const STRATEGY_COLORS = [
+  '#6366f1', // Indigo
+  '#22d3ee', // Cyan
+  '#10b981', // Emerald
+  '#f59e0b', // Amber
+  '#ef4444', // Red
+  '#a855f7'  // Purple
+];
+
+export const SignalValidationOverlay = ({ 
+  isOpen, 
+  onClose, 
+  data, 
+  onConfirm, 
+  onDataChange,
+  recentSymbols,
+  strategies,
+  onAddStrategy,
+  t
+}: SignalValidationOverlayProps) => {
+  const [isAddingStrategy, setIsAddingStrategy] = React.useState(false);
+  const [newStrategyName, setNewStrategyName] = React.useState('');
+  const [selectedColor, setSelectedColor] = React.useState(STRATEGY_COLORS[0]);
+  const [isSavingStrategy, setIsSavingStrategy] = React.useState(false);
+
+  if (!isOpen || !data) return null;
+
+  const handleAddStrategy = async () => {
+    if (!newStrategyName.trim()) return;
+    setIsSavingStrategy(true);
+    try {
+      const newStrategy = await onAddStrategy(newStrategyName.trim(), selectedColor);
+      onDataChange({
+        ...data,
+        strategyId: newStrategy.id,
+        strategyName: newStrategy.name,
+        strategyColor: newStrategy.color
+      });
+      setNewStrategyName('');
+      setIsAddingStrategy(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingStrategy(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-brand-bg/90 backdrop-blur-xl"
+          onClick={onClose}
+        />
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          className="technical-panel w-full max-w-5xl bg-brand-elevated relative z-10 border-brand-accent/30 shadow-2xl flex flex-col md:flex-row overflow-hidden"
+        >
+          {/* Left: Visual Evidence (Screenshot) */}
+          <div className="md:w-1/2 p-6 bg-black/40 flex flex-col gap-4 border-r border-brand-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Camera size={14} className="text-brand-accent" />
+                <span className="label-caps mb-0 text-[10px]">{t.ui.neural_visual_input}</span>
+              </div>
+              <span className="text-[9px] font-mono opacity-40">FRAME_READY // LATENCY_LOW</span>
+            </div>
+            <div className="relative flex-1 bg-brand-bg rounded border border-brand-border/50 overflow-hidden group">
+              <img 
+                src={data.imageUrl} 
+                alt="Scan Evidence" 
+                className="w-full h-full object-contain"
+              />
+              <div className="absolute inset-0 border-[20px] border-black/5 pointer-events-none" />
+            </div>
+            <div className="p-3 bg-brand-accent/5 border border-brand-accent/10 rounded flex items-start gap-3">
+              <ShieldCheck size={14} className="text-brand-accent shrink-0 mt-0.5" />
+              <p className="text-[9px] text-brand-text-dim uppercase leading-relaxed tracking-wider">
+                {t.ui.validate_levels_desc}
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Detected Signal Data */}
+          <div className="md:w-1/2 p-8 flex flex-col gap-6">
+            <div className="flex items-center justify-between border-b border-brand-border pb-4">
+              <div>
+                <h3 className="label-caps mb-0 text-brand-text-bright flex items-center gap-2">
+                  <Zap size={16} className="text-brand-accent" />
+                  {t.ui.signal_validation_protocol}
+                </h3>
+                <p className="text-[9px] text-brand-text-dim uppercase tracking-[2px] mt-1">{t.ui.manual_calibration}</p>
+              </div>
+              <button 
+                onClick={onClose}
+                className="text-brand-text-dim hover:text-brand-text-bright transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div className="flex flex-col gap-1.5 relative">
+                <div className="flex items-center justify-between">
+                  <label className="label-caps text-[10px]">{t.ui.pair_ticker}</label>
+                  {data.symbol && !recentSymbols.includes(data.symbol.toUpperCase()) && (
+                    <div className="flex items-center gap-1 text-[9px] text-brand-warning font-bold uppercase tracking-tighter">
+                      <AlertTriangle size={10} />
+                      <span>New / Custom Pair</span>
+                    </div>
+                  )}
+                </div>
+                <div className="relative group">
+                  <input 
+                    list="symbols-list"
+                    className={`w-full bg-brand-bg border p-3 monospace-data rounded text-sm transition-all outline-none ${
+                      data.symbol && !recentSymbols.includes(data.symbol.toUpperCase()) 
+                        ? 'border-brand-warning/50 focus:border-brand-warning shadow-lg shadow-brand-warning/10' 
+                        : 'border-brand-border focus:border-brand-accent'
+                    }`}
+                    placeholder="e.g. XAUUSD"
+                    value={data.symbol}
+                    onChange={e => onDataChange({...data, symbol: e.target.value.toUpperCase()})}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
+                    <Search size={14} />
+                  </div>
+                </div>
+                {data.symbol && !recentSymbols.includes(data.symbol.toUpperCase()) && (
+                  <p className="text-[8px] text-brand-warning/70 font-mono uppercase mt-1 leading-tight">
+                    Symbol not detected in recent history. Manual overwrite accepted.
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="label-caps text-[10px]">{t.ui.bias_direction}</label>
+                <select 
+                  className="bg-brand-bg border border-brand-border p-3 monospace-data rounded text-sm focus:border-brand-accent transition-colors outline-none"
+                  value={data.side}
+                  onChange={e => onDataChange({...data, side: e.target.value as any})}
+                >
+                  <option value="Long">LONG</option>
+                  <option value="Short">SHORT</option>
+                  <option value="Neutral">NEUTRAL</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 col-span-2">
+                <label className="label-caps text-[10px] flex justify-between items-center">
+                  {t.ui.strategy_mapping}
+                  <button 
+                    onClick={() => setIsAddingStrategy(!isAddingStrategy)}
+                    className="text-[9px] text-brand-accent hover:underline flex items-center gap-1 normal-case"
+                  >
+                    <Plus size={10} /> {t.ui.new_strategy}
+                  </button>
+                </label>
+                
+                {isAddingStrategy ? (
+                  <div className="p-3 bg-brand-bg border border-brand-accent/30 rounded-lg flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="flex gap-2">
+                      <input 
+                        autoFocus
+                        className="flex-1 bg-brand-elevated border border-brand-border p-2 monospace-data rounded text-xs focus:border-brand-accent outline-none"
+                        placeholder="Strategy Name..."
+                        value={newStrategyName}
+                        onChange={e => setNewStrategyName(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleAddStrategy()}
+                      />
+                      <button 
+                        disabled={isSavingStrategy || !newStrategyName}
+                        onClick={handleAddStrategy}
+                        className="px-3 bg-brand-accent text-white rounded text-[10px] font-bold uppercase disabled:opacity-50"
+                      >
+                        {isSavingStrategy ? '...' : t.ui.save}
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Palette size={10} className="text-brand-text-dim" />
+                      <div className="flex gap-1.5">
+                        {STRATEGY_COLORS.map(c => (
+                          <button
+                            key={c}
+                            onClick={() => setSelectedColor(c)}
+                            className={`w-4 h-4 rounded-full border border-white/20 transition-transform ${selectedColor === c ? 'scale-125 border-white shadow-[0_0_5px_rgba(255,255,255,0.5)]' : 'hover:scale-110'}`}
+                            style={{ backgroundColor: c }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
+                    {strategies.length > 0 ? (
+                      strategies.map(s => (
+                        <button
+                          key={s.id}
+                          onClick={() => onDataChange({
+                            ...data, 
+                            strategyId: data.strategyId === s.id ? undefined : s.id,
+                            strategyName: data.strategyId === s.id ? undefined : s.name,
+                            strategyColor: data.strategyId === s.id ? undefined : s.color
+                          })}
+                          className={`px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2
+                            ${data.strategyId === s.id 
+                              ? 'border-transparent text-white shadow-lg' 
+                              : 'bg-brand-bg border-brand-border text-brand-text-dim hover:border-brand-text-bright'}`}
+                          style={{ backgroundColor: data.strategyId === s.id ? s.color : 'transparent', borderColor: data.strategyId === s.id ? 'transparent' : undefined }}
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.color }} />
+                          {s.name}
+                          {data.strategyId === s.id && <Check size={10} />}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="w-full p-4 border border-dashed border-brand-border/40 rounded flex flex-col items-center justify-center gap-2 opacity-40">
+                         <Zap size={16} />
+                         <span className="text-[9px] font-mono uppercase">{t.ui.no_strategies}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4 col-span-2 mt-2">
+                <label className="label-caps text-[10px] block opacity-50">{t.ui.execution_levels}</label>
+                
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-mono text-brand-accent uppercase">{t.ui.entry_matrix}</span>
+                    <span className="text-[10px] text-brand-text-dim">VALUE</span>
+                  </div>
+                  <input 
+                    type="number"
+                    step="any"
+                    className="bg-brand-bg border border-brand-border p-4 monospace-data rounded text-base font-bold focus:border-brand-accent transition-colors outline-none"
+                    value={data.levels.entry || ''}
+                    onChange={e => onDataChange({...data, levels: {...data.levels, entry: parseFloat(e.target.value)}})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[9px] font-mono text-trade-long uppercase leading-none">{t.ui.profit_goal}</span>
+                    <input 
+                      type="number"
+                      step="any"
+                      className="bg-brand-bg border border-brand-border p-3 monospace-data rounded text-sm font-bold focus:border-trade-long/50 transition-colors outline-none"
+                      value={data.levels.takeProfit || ''}
+                      onChange={e => onDataChange({...data, levels: {...data.levels, takeProfit: parseFloat(e.target.value)}})}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[9px] font-mono text-trade-short uppercase leading-none">{t.ui.risk_threshold}</span>
+                    <input 
+                      type="number"
+                      step="any"
+                      className="bg-brand-bg border border-brand-border p-3 monospace-data rounded text-sm font-bold focus:border-trade-short/50 transition-colors outline-none"
+                      value={data.levels.stopLoss || ''}
+                      onChange={e => onDataChange({...data, levels: {...data.levels, stopLoss: parseFloat(e.target.value)}})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-span-2">
+                <label className="label-caps text-[10px]">{t.ui.signal_outcome}</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {(['Win', 'Loss', 'BE', 'Pending'] as TradeStatus[]).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => onDataChange({...data, status})}
+                      className={`py-2 text-[10px] font-bold rounded border transition-all uppercase tracking-widest
+                        ${data.status === status 
+                          ? (status === 'Win' ? 'bg-trade-long border-trade-long text-white shadow-lg shadow-trade-long/20' : 
+                             status === 'Loss' ? 'bg-trade-short border-trade-short text-white shadow-lg shadow-trade-short/20' : 
+                             status === 'BE' ? 'bg-brand-text-bright border-brand-text-bright text-black' :
+                             'bg-brand-accent border-brand-accent text-white shadow-lg shadow-brand-accent/20')
+                          : 'bg-brand-bg border-brand-border text-brand-text-dim hover:border-brand-text-bright'}`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto flex flex-col gap-3">
+              <button 
+                onClick={onConfirm}
+                className="w-full py-5 bg-brand-accent text-white font-bold uppercase tracking-[4px] text-[11px] rounded hover:opacity-90 transition-all shadow-xl shadow-brand-accent/30 flex items-center justify-center gap-3 active:scale-[0.98]"
+              >
+                <CheckCircle2 size={16} />
+                {t.ui.authorize_save}
+              </button>
+              <button 
+                onClick={onClose}
+                className="w-full py-4 text-brand-text-dim hover:text-brand-text-bright font-bold uppercase tracking-widest text-[9px] transition-colors flex items-center justify-center gap-2"
+              >
+                {t.ui.abort_interface}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
+
+interface ExpandedImageOverlayProps {
+  isOpen: boolean;
+  onClose: () => void;
+  t: TranslationSchema;
+}
+
+export const ExpandedImageOverlay = ({ isOpen, onClose, t }: ExpandedImageOverlayProps) => {
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-black/95 backdrop-blur-xl"
+        />
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="relative z-10 w-full max-w-6xl shadow-2xl rounded-lg overflow-hidden border border-white/10 bg-[#0d1117]"
+        >
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 z-20 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full transition-all border border-white/20"
+          >
+            <X size={24} />
+          </button>
+          
+          <div className="w-full aspect-video p-12">
+             <svg viewBox="0 0 400 225" className="w-full h-full">
+                {/* Grid Lines */}
+                <g stroke="#ffffff10" strokeWidth="0.5">
+                  {[...Array(20)].map((_, i) => (
+                    <line key={`h-${i}`} x1="0" y1={i * 11.25} x2="400" y2={i * 11.25} />
+                  ))}
+                  {[...Array(20)].map((_, i) => (
+                    <line key={`v-${i}`} x1={i * 20} y1="0" x2={i * 20} y2="225" />
+                  ))}
+                </g>
+
+                {/* SL Region */}
+                <rect x="180" y="20" width="180" height="60" fill="#ef4444" fillOpacity="0.1" />
+                {/* TP Region */}
+                <rect x="180" y="140" width="180" height="60" fill="#10b981" fillOpacity="0.1" />
+
+                {/* Entry/Current Region */}
+                <rect x="180" y="80" width="180" height="60" fill="#ffffff" fillOpacity="0.05" />
+
+                {/* SL Line */}
+                <g>
+                  <line x1="0" y1="20" x2="400" y2="20" stroke="#ef4444" strokeWidth="1" strokeDasharray="4 2" />
+                  <rect x="360" y="10" width="35" height="15" rx="2" fill="#ef4444" />
+                  <text x="377.5" y="21" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">74.550 (SL)</text>
+                </g>
+
+                {/* Entry Line */}
+                <g>
+                  <line x1="0" y1="80" x2="400" y2="80" stroke="#94a3b8" strokeWidth="1.5" />
+                  <rect x="350" y="72" width="45" height="15" rx="2" fill="#94a3b8" />
+                  <text x="372.5" y="83" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">74.200 (ENTRY)</text>
+                </g>
+
+                {/* TP Line */}
+                <g>
+                  <line x1="0" y1="205" x2="400" y2="205" stroke="#10b981" strokeWidth="1" strokeDasharray="4 2" />
+                  <rect x="360" y="195" width="35" height="15" rx="2" fill="#10b981" />
+                  <text x="377.5" y="206" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">73.800 (TP)</text>
+                </g>
+
+                {/* Indicators */}
+                <g fill="#94a3b8" fontSize="6" fontWeight="bold">
+                   <text x="10" y="15">MGC1! - 5m - COMEX</text>
+                   <text x="10" y="25" fillOpacity="0.6">O: 74.215 H: 74.250 L: 74.200 C: 74.225</text>
+                </g>
+             </svg>
+          </div>
+
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-black/50 backdrop-blur-md rounded-full border border-white/10 text-white text-[10px] font-bold uppercase tracking-[4px]">
+            {t.ui.extraction_protocol_desc}
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
+</file>
+
+<file path="src/index.css">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ==========================================================================
+   Vantage Terminal — Premium Fintech Design System
+   Deep obsidian base with emerald accents. Glass surfaces, hairline borders,
+   tabular numerics. Tuned for institutional data density.
+   ========================================================================== */
+
+:root {
+  --brand-bg: #07090D;
+  --brand-elevated: #0C1016;
+  --brand-surface-2: #11161F;
+  --brand-border: #1A2230;
+  --brand-border-strong: #243046;
+  --brand-accent: #34D399;          /* emerald */
+  --brand-accent-soft: #10B981;
+  --brand-text-dim: #7A8597;
+  --brand-text-bright: #E6ECF5;
+  --brand-success: #34D399;
+  --brand-danger: #F87171;
+  --brand-warning: #FBBF24;
+  --trade-long: #34D399;
+  --trade-short: #F87171;
+  --status-neutral: #6B7689;
+  --grid-line: rgba(255,255,255,0.04);
+  --hairline: rgba(255,255,255,0.06);
+}
+
+[data-theme='light'] {
+  --brand-bg: #F7F8FA;
+  --brand-elevated: #FFFFFF;
+  --brand-surface-2: #F1F3F7;
+  --brand-border: #E4E7EC;
+  --brand-border-strong: #CFD4DC;
+  --brand-accent: #059669;
+  --brand-accent-soft: #10B981;
+  --brand-text-dim: #5B6470;
+  --brand-text-bright: #0B0E14;
+  --brand-success: #059669;
+  --brand-danger: #DC2626;
+  --brand-warning: #D97706;
+  --trade-long: #059669;
+  --trade-short: #DC2626;
+  --hairline: rgba(0,0,0,0.06);
+  --grid-line: rgba(0,0,0,0.04);
+}
+
+[data-theme='tactical'] {
+  --brand-bg: #14160F;
+  --brand-elevated: #1B1E16;
+  --brand-surface-2: #232720;
+  --brand-border: #2E342A;
+  --brand-border-strong: #3D453A;
+  --brand-accent: #FF7E1A;
+  --brand-accent-soft: #FB923C;
+  --brand-text-dim: #8C9284;
+  --brand-text-bright: #F0F2EE;
+  --brand-success: #A3E635;
+  --brand-danger: #EF4444;
+  --brand-warning: #FBBF24;
+  --trade-long: #A3E635;
+  --trade-short: #EF4444;
+  --hairline: rgba(255,255,255,0.05);
+}
+
+[data-theme='cyber'] {
+  --brand-bg: #08080A;
+  --brand-elevated: #111114;
+  --brand-surface-2: #181820;
+  --brand-border: #26262E;
+  --brand-border-strong: #34343F;
+  --brand-accent: #FCEE0A;
+  --brand-accent-soft: #FDE047;
+  --brand-text-dim: #888A95;
+  --brand-text-bright: #FFFFFF;
+  --brand-success: #00FFA3;
+  --brand-danger: #FF3366;
+  --brand-warning: #FF8000;
+  --trade-long: #00FFA3;
+  --trade-short: #FF3366;
+  --hairline: rgba(255,255,255,0.06);
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-brand-bg: var(--brand-bg);
+  --color-brand-elevated: var(--brand-elevated);
+  --color-brand-surface-2: var(--brand-surface-2);
+  --color-brand-border: var(--brand-border);
+  --color-brand-border-strong: var(--brand-border-strong);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-soft: var(--brand-accent-soft);
+  --color-brand-text-dim: var(--brand-text-dim);
+  --color-brand-text-bright: var(--brand-text-bright);
+  --color-brand-success: var(--brand-success);
+  --color-brand-danger: var(--brand-danger);
+  --color-brand-warning: var(--brand-warning);
+
+  --color-trade-long: var(--trade-long);
+  --color-trade-short: var(--trade-short);
+  --color-status-neutral: var(--status-neutral);
+
+  --radius-card: 12px;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    @apply bg-brand-bg text-brand-text-dim font-sans antialiased;
+    font-feature-settings: "cv11", "ss01", "ss03";
+    background-image:
+      radial-gradient(900px 600px at 12% -10%, rgba(52,211,153,0.06), transparent 60%),
+      radial-gradient(800px 500px at 95% 0%, rgba(56,189,248,0.04), transparent 65%),
+      radial-gradient(700px 600px at 50% 110%, rgba(52,211,153,0.04), transparent 60%);
+    background-attachment: fixed;
+  }
+  ::selection { background: color-mix(in oklab, var(--brand-accent) 35%, transparent); color: var(--brand-text-bright); }
+  h1,h2,h3,h4 { color: var(--brand-text-bright); letter-spacing: -0.01em; }
+  .num, .font-mono, table td, table th { font-variant-numeric: tabular-nums; }
+}
+
+/* --- Surfaces ------------------------------------------------------------ */
+.technical-panel {
+  background: color-mix(in oklab, var(--brand-elevated) 92%, transparent);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.02) inset,
+    0 1px 2px rgba(0,0,0,0.35),
+    0 8px 24px -16px rgba(0,0,0,0.6);
+}
+
+.glass-card {
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--brand-elevated) 70%, transparent),
+    color-mix(in oklab, var(--brand-bg) 70%, transparent));
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.glass-card:hover { border-color: color-mix(in oklab, var(--brand-accent) 22%, var(--hairline)); }
+
+.hairline { border-color: var(--hairline) !important; }
+.hairline-b { border-bottom: 1px solid var(--hairline); }
+.hairline-t { border-top: 1px solid var(--hairline); }
+.hairline-r { border-right: 1px solid var(--hairline); }
+
+.glow-border {
+  border: 1px solid color-mix(in oklab, var(--brand-accent) 22%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--brand-accent) 12%, transparent),
+              0 8px 32px -12px color-mix(in oklab, var(--brand-accent) 25%, transparent);
+}
+
+.dot-matrix {
+  background-image: radial-gradient(var(--brand-border) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.35;
+}
+
+.neural-bg {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand-elevated) 96%, transparent), var(--brand-elevated));
+}
+
+/* --- Typography helpers ------------------------------------------------- */
+.monospace-data {
+  @apply font-mono text-sm tracking-tight text-brand-text-bright;
+  font-variant-numeric: tabular-nums;
+}
+.text-num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+.label-caps {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand-text-dim);
+}
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--brand-surface-2) 70%, transparent);
+  color: var(--brand-text-dim);
+}
+
+/* --- Pills / status ---------------------------------------------------- */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 500;
+  border: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--brand-surface-2) 60%, transparent);
+}
+.pill-positive { color: var(--brand-success); border-color: color-mix(in oklab, var(--brand-success) 28%, transparent); background: color-mix(in oklab, var(--brand-success) 10%, transparent); }
+.pill-negative { color: var(--brand-danger);  border-color: color-mix(in oklab, var(--brand-danger) 28%, transparent);  background: color-mix(in oklab, var(--brand-danger) 10%, transparent); }
+.pill-neutral  { color: var(--brand-text-dim); }
+
+/* --- Scrollbar --------------------------------------------------------- */
+.custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--brand-border-strong) 70%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--brand-accent) 60%, var(--brand-border-strong));
+  background-clip: padding-box;
+}
+
+/* --- Buttons ----------------------------------------------------------- */
+.btn-primary {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--brand-accent) 95%, white 5%), var(--brand-accent-soft));
+  color: #07120D;
+  border: 1px solid color-mix(in oklab, var(--brand-accent) 70%, black);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 18px -8px color-mix(in oklab, var(--brand-accent) 60%, transparent);
+  transition: transform .12s ease, filter .12s ease;
+}
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-primary:active { transform: translateY(1px); }
+
+.btn-ghost {
+  background: color-mix(in oklab, var(--brand-surface-2) 60%, transparent);
+  color: var(--brand-text-bright);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: background .12s ease, border-color .12s ease;
+}
+.btn-ghost:hover { background: color-mix(in oklab, var(--brand-surface-2) 90%, transparent); border-color: var(--brand-border-strong); }
+
+/* --- Tables ------------------------------------------------------------ */
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.data-table th {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--brand-text-dim); font-weight: 600;
+  text-align: left; padding: 10px 12px;
+  border-bottom: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--brand-surface-2) 40%, transparent);
+}
+.data-table td {
+  padding: 10px 12px; font-size: 13px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--brand-text-bright);
+}
+.data-table tr:hover td { background: color-mix(in oklab, var(--brand-accent) 5%, transparent); }
+
+/* --- Animations -------------------------------------------------------- */
+@keyframes pulseDot {
+  0%,100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-accent) 50%, transparent); }
+  50%     { box-shadow: 0 0 0 6px color-mix(in oklab, var(--brand-accent) 0%, transparent); }
+}
+.live-dot { animation: pulseDot 2s ease-out infinite; }
+
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.skeleton {
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--brand-surface-2) 80%, transparent) 0%,
+    color-mix(in oklab, var(--brand-border) 60%, transparent) 50%,
+    color-mix(in oklab, var(--brand-surface-2) 80%, transparent) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: 6px;
+}
+
+/* --- Recharts polish (works against existing components) -------------- */
+.recharts-cartesian-grid line { stroke: var(--grid-line) !important; }
+.recharts-cartesian-axis-line { stroke: var(--hairline) !important; }
+.recharts-cartesian-axis-tick text { fill: var(--brand-text-dim) !important; font-size: 11px; font-family: var(--font-mono); }
+.recharts-tooltip-wrapper { outline: none !important; }
+.recharts-default-tooltip {
+  background: color-mix(in oklab, var(--brand-elevated) 92%, transparent) !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 32px -12px rgba(0,0,0,0.6) !important;
+  padding: 8px 10px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  color: var(--brand-text-bright) !important;
+}
+.recharts-tooltip-label { color: var(--brand-text-dim) !important; font-size: 10px !important; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px !important; }
+.recharts-reference-line line { stroke: color-mix(in oklab, var(--brand-text-dim) 40%, transparent) !important; stroke-dasharray: 3 3; }
+
+/* --- Inputs ----------------------------------------------------------- */
+input, select, textarea {
+  background: color-mix(in oklab, var(--brand-surface-2) 70%, transparent);
+  border: 1px solid var(--hairline);
+  color: var(--brand-text-bright);
+  border-radius: 8px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: color-mix(in oklab, var(--brand-accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-accent) 18%, transparent);
+}
+</file>
+
+<file path="src/lib/supabase.ts">
+import { createClient, User } from '@supabase/supabase-js';
+import { AnalysisHistoryItem, Strategy } from '../types';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const isSupabaseConfigured = supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('your-project-url');
+
+if (!isSupabaseConfigured) {
+  console.warn('Supabase configuration is missing or using placeholders. Database features will be disabled until configured in AI Studio Secrets Panel.');
+}
+
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder'
+);
+
+export async function saveTradeToSupabase(data: AnalysisHistoryItem, userId?: string, mode: 'live' | 'backtest' = 'live') {
+  if (!isSupabaseConfigured) {
+    console.warn('Attempted to save trade but Supabase is not configured.');
+    return;
+  }
+  const { error } = await supabase
+    .from('trades')
+    .insert([{
+      user_id: userId,
+      symbol: data.symbol,
+      side: data.side,
+      entry_price: data.levels.entry,
+      stop_loss: data.levels.stopLoss,
+      take_profit: data.levels.takeProfit,
+      fibo_target: data.fiboTarget,
+      image_url: data.imageUrl,
+      trade_status: data.status,
+      timestamp: data.date || data.timestamp,
+      confidence: data.confidence,
+      trading_mode: mode,
+      trade_notes: data.notes,
+      strategy_id: data.strategyId,
+      strategy_name: data.strategyName,
+      created_at: new Date().toISOString()
+    }]);
+
+  if (error) {
+    console.error('Supabase save error:', error);
+    const message = error.message?.toLowerCase().includes('fetch') 
+      ? 'Network error: Could not connect to the database.' 
+      : `Database error: ${error.message || 'Unknown save failure'}`;
+    throw new Error(message);
+  }
+}
+
+export async function fetchTradesFromSupabase(userId?: string, mode?: 'live' | 'backtest'): Promise<AnalysisHistoryItem[]> {
+  if (!isSupabaseConfigured) {
+    console.warn('Attempted to fetch trades but Supabase is not configured.');
+    return [];
+  }
+  let query = supabase
+    .from('trades')
+    .select(`
+      id, 
+      user_id, 
+      symbol, 
+      side, 
+      entry_price, 
+      stop_loss, 
+      take_profit, 
+      fibo_target, 
+      image_url, 
+      trade_status, 
+      timestamp, 
+      confidence, 
+      trading_mode, 
+      trade_notes, 
+      strategy_id,
+      strategy_name,
+      created_at,
+      strategies (
+        id,
+        name,
+        color
+      )
+    `);
+    
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  if (mode) {
+    query = query.eq('trading_mode', mode);
+  }
+
+  let { data, error }: { data: any, error: any } = await query
+    .order('created_at', { ascending: false });
+
+  // FALLBACK: If the join fails (likely due to missing foreign key relationship/schema cache), 
+  // try fetching without the strategies join
+  if (error && (error.message.includes('relationship') || error.message.includes('strategies') || error.message.includes('schema cache'))) {
+    console.warn('Supabase join failed, attempting fallback fetch...', error.message);
+    let fallbackQuery = supabase
+      .from('trades')
+      .select(`
+        id, symbol, side, entry_price, stop_loss, take_profit, fibo_target, 
+        image_url, trade_status, timestamp, confidence, trading_mode, 
+        trade_notes, strategy_id, strategy_name, created_at
+      `);
+      
+    if (userId) fallbackQuery = fallbackQuery.eq('user_id', userId);
+    if (mode) fallbackQuery = fallbackQuery.eq('trading_mode', mode);
+    
+    const fallbackResult = await fallbackQuery.order('created_at', { ascending: false });
+    data = fallbackResult.data;
+    error = fallbackResult.error;
+  }
+
+  if (error) {
+    console.error('Supabase fetch error:', error);
+    const message = error.message?.toLowerCase().includes('fetch') 
+      ? 'Network error: Could not connect to the database.' 
+      : `Database error: ${error.message || 'Unknown fetch failure'}`;
+    throw new Error(message);
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    symbol: row.symbol,
+    side: row.side,
+    levels: {
+      entry: row.entry_price,
+      stopLoss: row.stop_loss,
+      takeProfit: row.take_profit
+    },
+    fiboTarget: row.fibo_target,
+    imageUrl: row.image_url,
+    status: row.trade_status,
+    timestamp: row.timestamp,
+    confidence: row.confidence || 1,
+    date: row.timestamp || new Date(row.created_at).toLocaleString(),
+    tradingMode: row.trading_mode,
+    notes: row.trade_notes,
+    strategyId: row.strategy_id,
+    strategyName: (Array.isArray(row.strategies) ? row.strategies[0]?.name : row.strategies?.name) || row.strategy_name,
+    strategyColor: Array.isArray(row.strategies) ? row.strategies[0]?.color : row.strategies?.color
+  }));
+}
+
+export async function updateTradeInSupabase(id: string, data: Partial<AnalysisHistoryItem>) {
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase
+    .from('trades')
+    .update({
+      symbol: data.symbol,
+      side: data.side,
+      entry_price: data.levels?.entry,
+      stop_loss: data.levels?.stopLoss,
+      take_profit: data.levels?.takeProfit,
+      fibo_target: data.fiboTarget,
+      trade_status: data.status,
+      timestamp: data.date || data.timestamp,
+      trade_notes: data.notes,
+      strategy_id: data.strategyId,
+      strategy_name: data.strategyName
+    })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Supabase update error:', error);
+    const message = error.message?.toLowerCase().includes('fetch') 
+      ? 'Network error: Could not connect to the database.' 
+      : `Database error: ${error.message || 'Unknown update failure'}`;
+    throw new Error(message);
+  }
+}
+
+export async function submitFeedbackToSupabase(data: {
+  userId?: string;
+  category: string;
+  subject: string;
+  message: string;
+  systemInfo: any;
+}) {
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase
+    .from('system_feedback')
+    .insert([
+      {
+        user_id: data.userId,
+        category: data.category,
+        subject: data.subject,
+        message: data.message,
+        system_info: data.systemInfo,
+        created_at: new Date().toISOString()
+      }
+    ]);
+
+  if (error) {
+    console.error('Supabase feedback error:', error);
+    throw new Error(`Database error: ${error.message || 'Feedback submission failed'}`);
+  }
+}
+
+export async function fetchFeedbackFromSupabase(userId?: string) {
+  if (!isSupabaseConfigured) return [];
+  let query = supabase
+    .from('system_feedback')
+    .select('*');
+    
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  const { data, error } = await query
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Supabase fetch feedback error:', error);
+    throw new Error(`Database error: ${error.message}`);
+  }
+
+  return data || [];
+}
+
+export async function updateFeedbackStatus(id: string, status: string) {
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase
+    .from('system_feedback')
+    .update({ status })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Supabase feedback update error:', error);
+    throw new Error(`Database error: ${error.message}`);
+  }
+}
+
+export async function syncProfile(user: User) {
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase
+    .from('profiles')
+    .upsert({
+      id: user.id,
+      email: user.email,
+      last_sign_in_at: user.last_sign_in_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+
+  if (error) {
+    console.error('Error syncing profile:', error);
+  }
+}
+
+export async function fetchProfiles() {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('last_sign_in_at', { ascending: false });
+
+  if (error) {
+    console.warn('Error fetching profiles:', error.message);
+    // Return empty array instead of throwing to prevent crashing the UI if table doesn't exist
+    const isMissingTable = 
+      error.code === 'PGRST116' || 
+      error.message.includes('not found') || 
+      error.message.includes('relation "profiles" does not exist') ||
+      error.message.includes('schema cache');
+    
+    if (isMissingTable) {
+      return [];
+    }
+    throw new Error(`Database error: ${error.message}`);
+  }
+
+  return data || [];
+}
+
+export async function deleteTradeFromSupabase(id: string) {
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase
+    .from('trades')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Supabase delete error:', error);
+    const message = error.message?.toLowerCase().includes('fetch') 
+      ? 'Network error: Could not connect to the database.' 
+      : `Database error: ${error.message || 'Unknown delete failure'}`;
+    throw new Error(message);
+  }
+}
+
+// Strategy Management Functions
+export async function fetchStrategiesFromSupabase(userId?: string): Promise<Strategy[]> {
+  if (!isSupabaseConfigured) return [];
+  
+  const { data, error } = await supabase
+    .from('strategies')
+    .select(`
+      id,
+      name,
+      color,
+      created_at,
+      trades (count)
+    `)
+    .eq('user_id', userId)
+    .order('name', { ascending: true });
+
+  if (error) {
+    // If table doesn't exist yet, return empty
+    if (error.code === 'PGRST116' || error.message.includes('not found')) {
+      return [];
+    }
+    console.error('Supabase fetch strategies error:', error);
+    throw new Error(`Database error: ${error.message}`);
+  }
+
+  return (data || []).map(row => ({
+    id: row.id,
+    name: row.name,
+    color: row.color,
+    createdAt: row.created_at,
+    tradeCount: row.trades?.[0]?.count || 0
+  }));
+}
+
+export async function saveStrategyToSupabase(name: string, color: string, userId: string): Promise<Strategy> {
+  if (!isSupabaseConfigured) throw new Error('Supabase not configured');
+  
+  const { data, error } = await supabase
+    .from('strategies')
+    .insert([{
+      user_id: userId,
+      name,
+      color,
+      created_at: new Date().toISOString()
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Supabase save strategy error:', error);
+    throw new Error(`Database error: ${error.message}`);
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    color: data.color,
+    createdAt: data.created_at,
+    tradeCount: 0
+  };
+}
+
+export async function updateStrategyInSupabase(id: string, name: string, color: string) {
+  if (!isSupabaseConfigured) return;
+  
+  const { error } = await supabase
+    .from('strategies')
+    .update({ name, color })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Supabase update strategy error:', error);
+    throw new Error(`Database error: ${error.message}`);
+  }
+}
+
+export async function deleteStrategyFromSupabase(id: string) {
+  if (!isSupabaseConfigured) return;
+  
+  // RLS or a trigger should handle trade_id being set to null, 
+  // but explicitly we do nothing to the trades table as requested.
+  // The deletion of a strategy will cause foreign key issues if trades still reference it 
+  // UNLESS the reference is set to ON DELETE SET NULL.
+  // The user prompt says "Delete button (with confirm) — does NOT delete associated trades, just sets strategy_id = null"
+  // So we should update trades first.
+  
+  await supabase
+    .from('trades')
+    .update({ strategy_id: null })
+    .eq('strategy_id', id);
+
+  const { error } = await supabase
+    .from('strategies')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Supabase delete strategy error:', error);
+    throw new Error(`Database error: ${error.message}`);
+  }
+}
+</file>
+
+<file path="src/lib/tradeUtils.ts">
+import { AnalysisHistoryItem } from '../types';
+
+export function calculateRMultiple(item: AnalysisHistoryItem): number {
+  const entry = item.levels.entry || 0;
+  const sl = item.levels.stopLoss || 0;
+  const tp = item.levels.takeProfit || 0;
+  
+  const risk = Math.abs(entry - sl);
+  const reward = Math.abs(tp - entry);
+  const rr = risk > 0 ? reward / risk : 0;
+  
+  if (item.status === 'Win') return rr;
+  if (item.status === 'Loss') return -1;
+  if (item.status === 'BE') return 0;
+  return 0; // Pending or Neutral
+}
+</file>
+
+<file path="src/main.tsx">
+import {StrictMode} from 'react';
+import {createRoot} from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.log('SW registration failed: ', err);
+    });
+  });
+}
+</file>
+
+<file path="src/services/geminiService.ts">
+import { GoogleGenAI, Type } from "@google/genai";
+import { TradeAnalysis } from "../types";
+
+
+// Intelligence extracted to analyzeTradeScreenshot
+
+const ANALYSIS_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    symbol: {
+      type: Type.STRING,
+      description: "The trading symbol, e.g., MNQ, MGC, BTCUSD.",
+    },
+    side: {
+      type: Type.STRING,
+      enum: ["Long", "Short", "Neutral"],
+      description: "The direction of the trade based on labels or chart orientation.",
+    },
+    levels: {
+      type: Type.OBJECT,
+      properties: {
+        entry: { type: Type.NUMBER, description: "The entry price level." },
+        stopLoss: { type: Type.NUMBER, description: "The stop loss price level." },
+        takeProfit: { type: Type.NUMBER, description: "The take profit price level." },
+      },
+      required: ["entry", "stopLoss", "takeProfit"],
+    },
+    timestamp: {
+      type: Type.STRING,
+      description: "Date and Time from the chart's x-axis in YYYY-MM-DD HH:mm format.",
+    },
+    fiboTarget: {
+      type: Type.STRING,
+      description: "The highest or lowest Fibonacci level reached or targeted.",
+    },
+    confidence: {
+      type: Type.NUMBER,
+      description: "Confidence score from 0 to 1.",
+    },
+  },
+  required: ["symbol", "side", "levels", "timestamp", "fiboTarget"],
+};
+
+export async function analyzeTradeScreenshot(base64Image: string, customApiKey?: string): Promise<TradeAnalysis> {
+  try {
+    const key = customApiKey;
+    if (!key) {
+      throw new Error("Gemini API Key missing. Go to SYSTEM -> Bring Your Own Intelligence to configure your node.");
+    }
+    const ai = new GoogleGenAI({ apiKey: key });
+    
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        {
+          parts: [
+            {
+              text: `Analyze this TradingView screenshot for a professional trade dashboard. 
+              Extract the symbol, side (Long/Short), trade levels (Entry, SL, TP), 
+              the EXACT timestamp visible on the chart (usually on the x-axis or at the bottom right corner). 
+              Convert it to YYYY-MM-DD HH:mm format. 
+              If the chart is in GMT+7 (common for this user), ensure the time is extracted exactly as shown.
+              Also extract any visible Fibonacci targets. 
+              Return the data as structured JSON.`
+            },
+            {
+              inlineData: {
+                mimeType: "image/png",
+                data: base64Image.split(",")[1] || base64Image,
+              },
+            },
+          ]
+        }
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: ANALYSIS_SCHEMA as any,
+      },
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error("No response from Gemini");
+    }
+
+    return JSON.parse(text) as TradeAnalysis;
+  } catch (error) {
+    console.error("Gemini Analysis Error:", error);
+    throw error;
+  }
+}
+</file>
+
+<file path="src/services/statsEngine.ts">
+import { AnalysisHistoryItem, TradeStats } from "../types";
+import { calculateRMultiple } from "../lib/tradeUtils";
+
+export function calculateTradeStatistics(trades: AnalysisHistoryItem[]): TradeStats {
+  const closedTrades = trades.filter(t => t.status !== "Pending");
+  const winningTrades = closedTrades.filter(t => t.status === "Win");
+  const losingTrades = closedTrades.filter(t => t.status === "Loss");
+
+  const totalTrades = closedTrades.length || 1; // Avoid division by zero
+  const winRate = (winningTrades.length / totalTrades) * 100;
+
+  // Calculate R:R and Profits in "R" units
+  let totalRR = 0;
+  let grossProfitR = 0;
+  let grossLossR = 0;
+  let maxR = 0;
+  let currentR = 0;
+  let maxDD = 0;
+  let totalDurationMs = 0;
+  let tradesWithDuration = 0;
+  let currentConsecutiveLosses = 0;
+  let maxConsecutiveLosses = 0;
+  const equityCurve: TradeStats['equityCurve'] = [{ trade: 0, equity: 0, drawdown: 0 }];
+
+  // Sort trades by timestamp to build a chronological equity curve
+  const chronTrades = [...closedTrades].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  chronTrades.forEach((trade, index) => {
+    const entry = trade.levels.entry || 0;
+    const sl = trade.levels.stopLoss || 0;
+    const tp = trade.levels.takeProfit || 0;
+
+    const rr = calculateRMultiple(trade);
+
+    totalRR += Math.max(0, rr); // rr for avgRR is usually the planned one if pending, but here it's closed trades.
+    // Actually totalRR should probably be the sum of all 'Win' rewards.
+
+    if (trade.status === "Win") {
+      currentR += rr;
+      grossProfitR += rr;
+      currentConsecutiveLosses = 0;
+    } else if (trade.status === "Loss") {
+      currentR += rr; // rr is -1
+      grossLossR += 1;
+      currentConsecutiveLosses++;
+      if (currentConsecutiveLosses > maxConsecutiveLosses) {
+        maxConsecutiveLosses = currentConsecutiveLosses;
+      }
+    }
+    // BE status: currentR remains unchanged (0R)
+
+    // Duration calculation
+    if (trade.exitDate && trade.date) {
+      const duration = new Date(trade.exitDate).getTime() - new Date(trade.date).getTime();
+      if (duration > 0) {
+        totalDurationMs += duration;
+        tradesWithDuration++;
+      }
+    }
+
+    if (currentR > maxR) maxR = currentR;
+    const dd = maxR - currentR;
+    if (dd > maxDD) maxDD = dd;
+
+    equityCurve.push({
+      trade: index + 1,
+      equity: Number(currentR.toFixed(2)),
+      drawdown: Number((-dd).toFixed(2)),
+      tradeId: trade.id,
+      date: trade.date,
+      symbol: trade.symbol,
+      rMultiple: rr
+    });
+  });
+
+  const avgRR = winningTrades.length > 0 ? totalRR / winningTrades.length : 0;
+  
+  // Expectancy = (Win Rate * Avg Win) - (Loss Rate * Avg Loss)
+  const avgWinR = avgRR;
+  const avgLossR = 1; // We defined loss as 1R
+  const lossRate = 1 - (winRate / 100);
+  const expectancy = ((winRate / 100) * avgWinR) - (lossRate * avgLossR);
+
+  // Advanced Metrics
+  const profitFactor = grossLossR > 0 ? grossProfitR / grossLossR : grossProfitR;
+  const recoveryFactor = maxDD > 0 ? currentR / maxDD : currentR;
+  
+  let avgDurationStr = "N/A";
+  if (tradesWithDuration > 0) {
+    const avgMs = totalDurationMs / tradesWithDuration;
+    const hours = Math.floor(avgMs / (1000 * 60 * 60));
+    const minutes = Math.floor((avgMs % (1000 * 60 * 60)) / (1000 * 60));
+    avgDurationStr = `${hours}h ${minutes}m`;
+  }
+
+  // Symbol Efficiency
+  const symbols = Array.from(new Set(closedTrades.map(t => t.symbol)));
+  const symbolEfficiency = symbols.map(s => {
+    const sTrades = closedTrades.filter(t => t.symbol === s);
+    const sWins = sTrades.filter(t => t.status === "Win");
+    const sWinRate = (sWins.length / sTrades.length) * 100;
+    
+    let sProfit = 0;
+    sTrades.forEach(t => {
+      sProfit += calculateRMultiple(t);
+    });
+
+    return { symbol: s, winRate: sWinRate, profit: sProfit, count: sTrades.length };
+  }).sort((a, b) => b.profit - a.profit);
+
+  // Bias Analysis
+  const longTrades = closedTrades.filter(t => t.side === "Long");
+  const shortTrades = closedTrades.filter(t => t.side === "Short");
+
+  // Performance by Day
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const performanceByDay = days.map((day, index) => {
+    const dTrades = closedTrades.filter(t => {
+      const date = new Date(t.date);
+      if (isNaN(date.getTime())) return false;
+      
+      // Convert UTC to GMT+7 (user timezone) to match day boundaries
+      const gmt7Date = new Date(date.getTime() + (7 * 60 * 60 * 1000));
+      return gmt7Date.getUTCDay() === index;
+    });
+    const dWins = dTrades.filter(t => t.status === "Win");
+    const dWinRate = dTrades.length > 0 ? (dWins.length / dTrades.length) * 100 : 0;
+    
+    let dProfit = 0;
+    dTrades.forEach(t => {
+      dProfit += calculateRMultiple(t);
+    });
+
+    return { day, winRate: dWinRate, profit: dProfit, count: dTrades.length };
+  });
+
+  // Performance by Session (GMT+7)
+  const sessions = [
+    { name: "Asia", start: 7, end: 11 },    // 07:00 - 11:00 GMT+7
+    { name: "London", start: 14, end: 17 },  // 14:00 - 17:00 GMT+7
+    { name: "New York", start: 19, end: 22 } // 19:00 - 22:00 GMT+7
+  ];
+
+  const performanceBySession = sessions.map(session => {
+    const sTrades = closedTrades.filter(t => {
+      const date = new Date(t.date);
+      if (isNaN(date.getTime())) return false;
+      
+      // Convert UTC to GMT+7 (user timezone) to match session boundaries
+      const gmt7Date = new Date(date.getTime() + (7 * 60 * 60 * 1000));
+      const hour = gmt7Date.getUTCHours();
+      
+      return hour >= session.start && hour < session.end;
+    });
+
+    const sWins = sTrades.filter(t => t.status === "Win");
+    const sWinRate = sTrades.length > 0 ? (sWins.length / sTrades.length) * 100 : 0;
+    
+    let sProfit = 0;
+    sTrades.forEach(t => {
+      sProfit += calculateRMultiple(t);
+    });
+
+    return { session: session.name, winRate: sWinRate, profit: sProfit, count: sTrades.length };
+  });
+
+  return {
+    winRate,
+    avgRR,
+    expectancy,
+    maxDrawdown: maxDD,
+    totalTrades: closedTrades.length,
+    profitFactor,
+    recoveryFactor,
+    avgDuration: avgDurationStr,
+    maxConsecutiveLosses,
+    symbolEfficiency,
+    biasAnalysis: {
+      long: { 
+        winRate: longTrades.length > 0 ? (longTrades.filter(t => t.status === "Win").length / longTrades.length) * 100 : 0,
+        count: longTrades.length
+      },
+      short: { 
+        winRate: shortTrades.length > 0 ? (shortTrades.filter(t => t.status === "Win").length / shortTrades.length) * 100 : 0,
+        count: shortTrades.length
+      }
+    },
+    equityCurve,
+    performanceByDay,
+    performanceBySession,
+    strategyAnalysis: (() => {
+      // Group trades by strategy ID or name (for backward compatibility)
+      const strategyGroups: Record<string, { id?: string; name: string; color?: string; trades: AnalysisHistoryItem[] }> = {};
+      
+      closedTrades.forEach(t => {
+        const strategyKey = t.strategyId || t.strategyName;
+        if (!strategyKey) return;
+        
+        if (!strategyGroups[strategyKey]) {
+          strategyGroups[strategyKey] = {
+            id: t.strategyId,
+            name: t.strategyName || 'Unnamed Strategy',
+            color: t.strategyColor,
+            trades: []
+          };
+        }
+        strategyGroups[strategyKey].trades.push(t);
+      });
+
+      return Object.values(strategyGroups).map(group => {
+        const sWins = group.trades.filter(t => t.status === "Win");
+        const sWinRate = (sWins.length / group.trades.length) * 100;
+        let sProfit = 0;
+        let totalR = 0;
+        group.trades.forEach(t => {
+          const r = calculateRMultiple(t);
+          sProfit += r;
+          if (t.status === "Win") totalR += r;
+        });
+        const avgR = sWins.length > 0 ? totalR / sWins.length : 0;
+        
+        return { 
+          id: group.id,
+          name: group.name, 
+          color: group.color,
+          count: group.trades.length, 
+          winRate: sWinRate, 
+          avgR, 
+          profit: sProfit 
+        };
+      }).sort((a, b) => b.profit - a.profit);
+    })()
+  };
+}
+</file>
+
+<file path="src/types.ts">
+export type TradeStatus = "Win" | "Loss" | "BE" | "Pending";
+
+export interface TradeLevels {
+  entry: number | null;
+  stopLoss: number | null;
+  takeProfit: number | null;
+}
+
+export interface TradeAnalysis {
+  symbol: string;
+  side: "Long" | "Short" | "Neutral";
+  levels: TradeLevels;
+  timestamp: string;
+  fiboTarget: string;
+  confidence: number;
+}
+
+export interface Strategy {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: string;
+  tradeCount?: number;
+}
+
+export interface AnalysisHistoryItem extends TradeAnalysis {
+  id: string;
+  imageUrl: string;
+  date: string;
+  exitDate?: string;
+  status: TradeStatus;
+  savedToDb?: boolean;
+  tradingMode?: 'live' | 'backtest';
+  notes?: string;
+  strategyId?: string;
+  strategyName?: string;
+  strategyColor?: string;
+}
+
+export interface TradeStats {
+  winRate: number;
+  avgRR: number;
+  expectancy: number;
+  maxDrawdown: number;
+  totalTrades: number;
+  profitFactor: number;
+  recoveryFactor: number;
+  avgDuration: string;
+  maxConsecutiveLosses: number;
+  symbolEfficiency: { symbol: string; winRate: number; profit: number; count: number }[];
+  biasAnalysis: {
+    long: { winRate: number; count: number };
+    short: { winRate: number; count: number };
+  };
+  equityCurve: { 
+    trade: number; 
+    equity: number; 
+    drawdown: number;
+    tradeId?: string;
+    date?: string;
+    symbol?: string;
+    rMultiple?: number;
+  }[];
+  performanceByDay: { day: string; winRate: number; profit: number; count: number }[];
+  performanceBySession: { session: string; winRate: number; profit: number; count: number }[];
+  strategyAnalysis?: { 
+    id?: string;
+    name: string; 
+    color?: string;
+    count: number; 
+    winRate: number; 
+    avgR: number; 
+    profit: number 
+  }[];
+}
+
+export interface TranslationSchema {
+  modes: {
+    live: string;
+    backtest: string;
+  };
+  status: {
+    win: string;
+    loss: string;
+    be: string;
+    pending: string;
+  };
+  ui: {
+    dashboard: string;
+    log: string;
+    analytics: string;
+    gallery: string;
+    system: string;
+    admin: string;
+    save: string;
+    delete: string;
+    upload: string;
+    confirm: string;
+    cancel: string;
+    performance_stats: string;
+    no_trades: string;
+    recent_extractions: string;
+    no_signals: string;
+    engine_processing: string;
+    engine_online: string;
+    theme: string;
+    new_scan: string;
+    system_status: string;
+    environment_matrix: string;
+    identity_management: string;
+    active_pilot: string;
+    unique_neural_id: string;
+    deauthorize_session: string;
+    trade_intelligence_log: string;
+    export_csv: string;
+    result: string;
+    source_image: string;
+    system_warnings: string;
+    gemini_vision_guide: string;
+    raw_output: string;
+    back: string;
+    save_success: string;
+    capture_guide: string;
+    examine_setup: string;
+    live_mode: string;
+    backtest_mode: string;
+    visual_repository: string;
+    insufficient_data: string;
+    stats_engine_requirement: string;
+    neural_visual_input: string;
+    validate_levels_desc: string;
+    signal_validation_protocol: string;
+    manual_calibration: string;
+    pair_ticker: string;
+    bias_direction: string;
+    strategy_mapping: string;
+    new_strategy: string;
+    no_strategies: string;
+    execution_levels: string;
+    entry_matrix: string;
+    profit_goal: string;
+    risk_threshold: string;
+    signal_outcome: string;
+    authorize_save: string;
+    abort_interface: string;
+    extraction_protocol_desc: string;
+    purge_node: string;
+    confirm_purge: string;
+    edit_node: string;
+    edit_protocol: string;
+    slide_to_purge: string;
+    neural_hub: string;
+    navigation_matrix: string;
+    show_insights: string;
+    hide_insights: string;
+    how_to_capture: string;
+    offline_warning: string;
+    byok_required: string;
+    authorize_node: string;
+    ingest_visual: string;
+    drop_image: string;
+    extraction_pipeline: string;
+    visual_output: string;
+    json_model: string;
+    validated_persistence: string;
+    syncing: string;
+    committed: string;
+    performance: string;
+    privacy_policy_notice: string;
+    close_guide: string;
+    feedback_title: string;
+    feedback_subtitle: string;
+    feedback_label_category: string;
+    feedback_label_subject: string;
+    feedback_placeholder_subject: string;
+    feedback_label_details: string;
+    feedback_placeholder_details: string;
+    feedback_success: string;
+    feedback_button: string;
+    ai_neural_insights: string;
+    probability_spectrum: string;
+    system_accuracy: string;
+    profit_factor: string;
+    eff_coeff: string;
+    risk_reward: string;
+    statistical_edge: string;
+    yield_node: string;
+    max_drawdown_label: string;
+    risk_boundary: string;
+    leading_symbols: string;
+    directional_bias: string;
+    day_profile: string;
+    performance_architecture: string;
+    resistance: string;
+    strict_delta_excursion: string;
+    peak_decay: string;
+  };
+  performance: {
+    net_profit: string;
+    expectancy: string;
+    max_drawdown: string;
+    win_rate: string;
+    equity_curve: string;
+    drawdown_chart: string;
+    edge_analysis: string;
+    setup_performance: string;
+    session_performance: string;
+    time_analysis: string;
+    risk_behavior: string;
+    discipline_rate: string;
+    revenge_trading: string;
+    overtrading_indicator: string;
+    consecutive_losses: string;
+    best_category: string;
+    worst_category: string;
+    high_risk: string;
+    stable: string;
+    needs_attention: string;
+    net_profit_desc: string;
+    expectancy_desc: string;
+    max_dd_desc: string;
+    win_rate_desc: string;
+    drawdown_recovery: string;
+    asia: string;
+    london: string;
+    new_york: string;
+    ai_insights: string;
+    best_setup_insight: string;
+    best_session_insight: string;
+    risk_warning_insight: string;
+    high_drawdown_warning: string;
+    low_discipline_warning: string;
+    system_edge: string;
+    trade_more: string;
+    avoid: string;
+    risk_low: string;
+    risk_medium: string;
+    risk_high: string;
+    prop_firm_warning: string;
+    suggested_action: string;
+    lockdown_timer: string;
+    lockdown_trigger: string;
+    peak_equity: string;
+    current_equity: string;
+    initiate_lockdown: string;
+  };
+  guide: {
+    title: string;
+    step1_title: string;
+    step1_sub: string;
+    step2_title: string;
+    step2_sub: string;
+    step3_title: string;
+    step3_sub: string;
+    step4_title: string;
+    step4_sub: string;
+    privacy: string;
+    close: string;
+  };
+  analytics: {
+    winrate: string;
+    pf: string;
+    avgrr: string;
+    expectancy: string;
+    maxdd: string;
+    recovery: string;
+    consecutive_loss: string;
+    total_trades: string;
+  };
+  system: {
+    title: string;
+    description: string;
+    label: string;
+    guide: string;
+    verify: string;
+    verified: string;
+    neural_active: string;
+    get_key: string;
+    persistence_title: string;
+    persistence_subtitle: string;
+    persistence_protocol: string;
+    persistence_item1: string;
+    persistence_item2: string;
+    persistence_item3: string;
+    persistence_sync: string;
+    persistence_encryption: string;
+  };
+  capture: {
+    title: string;
+    how: string;
+    guide_btn: string;
+    step1: string;
+    step1_sub: string;
+    step2: string;
+    step2_sub: string;
+    step3: string;
+    step3_sub: string;
+    trade_notes: string;
+    notes_placeholder: string;
+  };
+}
+</file>
+
+<file path="src/vite-env.d.ts">
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL: string
+  readonly VITE_SUPABASE_ANON_KEY: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+</file>
+
+</files>

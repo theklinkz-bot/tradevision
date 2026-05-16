@@ -31,7 +31,7 @@ interface Insight {
 }
 
 export const InsightPanel = ({ stats, t }: InsightPanelProps) => {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const isTH = t.ui.dashboard === "แดชบอร์ด";
 
   const insights = React.useMemo(() => {
