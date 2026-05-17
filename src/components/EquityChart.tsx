@@ -19,6 +19,12 @@ interface EquityChartProps {
 }
 
 export const EquityChart = ({ stats, t }: EquityChartProps) => {
+  const [visibleSeries, setVisibleSeries] = React.useState({
+    equity: true,
+    movingAverage: true,
+    drawdown: true,
+  });
+
   const { chartData, maxDrawdownInfo, maxRecoveryTrades } = React.useMemo(() => {
     let maxEquity = 0;
     let maxDD = 0;
@@ -79,26 +85,50 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
 
   const currentEquity = chartData.at(-1)?.equity ?? 0;
   const currentDrawdown = chartData.at(-1)?.drawdownValue ?? 0;
+  const toggleSeries = (series: keyof typeof visibleSeries) => {
+    setVisibleSeries((current) => ({ ...current, [series]: !current[series] }));
+  };
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_230px]">
-      <div className="relative overflow-hidden rounded-[22px] border border-white/[0.08] bg-black/20 p-4 shadow-[0_24px_70px_-44px_rgba(0,0,0,0.9)] transition-colors hover:border-brand-accent/20">
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_210px]">
+      <div className="relative overflow-hidden rounded-[20px] border border-white/[0.08] bg-black/20 p-3.5 shadow-[0_22px_64px_-44px_rgba(0,0,0,0.9)] transition-colors hover:border-brand-accent/20">
         <div className="analytics-grid-overlay opacity-25" />
-        <div className="relative z-10 flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
+        <div className="relative z-10 flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-2.5">
             <h3 className="flex items-center font-mono text-[10px] font-black uppercase tracking-[0.22em] text-brand-text-bright">
               <TrendingUp size={13} className="mr-2 text-brand-accent" />
               {t.ui.performance_architecture}
               <InfoTooltip content="Capital curve with moving average smoothing and an integrated drawdown pressure layer." />
             </h3>
-            <div className="flex items-center gap-4 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-brand-text-dim">
-              <span className="flex items-center gap-1.5"><i className="h-0.5 w-4 bg-brand-accent shadow-[0_0_10px_rgba(52,211,153,0.55)]" /> Equity</span>
-              <span className="flex items-center gap-1.5"><i className="h-0.5 w-4 bg-brand-warning/60" /> MA(5)</span>
-              <span className="flex items-center gap-1.5"><i className="h-0.5 w-4 bg-trade-short/50" /> Drawdown</span>
+            <div className="flex items-center gap-1.5 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-brand-text-dim">
+              <button
+                type="button"
+                onClick={() => toggleSeries('equity')}
+                aria-pressed={visibleSeries.equity}
+                className={`flex items-center gap-1.5 rounded-full border px-2 py-1 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-accent/40 ${visibleSeries.equity ? 'border-brand-accent/25 bg-brand-accent/[0.08] text-brand-text-bright shadow-[0_0_16px_rgba(52,211,153,0.12)]' : 'border-white/[0.06] bg-white/[0.02] opacity-45 hover:opacity-75'}`}
+              >
+                <i className="h-0.5 w-4 bg-brand-accent shadow-[0_0_10px_rgba(52,211,153,0.55)]" /> Equity
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleSeries('movingAverage')}
+                aria-pressed={visibleSeries.movingAverage}
+                className={`flex items-center gap-1.5 rounded-full border px-2 py-1 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-warning/30 ${visibleSeries.movingAverage ? 'border-brand-warning/25 bg-brand-warning/[0.07] text-brand-text-bright' : 'border-white/[0.06] bg-white/[0.02] opacity-45 hover:opacity-75'}`}
+              >
+                <i className="h-0.5 w-4 bg-brand-warning/60" /> MA(5)
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleSeries('drawdown')}
+                aria-pressed={visibleSeries.drawdown}
+                className={`flex items-center gap-1.5 rounded-full border px-2 py-1 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-trade-short/30 ${visibleSeries.drawdown ? 'border-trade-short/25 bg-trade-short/[0.07] text-brand-text-bright' : 'border-white/[0.06] bg-white/[0.02] opacity-45 hover:opacity-75'}`}
+              >
+                <i className="h-0.5 w-4 bg-trade-short/50" /> Drawdown
+              </button>
             </div>
           </div>
 
-          <div className="h-[320px] w-full pt-2">
+          <div className="h-[280px] w-full pt-1">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
               <defs>
@@ -180,55 +210,59 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
                 }}
               />
 
-              <Area
-                yAxisId="drawdown"
-                type="monotone"
-                dataKey="drawdownValue"
-                stroke="var(--trade-short)"
-                strokeOpacity={0.34}
-                strokeWidth={1}
-                fill="url(#drawdownFill)"
-                isAnimationActive={false}
-              />
+              {visibleSeries.drawdown && (
+                <Area
+                  yAxisId="drawdown"
+                  type="monotone"
+                  dataKey="drawdownValue"
+                  stroke="var(--trade-short)"
+                  strokeOpacity={0.34}
+                  strokeWidth={1}
+                  fill="url(#drawdownFill)"
+                  isAnimationActive={false}
+                />
+              )}
 
-              <Area 
-                yAxisId="equity"
-                type="monotone" 
-                dataKey="equity" 
-                stroke="var(--brand-accent)" 
-                strokeWidth={2.4} 
-                fill="url(#equityGradient)"
-                fillOpacity={1}
-                dot={(props: any) => {
-                  const { cx, cy, payload, index } = props;
-                  if (payload.trade === 0) return null;
-                  const isMaxDD = index === maxDrawdownInfo.index;
-                  return (
-                    <g key={`dot-${index}`}>
-                      <circle 
-                        cx={cx} 
-                        cy={cy} 
-                        r={isMaxDD ? 5 : (payload.rMultiple > 0 ? 3 : 2)} 
-                        fill={isMaxDD ? 'var(--trade-short)' : (payload.rMultiple > 0 ? 'var(--trade-long)' : payload.rMultiple < 0 ? 'var(--trade-short)' : 'var(--status-neutral)')}
-                        className={isMaxDD ? "animate-pulse" : "opacity-80"}
-                      />
-                      {isMaxDD && (
+              {visibleSeries.equity && (
+                <Area 
+                  yAxisId="equity"
+                  type="monotone" 
+                  dataKey="equity" 
+                  stroke="var(--brand-accent)" 
+                  strokeWidth={2.4} 
+                  fill="url(#equityGradient)"
+                  fillOpacity={1}
+                  dot={(props: any) => {
+                    const { cx, cy, payload, index } = props;
+                    if (payload.trade === 0) return null;
+                    const isMaxDD = index === maxDrawdownInfo.index;
+                    return (
+                      <g key={`dot-${index}`}>
                         <circle 
                           cx={cx} 
                           cy={cy} 
-                          r={10} 
-                          fill="var(--trade-short)"
-                          className="opacity-20 animate-ping"
+                          r={isMaxDD ? 5 : (payload.rMultiple > 0 ? 3 : 2)} 
+                          fill={isMaxDD ? 'var(--trade-short)' : (payload.rMultiple > 0 ? 'var(--trade-long)' : payload.rMultiple < 0 ? 'var(--trade-short)' : 'var(--status-neutral)')}
+                          className={isMaxDD ? "animate-pulse" : "opacity-80"}
                         />
-                      )}
-                    </g>
-                  );
-                }}
-                activeDot={{ r: 6, strokeWidth: 2, fill: 'var(--brand-text-bright)', stroke: 'var(--brand-accent)' }}
-              />
+                        {isMaxDD && (
+                          <circle 
+                            cx={cx} 
+                            cy={cy} 
+                            r={10} 
+                            fill="var(--trade-short)"
+                            className="opacity-20 animate-ping"
+                          />
+                        )}
+                      </g>
+                    );
+                  }}
+                  activeDot={{ r: 6, strokeWidth: 2, fill: 'var(--brand-text-bright)', stroke: 'var(--brand-accent)' }}
+                />
+              )}
 
               {/* Peak to Trough Indicator at Max DD */}
-              {maxDrawdownInfo.index !== -1 && (
+              {visibleSeries.drawdown && maxDrawdownInfo.index !== -1 && (
                 <ReferenceLine 
                   yAxisId="equity"
                   x={chartData[maxDrawdownInfo.index].trade} 
@@ -247,16 +281,18 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
               )}
 
               {/* Moving Average Line */}
-              <Area
-                yAxisId="equity"
-                type="monotone"
-                dataKey="movingAverage"
-                stroke="var(--brand-warning)"
-                strokeWidth={1}
-                strokeDasharray="4 4"
-                strokeOpacity={0.4}
-                fill="none"
-              />
+              {visibleSeries.movingAverage && (
+                <Area
+                  yAxisId="equity"
+                  type="monotone"
+                  dataKey="movingAverage"
+                  stroke="var(--brand-warning)"
+                  strokeWidth={1}
+                  strokeDasharray="4 4"
+                  strokeOpacity={0.4}
+                  fill="none"
+                />
+              )}
             </AreaChart>
           </ResponsiveContainer>
           </div>
@@ -264,22 +300,22 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
       </div>
 
       <aside className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-        <div className="rounded-2xl border border-brand-accent/15 bg-brand-accent/[0.055] p-4">
+        <div className="rounded-2xl border border-brand-accent/15 bg-brand-accent/[0.055] p-3.5">
           <p className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-brand-text-dim">current equity</p>
-          <p className={`mt-2 font-mono text-2xl font-black ${currentEquity >= 0 ? 'text-brand-accent' : 'text-trade-short'}`}>
+          <p className={`mt-1.5 font-mono text-xl font-black ${currentEquity >= 0 ? 'text-brand-accent' : 'text-trade-short'}`}>
             {currentEquity >= 0 ? '+' : ''}{currentEquity.toFixed(2)}R
           </p>
         </div>
-        <div className="rounded-2xl border border-trade-short/15 bg-trade-short/[0.055] p-4">
+        <div className="rounded-2xl border border-trade-short/15 bg-trade-short/[0.055] p-3.5">
           <div className="flex items-center gap-2">
             <ArrowDownRight size={13} className="text-trade-short" />
             <p className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-brand-text-dim">{t.ui.max_drawdown_label}</p>
           </div>
-          <p className="mt-2 font-mono text-2xl font-black text-trade-short">-{maxDrawdownInfo.value.toFixed(2)}R</p>
+          <p className="mt-1.5 font-mono text-xl font-black text-trade-short">-{maxDrawdownInfo.value.toFixed(2)}R</p>
         </div>
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-3.5">
           <p className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-brand-text-dim">{t.ui.resistance}</p>
-          <p className="mt-2 font-mono text-2xl font-black text-brand-text-bright">{maxRecoveryTrades}</p>
+          <p className="mt-1.5 font-mono text-xl font-black text-brand-text-bright">{maxRecoveryTrades}</p>
           <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-brand-text-dim">trades to recover</p>
         </div>
       </aside>

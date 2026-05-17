@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Activity, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, ShieldAlert, XCircle, Zap } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Activity, AlertTriangle, CheckCircle2, ShieldAlert, XCircle, Zap } from 'lucide-react';
 import { calculateTradeStatistics } from '../services/statsEngine';
 import { TradeStats } from '../types';
 import { AIStrategyIntelligenceSection } from './strategy-lab/AIStrategyIntelligenceSection';
@@ -501,16 +501,15 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
     return window.localStorage.getItem(densityStorageKey) === 'dense';
   });
   const [workspacePreset, setWorkspacePreset] = useState<WorkspacePreset>(() => {
-    if (typeof window === 'undefined') return 'FULL';
+    if (typeof window === 'undefined') return 'EXECUTIVE';
     const storedPreset = window.localStorage.getItem(workspacePresetStorageKey);
-    return isWorkspacePreset(storedPreset) ? storedPreset : 'FULL';
+    return isWorkspacePreset(storedPreset) && storedPreset !== 'FULL' ? storedPreset : 'EXECUTIVE';
   });
   const [layoutMode, setLayoutMode] = useState<StrategyLayoutMode>(() => {
     if (typeof window === 'undefined') return 'stack';
     const storedLayoutMode = window.localStorage.getItem(layoutModeStorageKey);
-    return isStrategyLayoutMode(storedLayoutMode) ? storedLayoutMode : 'stack';
+    return isStrategyLayoutMode(storedLayoutMode) && storedLayoutMode === 'stack' ? storedLayoutMode : 'stack';
   });
-  const anchorTrackRef = useRef<HTMLDivElement>(null);
   const demoStats = useMemo(() => calculateTradeStatistics(createDemoTrades()), []);
   const labStats = isAdmin && demoMode ? demoStats : stats;
   const closedTrades = labStats.totalTrades;
@@ -1093,15 +1092,6 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
   const visibleAnchors = getPresetAnchors(workspacePreset);
   const showSection = (sectionId: StrategySectionId) => isPresetSectionVisible(workspacePreset, sectionId);
   const sectionOrder = (sectionId: StrategySectionId) => getPresetSectionOrder(workspacePreset, sectionId);
-  const scrollAnchorRail = (direction: -1 | 1) => {
-    anchorTrackRef.current?.scrollBy({ left: direction * 180, behavior: 'smooth' });
-  };
-  const handleAnchorRailWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (!anchorTrackRef.current || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
-    event.preventDefault();
-    anchorTrackRef.current.scrollLeft += event.deltaY;
-  };
-
   if (closedTrades === 0) {
     return (
       <div lang={strategyLanguage.toLowerCase()} className={`strategy-lab ${denseMode ? 'strategy-lab--dense' : ''} ${layoutMode === 'terminal-grid' ? 'strategy-lab--terminal-grid' : ''} flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
@@ -1167,46 +1157,53 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
   return (
     <div lang={strategyLanguage.toLowerCase()} className={`strategy-lab ${denseMode ? 'strategy-lab--dense' : ''} ${layoutMode === 'terminal-grid' ? 'strategy-lab--terminal-grid' : ''} flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
       <style>{strategyLabStyles}</style>
-      <header className="flex items-center justify-between border-b border-brand-border pb-4">
-        <div>
-          <h2 className="text-2xl font-bold text-brand-text-bright uppercase tracking-tighter">STRATEGY LAB</h2>
-          <p className="text-xs text-brand-text-dim uppercase tracking-[3px] font-mono">LIVE DEPLOYMENT VALIDATION // PHASE 1.2</p>
-        </div>
-        <div className="hidden max-w-[70%] flex-wrap items-center justify-end gap-2 md:flex">
-          <DensityToggle denseMode={denseMode} onChange={setDenseMode} language={strategyLanguage} />
-          <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} language={strategyLanguage} />
-          <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} language={strategyLanguage} />
-          {['AI VALIDATION ACTIVE', 'NEURAL ANALYSIS ONLINE'].map((tag) => (
-            <span key={tag} className="rounded-full border border-brand-accent/25 bg-brand-accent/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-brand-accent shadow-[0_0_18px_rgba(52,211,153,0.08)]">
-              {tag}
-            </span>
-          ))}
-          {isAdmin && (
-            <button
-              onClick={() => setDemoMode((value) => !value)}
-              className={`rounded-full border px-3 py-1 text-[8px] font-black uppercase tracking-widest transition-all ${
-                demoMode
-                  ? 'border-sky-400/40 bg-sky-400/10 text-sky-300 shadow-[0_0_18px_rgba(56,189,248,0.12)]'
-                  : 'border-brand-warning/30 bg-brand-warning/10 text-brand-warning hover:bg-brand-warning hover:text-brand-bg'
-              }`}
-            >
-              DEMO DATA
-            </button>
-          )}
+      <header className="strategy-workbench-hero relative overflow-hidden rounded-2xl border border-brand-border/70 bg-brand-bg/70 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
+        <div className="pointer-events-none absolute inset-0 strategy-workbench-grid opacity-40" />
+        <div className="relative z-10 grid grid-cols-1 gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+          <div className="min-w-0">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className={`rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] ${status.border} ${status.bg} ${status.text}`}>
+                {status.label}
+              </span>
+              <span className="rounded-full border border-brand-border/70 bg-brand-elevated/40 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-brand-text-dim">
+                Clean Workstation
+              </span>
+            </div>
+            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.28em] text-brand-accent">Start Here</p>
+            <h2 className="max-w-3xl text-3xl font-black uppercase leading-[0.95] tracking-tighter text-brand-text-bright md:text-5xl">
+              Strategy Lab
+            </h2>
+            <p className="mt-4 max-w-3xl text-sm leading-6 text-brand-text-muted md:text-base">
+              {deploymentRecommendation}
+            </p>
+          </div>
+
+          <div className={`rounded-2xl border ${status.border} ${status.bg} p-4`}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="label-caps !mb-2">Deployment Readiness</p>
+                <div className={`text-6xl font-black leading-none tracking-tighter ${status.text}`}>
+                  {readinessScore}<span className="text-2xl opacity-50">/100</span>
+                </div>
+              </div>
+              <MetricDrilldown
+                tone={statusTone}
+                content={{
+                  title: 'Readiness Score',
+                  current: `${readinessScore}/100`,
+                  meaning: 'Counts the deployment gates that are currently passing.',
+                  signals: ['Expectancy', 'Profit factor', 'Drawdown control', 'Sample size'],
+                  ranges: ['85+: live-ready', '60-84: simulation-ready', '<60: keep validating'],
+                  why: deploymentMeaning
+                }}
+                label="Explain readiness score"
+              />
+            </div>
+            <p className="mt-4 text-[11px] font-mono uppercase leading-relaxed tracking-tight text-brand-text-dim">{reason}</p>
+            <ScoreTrendLine score={readinessScore} tone={statusTone} label="Readiness score" />
+          </div>
         </div>
       </header>
-      <div className="flex flex-col gap-2 md:hidden">
-        <DensityToggle denseMode={denseMode} onChange={setDenseMode} language={strategyLanguage} />
-        <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} language={strategyLanguage} />
-        <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} language={strategyLanguage} />
-      </div>
-      <div className="rounded border border-brand-border/60 bg-brand-bg/35 px-3 py-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[7px] font-black uppercase tracking-widest text-brand-text-dim">Workspace Mode</p>
-          <span className="rounded border border-brand-accent/25 bg-brand-accent/10 px-2 py-0.5 text-[7px] font-black uppercase tracking-widest text-brand-accent">{workspacePreset}</span>
-        </div>
-        <p className="mt-1 text-[10px] font-mono uppercase tracking-tight text-brand-text-bright">{isThai ? activePreset.descriptionTh : activePreset.description}</p>
-      </div>
 
       {demoMode && (
         <div className="rounded-lg border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-sky-300 shadow-[0_0_24px_rgba(56,189,248,0.08)]">
@@ -1214,141 +1211,78 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
         </div>
       )}
 
-      <div className="strategy-verdict-bar sticky top-0 z-30 rounded-lg border border-brand-border/70 bg-brand-bg/90 px-3 py-2 shadow-xl backdrop-blur-md">
-        <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex shrink-0 items-center gap-1.5 rounded border border-brand-accent/25 bg-brand-accent/10 px-2 py-1">
-            <span className="text-[7px] font-black uppercase tracking-widest text-brand-text-dim">MODE</span>
-            <span className="text-[8px] font-black uppercase tracking-widest text-brand-accent">{workspacePreset}</span>
+      <section className="strategy-focus-board rounded-2xl border border-brand-border/60 bg-brand-elevated/25 p-4">
+        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="label-caps !mb-2">Workbench Focus</p>
+            <h3 className="text-xl font-black uppercase tracking-tight text-brand-text-bright">Choose one job, then inspect the matching modules.</h3>
+            <p className="mt-1 text-xs text-brand-text-dim">{isThai ? activePreset.descriptionTh : activePreset.description}</p>
           </div>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
+          <div className="flex flex-wrap items-center gap-2">
+            <DensityToggle denseMode={denseMode} onChange={setDenseMode} language={strategyLanguage} />
+            {isAdmin && (
+              <button
+                onClick={() => setDemoMode((value) => !value)}
+                className={`rounded border px-3 py-1.5 text-[8px] font-black uppercase tracking-widest transition-all ${
+                  demoMode
+                    ? 'border-sky-400/40 bg-sky-400/10 text-sky-300 shadow-[0_0_18px_rgba(56,189,248,0.12)]'
+                    : 'border-brand-warning/30 bg-brand-warning/10 text-brand-warning hover:bg-brand-warning hover:text-brand-bg'
+                }`}
+              >
+                DEMO DATA
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {workspacePresets.map((option) => {
+              const active = workspacePreset === option;
+              const config = workspacePresetConfig[option];
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setWorkspacePreset(option)}
+                  className={`min-h-[4.4rem] rounded-xl border p-3 text-left transition-all ${
+                    active
+                      ? 'border-brand-accent/50 bg-brand-accent/10 shadow-[0_0_24px_rgba(52,211,153,0.10)]'
+                      : 'border-brand-border/60 bg-brand-bg/35 hover:border-brand-accent/30 hover:bg-brand-elevated/35'
+                  }`}
+                  aria-pressed={active}
+                >
+                  <span className={`block text-[10px] font-black uppercase tracking-[0.18em] ${active ? 'text-brand-accent' : 'text-brand-text-bright'}`}>{config.label}</span>
+                  <span className="mt-1 line-clamp-2 block text-[10px] leading-snug text-brand-text-dim">{isThai ? config.descriptionTh : config.description}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             {[
-              {
-                label: 'Status',
-                value: status.label,
-                tone: statusTone,
-                score: readinessScore,
-                drilldown: {
-                  title: 'Strategy Status',
-                  current: status.label,
-                  meaning: 'Combined deployment gate for edge, risk, and sample depth.',
-                  signals: ['Expectancy and profit factor', 'Max drawdown', 'Closed trade count'],
-                  ranges: ['Ready: core filters pass', 'Caution: partial evidence', 'Fail: edge or risk rejected'],
-                  why: reason
-                }
-              },
-              {
-                label: 'Readiness',
-                value: `${readinessScore}/100`,
-                tone: statusTone,
-                score: readinessScore,
-                drilldown: {
-                  title: 'Readiness Score',
-                  current: `${readinessScore}/100`,
-                  meaning: 'Counts how many deployment checklist gates are passing.',
-                  signals: ['Expectancy > 0', 'Profit factor > 1.5', 'Drawdown control', 'Sample size'],
-                  ranges: ['85+: live-ready profile', '60-84: simulation-ready', '<60: not enough validation'],
-                  why: deploymentMeaning
-                }
-              },
-              {
-                label: 'Risk',
-                value: riskPressureLabel.replace(' RISK', ''),
-                tone: riskPressureTone,
-                score: Math.max(0, 100 - lossClusterPressure),
-                drilldown: {
-                  title: 'Risk Pressure',
-                  current: riskPressureLabel,
-                  meaning: 'Capital pressure from drawdown, recovery, loss streaks, and volatility.',
-                  signals: ['Max drawdown', 'Recovery factor', 'Consecutive losses', 'Equity volatility'],
-                  ranges: ['Low: controlled drawdown', 'Elevated: monitor sizing', 'High: suspend scaling'],
-                  why: `Current pressure is ${riskPressureLabel.toLowerCase()}.`
-                }
-              },
-              {
-                label: 'Edge',
-                value: edgeStatus.replace(' EDGE', ''),
-                tone: edgeTone,
-                score: edgeScore,
-                drilldown: {
-                  title: 'Edge Quality',
-                  current: `${edgeScore}/100`,
-                  meaning: 'Scores whether wins, payoff, expectancy, and sample size support a repeatable edge.',
-                  signals: ['Expectancy', 'Profit factor', 'Payoff ratio', 'Win rate'],
-                  ranges: ['75+: strong', '50-74: developing', '<50: weak'],
-                  why: edgeStatus
-                }
-              },
-              {
-                label: 'Consistency',
-                value: consistencyStatus,
-                tone: consistencyTone,
-                score: consistencyScore,
-                drilldown: {
-                  title: 'Consistency Score',
-                  current: tradeReturns.length < 30 ? 'Insufficient data' : `${consistencyScore}/100`,
-                  meaning: 'Checks whether performance repeats across buckets and recent windows.',
-                  signals: ['Bucket wins/losses', 'Smoothness', 'Drift delta', 'Recovery rhythm'],
-                  ranges: ['72+: stable', '45-71: developing', '<45: unstable'],
-                  why: consistencyStatus
-                }
-              },
-              {
-                label: 'Psych',
-                value: psychologicalStatus,
-                tone: psychologicalTone,
-                score: psychologicalScore,
-                drilldown: {
-                  title: 'Psychological Stability',
-                  current: `${psychologicalScore}/100`,
-                  meaning: 'Estimates execution survivability under loss pressure and fast trade cadence.',
-                  signals: ['Loss streak pressure', 'Drawdown stress', 'Recovery fatigue', 'Overtrading pressure'],
-                  ranges: ['72+: stable', '45-71: pressured', '<45: high stress'],
-                  why: psychologicalStatus
-                }
-              },
-              {
-                label: 'AI Review',
-                value: deploymentAdvisory.replace(' DEPLOYMENT', ''),
-                tone: advisoryTone,
-                score: intelligenceConfidenceScore,
-                drilldown: {
-                  title: 'AI Review',
-                  current: intelligenceConfidence,
-                  meaning: 'Local rule-based synthesis of the Strategy Lab sections.',
-                  signals: ['Strengths', 'Weaknesses', 'Red flags', 'Confidence score'],
-                  ranges: ['High: aligned evidence', 'Developing: mixed evidence', 'Low: insufficient validation'],
-                  why: deploymentRecommendation
-                }
-              }
-            ].map(({ label, value, tone, score, drilldown }) => (
-              <div key={label} className="rounded border border-brand-border/50 bg-brand-elevated/30 px-2 py-1.5">
-                <div className="flex items-center justify-between gap-1">
-                  <p className="text-[7px] font-black uppercase tracking-widest text-brand-text-dim">{label}</p>
-                  <MetricDrilldown tone={tone} content={drilldown} label={`Explain ${label}`} />
-                </div>
-                <p className={`truncate text-[10px] font-black uppercase tracking-tight ${toneStyles[tone].text}`}>{value}</p>
+              { label: 'Readiness', value: `${readinessScore}/100`, tone: statusTone, score: readinessScore },
+              { label: 'Edge', value: edgeStatus.replace(' EDGE', ''), tone: edgeTone, score: edgeScore },
+              { label: 'Risk', value: riskPressureLabel.replace(' RISK', ''), tone: riskPressureTone, score: Math.max(0, 100 - lossClusterPressure) },
+              { label: 'AI Review', value: intelligenceConfidence.replace(' CONFIDENCE', ''), tone: intelligenceTone, score: intelligenceConfidenceScore }
+            ].map(({ label, value, tone, score }) => (
+              <div key={label} className="rounded-xl border border-brand-border/60 bg-brand-bg/40 p-3">
+                <p className="text-[8px] font-black uppercase tracking-widest text-brand-text-dim">{label}</p>
+                <p className={`mt-1 truncate text-sm font-black uppercase tracking-tight ${toneStyles[tone].text}`}>{value}</p>
                 <ScoreTrendLine score={score} tone={tone} label={`${label} quick score`} />
               </div>
             ))}
           </div>
-          <nav className="strategy-anchor-rail" aria-label="Strategy Lab section navigation">
-            <span className="strategy-anchor-rail__label">NAV</span>
-            <button type="button" className="strategy-anchor-rail__button" aria-label="Scroll section navigation left" onClick={() => scrollAnchorRail(-1)}>
-              <ChevronLeft size={12} strokeWidth={2.4} />
-            </button>
-            <div ref={anchorTrackRef} className="strategy-anchor-rail__track" onWheel={handleAnchorRailWheel}>
-              {visibleAnchors.map(({ label, href }) => (
-                <a key={label} href={href} className="strategy-anchor-rail__link">
-                  {label}
-                </a>
-              ))}
-            </div>
-            <button type="button" className="strategy-anchor-rail__button" aria-label="Scroll section navigation right" onClick={() => scrollAnchorRail(1)}>
-              <ChevronRight size={12} strokeWidth={2.4} />
-            </button>
-          </nav>
         </div>
-      </div>
+
+        <nav className="mt-4 flex flex-wrap gap-2 border-t border-brand-border/50 pt-3" aria-label="Strategy Lab section navigation">
+          {visibleAnchors.map(({ label, href }) => (
+            <a key={label} href={href} className="rounded-full border border-brand-border/60 bg-brand-bg/35 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-brand-text-dim transition-colors hover:border-brand-accent/40 hover:text-brand-accent">
+              {label}
+            </a>
+          ))}
+        </nav>
+      </section>
 
       <div className="strategy-section-layout">
       {showSection('strategy-intelligence') && (

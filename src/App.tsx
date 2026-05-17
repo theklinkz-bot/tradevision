@@ -99,6 +99,8 @@ const StrategyLabLoading = ({ language }: { language: 'EN' | 'TH' }) => (
   </div>
 );
 
+type AppTheme = 'default' | 'light' | 'tactical' | 'cyber' | 'nexus';
+
 const TRANSLATIONS: Record<'EN' | 'TH', TranslationSchema> = {
   EN: {
     modes: {
@@ -570,7 +572,7 @@ import {
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
-  const ADMIN_EMAILS = ['theklinkz@gmail.com', 'ookami.0609@gmail.com'];
+  const ADMIN_EMAILS = ['ookami.0609@gmail.com'];
   const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email);
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
@@ -616,7 +618,7 @@ export default function App() {
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [theme, setTheme] = useState<'default' | 'light' | 'tactical' | 'cyber'>('default');
+  const [theme, setTheme] = useState<AppTheme>('default');
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [language, setLanguage] = useState<'EN' | 'TH'>('EN');
   const [tradingMode, setTradingMode] = useState<'live' | 'backtest'>('live');
@@ -737,7 +739,7 @@ export default function App() {
     localStorage.setItem('tradevision-sidebar-collapsed', String(newState));
   };
 
-  const changeTheme = (newTheme: 'default' | 'light' | 'tactical' | 'cyber') => {
+  const changeTheme = (newTheme: AppTheme) => {
     setTheme(newTheme);
     localStorage.setItem('tradevision-theme', newTheme);
     if (newTheme === 'default') {
@@ -1262,6 +1264,59 @@ const NoteTooltip = ({ note }: { note: string }) => {
       loadAdminData();
     }
   }, [mainTab]);
+
+  const primaryNavTabs: Array<typeof mainTab> = [
+    'Dashboard',
+    'Performance',
+    ...(isAdmin ? (['StrategyLab'] as Array<typeof mainTab>) : []),
+    'Log',
+    'Gallery',
+    'System'
+  ];
+  const secondaryNavTabs: Array<typeof mainTab> = isAdmin
+    ? ['Admin']
+    : [];
+  const allNavTabs = [...primaryNavTabs, ...secondaryNavTabs];
+  const activeSecondaryTab = secondaryNavTabs.includes(mainTab);
+  const onlineUserCount = Object.keys(presenceUsers).length;
+
+  React.useEffect(() => {
+    if (!isAdmin && (mainTab === 'StrategyLab' || mainTab === 'Admin')) {
+      setMainTab('Dashboard');
+    }
+  }, [isAdmin, mainTab]);
+
+  const formatMainTabLabel = (tab: typeof mainTab) => {
+    if (tab === 'StrategyLab') return 'Strategy Lab';
+    return (t.ui as any)[tab.toLowerCase()] || tab;
+  };
+
+  const recentExtractionRows = React.useMemo(() => {
+    let activeResult: 'win' | 'lose' | null = null;
+    let activeCount = 0;
+
+    return history.map((item) => {
+      const result =
+        item.status === 'Win' ? 'win' :
+        item.status === 'Loss' ? 'lose' :
+        null;
+
+      if (!result) {
+        activeResult = null;
+        activeCount = 0;
+        return { item, result, streakCount: 0 };
+      }
+
+      if (result === activeResult) {
+        activeCount += 1;
+      } else {
+        activeResult = result;
+        activeCount = 1;
+      }
+
+      return { item, result, streakCount: activeCount };
+    });
+  }, [history]);
  
    return (
     <div className="flex flex-col h-screen overflow-hidden bg-brand-bg relative">
@@ -1388,17 +1443,17 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 <div className="flex flex-col gap-4">
                   <h3 className="label-caps mb-0 text-[10px] text-brand-accent">{t.ui.neural_hub}</h3>
                   <nav className="flex flex-col gap-1">
-                    {(isAdmin ? ['Dashboard', 'Performance', 'StrategyLab', 'Log', 'Gallery', 'System', 'Admin'] : ['Dashboard', 'Performance', 'StrategyLab', 'Log', 'Gallery', 'System']).map((tab) => (
+                    {allNavTabs.map((tab) => (
                       <button 
                         key={tab} 
                         onClick={() => {
-                          setMainTab(tab as any);
+                          setMainTab(tab);
                           setIsMobileMenuOpen(false);
                         }}
                         className={`w-full p-3 text-left text-[11px] font-bold uppercase tracking-[2px] rounded transition-all flex items-center justify-between
                           ${mainTab === tab ? 'bg-brand-accent/20 text-brand-accent border border-brand-accent/20' : 'text-brand-text-dim hover:text-brand-text-bright'}`}
                       >
-                        {tab === 'StrategyLab' ? 'Strategy Lab' : (t.ui as any)[tab.toLowerCase()] || tab}
+                        {formatMainTabLabel(tab)}
                         <div className={`w-1 h-1 rounded-full ${mainTab === tab ? 'bg-brand-accent animate-pulse' : 'bg-transparent'}`} />
                       </button>
                     ))}
@@ -1418,7 +1473,15 @@ const NoteTooltip = ({ note }: { note: string }) => {
                         <p className="text-[9px] uppercase font-bold">{t.ui.no_trades}</p>
                       </div>
                     ) : (
-                      history.map((item) => (
+                      recentExtractionRows.map(({ item, result, streakCount }) => {
+                        const resultLabel = result ? result.toUpperCase() : item.status.toUpperCase();
+                        const resultTone = result === 'win'
+                          ? 'is-win'
+                          : result === 'lose'
+                            ? 'is-lose'
+                            : 'is-neutral';
+
+                        return (
                         <button
                           key={item.id}
                           onClick={() => {
@@ -1434,14 +1497,18 @@ const NoteTooltip = ({ note }: { note: string }) => {
                         >
                           <div className="flex justify-between items-center mb-1">
                             <span className="monospace-data text-[10px] font-bold">{item.symbol}</span>
-                            <span className={`text-[8px] px-1 py-0.5 rounded font-bold uppercase
-                              ${item.side === 'Long' ? 'text-trade-long' : 'text-trade-short'}`}>
-                              {item.side}
+                            <span className={`streak-pill ${resultTone}`}>
+                              {resultLabel}
+                              {result && streakCount > 1 && <sup>{streakCount}</sup>}
                             </span>
                           </div>
-                          <span className="text-[8px] opacity-40 font-mono">{item.date}</span>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[8px] opacity-40 font-mono">{item.date}</span>
+                            <span className="text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/55">{item.side}</span>
+                          </div>
                         </button>
-                      ))
+                        );
+                      })
                     )}
                   </div>
                 </div>
@@ -1495,6 +1562,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: 'default', name: 'Obsidian' },
+                      { id: 'nexus', name: 'Nexus Neon' },
                       { id: 'light', name: 'Light' },
                       { id: 'tactical', name: 'Tactical' },
                       { id: 'cyber', name: 'Cyber' }
@@ -1969,106 +2037,142 @@ const NoteTooltip = ({ note }: { note: string }) => {
         )}
       </AnimatePresence>
       {/* Top Navigation */}
-      <header className="h-14 sm:h-16 border-b border-brand-border flex items-center justify-between px-4 sm:px-6 bg-brand-elevated shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-accent rounded flex items-center justify-center text-white font-bold shadow-lg shadow-brand-accent/20">
-            <Cpu size={18} />
+      <header className="tv-command-header shrink-0">
+        <div className="tv-brand-cluster">
+          <div className="tv-command-logo">
+            <Cpu size={15} />
           </div>
-          <h1 className="text-base sm:text-lg font-semibold tracking-tight text-brand-text-bright">
-            TradeVision <span className="text-brand-text-dim/50 font-normal hidden sm:inline">v1.5 Flash</span>
-          </h1>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-6">
-          {/* Trading Mode Switcher - REPLACING Language Switcher */}
-          <div className="hidden lg:flex items-center bg-brand-bg border border-brand-border rounded p-0.5 h-8">
-            <button 
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-2">
+              <h1 className="truncate text-sm font-semibold tracking-[-0.02em] text-brand-text-bright sm:text-[15px]">TradeVision</h1>
+              <span className="hidden rounded-full border border-brand-border/70 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/70 sm:inline-flex">
+                v1.5
+              </span>
+            </div>
+            <div className="hidden font-mono text-[8px] uppercase tracking-[0.22em] text-brand-text-dim/45 sm:block">
+              AI Trading Terminal
+            </div>
+          </div>
+          <div className="tv-mode-cluster hidden min-[1120px]:flex">
+            <button
               onClick={() => changeMode('live')}
-              className={`px-3 h-full text-[9px] font-bold transition-all rounded flex items-center gap-1.5 ${tradingMode === 'live' ? 'bg-brand-accent text-white shadow-sm' : 'text-brand-text-dim hover:text-brand-text-bright'}`}
+              className={`tv-mode-pill ${tradingMode === 'live' ? 'is-live is-active' : ''}`}
             >
-              <div className={`w-1 h-1 rounded-full ${tradingMode === 'live' ? 'bg-white animate-pulse' : 'bg-brand-accent'}`} />
+              <span className="tv-mode-dot" />
               {t.modes.live}
             </button>
-            <button 
+            <button
               onClick={() => changeMode('backtest')}
-              className={`px-3 h-full text-[9px] font-bold transition-all rounded flex items-center gap-1.5 ${tradingMode === 'backtest' ? 'bg-brand-warning text-white shadow-sm' : 'text-brand-text-dim hover:text-brand-text-bright'}`}
+              className={`tv-mode-pill ${tradingMode === 'backtest' ? 'is-backtest is-active' : ''}`}
             >
               <RefreshCcw size={10} className={tradingMode === 'backtest' ? 'animate-spin-slow' : ''} />
               {t.modes.backtest}
             </button>
           </div>
+        </div>
 
-          <nav className="hidden lg:flex gap-1 h-full items-center">
-            {(isAdmin ? ['Dashboard', 'Performance', 'StrategyLab', 'Log', 'Gallery', 'System', 'Admin'] : ['Dashboard', 'Performance', 'StrategyLab', 'Log', 'Gallery', 'System']).map((tab) => (
-              <button 
-                key={tab} 
-                onClick={() => setMainTab(tab as any)}
-                className={`px-4 h-14 sm:h-16 text-xs font-bold uppercase tracking-wider transition-colors border-b-2
-                  ${mainTab === tab ? 'text-brand-accent border-brand-accent' : 'text-brand-text-dim border-transparent hover:text-brand-text-bright'}`}
-              >
-                {tab === 'StrategyLab' ? 'Strategy Lab' : (t.ui as any)[tab.toLowerCase()] || tab}
+        <nav className="tv-command-nav hidden lg:flex" aria-label="Primary workspace navigation">
+          {primaryNavTabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setMainTab(tab)}
+              className={`tv-nav-tab ${mainTab === tab ? 'is-active' : ''}`}
+            >
+              <span>{formatMainTabLabel(tab)}</span>
+            </button>
+          ))}
+          {secondaryNavTabs.length > 0 && (
+            <div className="group relative">
+              <button className={`tv-nav-tab ${activeSecondaryTab ? 'is-active' : ''}`}>
+                <span>More</span>
+                {activeSecondaryTab && <span className="tv-nav-tab__dot" />}
               </button>
-            ))}
-          </nav>
-          <div className="hidden lg:block h-4 w-px bg-brand-border" />
-          
-          {/* Theme & Language Configuration */}
-          <div className="hidden lg:flex items-center gap-3">
-            {/* Relocated Language Switcher */}
-            <div className="flex items-center bg-brand-bg/50 border border-brand-border rounded p-0.5 h-8">
+              <div className="invisible absolute left-1/2 top-full z-50 w-44 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                <div className="overflow-hidden rounded-xl border border-brand-border/80 bg-brand-elevated/95 p-1.5 shadow-2xl shadow-black/35 backdrop-blur-xl">
+                  {secondaryNavTabs.map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setMainTab(tab)}
+                      className={`w-full rounded-lg px-3 py-2 text-left text-[10px] font-bold uppercase tracking-[0.16em] transition-all ${
+                        mainTab === tab
+                          ? 'bg-brand-accent/10 text-brand-accent'
+                          : 'text-brand-text-dim hover:bg-brand-bg/80 hover:text-brand-text-bright'
+                      }`}
+                    >
+                      {formatMainTabLabel(tab)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </nav>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden xl:flex items-center gap-1.5">
+            <span className="tv-live-pill"><span />LIVE</span>
+            <span className="tv-status-chip">{isAnalyzing ? 'SYNC' : '42ms'}</span>
+            <span className="tv-status-chip">{user ? 'NODE CONNECTED' : 'LOCAL NODE'}</span>
+            {onlineUserCount > 0 && <span className="tv-status-chip">{onlineUserCount} ONLINE</span>}
+          </div>
+
+          <div className="hidden lg:flex items-center gap-2">
+            <div className="flex items-center bg-brand-bg/35 border border-brand-border/70 rounded-full p-0.5 h-8">
               <button 
                 onClick={() => saveLanguage('EN')}
-                className={`px-2.5 h-full text-[9px] font-bold transition-all rounded ${language === 'EN' ? 'bg-brand-accent/20 text-brand-accent' : 'text-brand-text-dim hover:text-brand-text-bright'}`}
+                className={`px-2.5 h-full text-[9px] font-bold transition-all rounded-full ${language === 'EN' ? 'bg-brand-accent/10 text-brand-accent' : 'text-brand-text-dim hover:text-brand-text-bright'}`}
               >
                 EN
               </button>
               <button 
                 onClick={() => saveLanguage('TH')}
-                className={`px-2.5 h-full text-[9px] font-bold transition-all rounded ${language === 'TH' ? 'bg-brand-accent/20 text-brand-accent' : 'text-brand-text-dim hover:text-brand-text-bright'}`}
+                className={`px-2.5 h-full text-[9px] font-bold transition-all rounded-full ${language === 'TH' ? 'bg-brand-accent/10 text-brand-accent' : 'text-brand-text-dim hover:text-brand-text-bright'}`}
               >
                 TH
               </button>
             </div>
 
             <div className="relative group">
-              <button className="flex items-center gap-2 px-3 py-1.5 rounded bg-brand-bg/50 border border-brand-border text-brand-text-dim hover:text-brand-accent hover:border-brand-accent transition-all">
+              <button className="tv-icon-control" aria-label={t.ui.theme}>
                 <Palette size={14} />
-                <span className="text-[9px] font-bold uppercase tracking-widest">{t.ui.theme}</span>
               </button>
-            <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-              <div className="w-40 bg-brand-elevated border border-brand-border rounded-lg shadow-2xl overflow-hidden py-1">
-                {[
-                  { id: 'default', name: 'Obsidian' },
-                  { id: 'light', name: 'Light' },
-                  { id: 'tactical', name: 'Tactical Vanguard' },
-                  { id: 'cyber', name: 'Cyberpunk' }
-                ].map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => changeTheme(t.id as any)}
-                    className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-wider transition-colors
-                      ${theme === t.id ? 'bg-brand-accent/20 text-brand-accent' : 'text-brand-text-dim hover:bg-brand-bg hover:text-brand-text-bright'}`}
-                  >
-                    {t.name}
-                  </button>
-                ))}
+              <div className="absolute right-0 top-full z-50 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all">
+                <div className="w-44 bg-brand-elevated/95 backdrop-blur-xl border border-brand-border rounded-xl shadow-2xl overflow-hidden p-1.5">
+                  {[
+                    { id: 'default', name: 'Obsidian' },
+                    { id: 'nexus', name: 'Nexus Neon' },
+                    { id: 'light', name: 'Light' },
+                    { id: 'tactical', name: 'Tactical Vanguard' },
+                    { id: 'cyber', name: 'Cyberpunk' }
+                  ].map(t => (
+                    <button
+                      key={t.id}
+                      onClick={() => changeTheme(t.id as any)}
+                      className={`w-full px-3 py-2 rounded-lg text-left text-[10px] font-bold uppercase tracking-wider transition-colors
+                        ${theme === t.id ? 'bg-brand-accent/10 text-brand-accent' : 'text-brand-text-dim hover:bg-brand-bg hover:text-brand-text-bright'}`}
+                    >
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <button 
-          onClick={() => setMainTab('Dashboard')}
-          className="hidden sm:block bg-brand-accent hover:opacity-80 text-white text-[10px] font-bold px-4 py-2 rounded uppercase tracking-widest transition-all"
-        >
+          <button 
+            onClick={() => setMainTab('Dashboard')}
+            className="hidden sm:inline-flex items-center gap-2 rounded-full bg-brand-accent px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#07120D] shadow-[0_0_22px_rgba(52,211,153,0.18)] transition-all hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
+          >
+            <Plus size={13} />
             {t.ui.new_scan}
           </button>
 
-          {/* Mobile Hamburguer Menu */}
           <button 
             onClick={() => setIsMobileMenuOpen(true)}
             className="lg:hidden p-2 text-brand-text-dim hover:text-brand-accent transition-colors"
+            aria-label="Open navigation"
           >
-            <Menu size={24} />
+            <Menu size={22} />
           </button>
         </div>
       </header>
@@ -2079,24 +2183,29 @@ const NoteTooltip = ({ note }: { note: string }) => {
           initial={false}
           animate={{ width: sidebarCollapsed ? 72 : 288 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className="hidden lg:flex border-r border-brand-border bg-brand-bg flex-col shrink-0 relative"
+          className="recent-rail hidden lg:flex border-r border-brand-border/70 bg-brand-bg flex-col shrink-0 relative"
         >
           {/* Sidebar Toggle Button */}
           <button
             onClick={toggleSidebar}
-            className="absolute -right-3 top-20 z-50 w-6 h-6 bg-brand-elevated border border-brand-border rounded-full flex items-center justify-center text-brand-text-dim hover:text-brand-accent shadow-lg transition-colors"
+            className="absolute -right-3 top-20 z-50 w-6 h-6 bg-brand-elevated/95 border border-brand-border/80 rounded-full flex items-center justify-center text-brand-text-dim hover:text-brand-accent shadow-lg shadow-black/30 transition-colors backdrop-blur"
           >
             {sidebarCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
 
-          <div className={`p-4 border-b border-brand-border bg-brand-elevated/50 flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'justify-between'}`}>
+          <div className={`p-4 border-b border-brand-border/70 bg-brand-elevated/35 flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'justify-between'}`}>
             {!sidebarCollapsed && (
-              <h2 className="label-caps mb-0 text-brand-text-bright flex items-center gap-2">
-                <Database size={12} />
-                {t.ui.recent_extractions}
-              </h2>
+              <div>
+                <h2 className="label-caps mb-1 text-brand-text-bright flex items-center gap-2">
+                  <Database size={12} className="text-brand-accent" />
+                  {t.ui.recent_extractions}
+                </h2>
+                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-brand-text-dim/45">
+                  Win/Loss continuity rail
+                </p>
+              </div>
             )}
-            {sidebarCollapsed && <Database size={18} className="text-brand-accent/50" />}
+            {sidebarCollapsed && <Database size={17} className="text-brand-accent/60" />}
           </div>
 
           <RadixTooltip.Provider delayDuration={100}>
@@ -2107,7 +2216,13 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   {!sidebarCollapsed && <p className="text-[10px] uppercase font-bold">{t.ui.no_signals}</p>}
                 </div>
               ) : (
-                history.map((item) => {
+                recentExtractionRows.map(({ item, result, streakCount }) => {
+                  const resultLabel = result ? result.toUpperCase() : item.status.toUpperCase();
+                  const resultTone = result === 'win'
+                    ? 'is-win'
+                    : result === 'lose'
+                      ? 'is-lose'
+                      : 'is-neutral';
                   const content = (
                     <button
                       key={item.id}
@@ -2115,29 +2230,37 @@ const NoteTooltip = ({ note }: { note: string }) => {
                         setCurrentAnalysis(item);
                         setPreview(item.imageUrl);
                       }}
-                      className={`w-full rounded-lg border transition-all text-left group
-                        ${sidebarCollapsed ? 'p-2 flex justify-center' : 'p-3'}
+                      className={`recent-rail-item w-full rounded-xl border transition-all text-left group
+                        ${sidebarCollapsed ? 'p-1.5 flex justify-center' : 'p-3'}
                         ${currentAnalysis?.id === item.id 
-                          ? 'bg-brand-accent/10 border-brand-accent/50' 
-                          : 'border-transparent hover:bg-brand-elevated hover:border-brand-border'}`}
+                          ? 'is-active bg-brand-accent/10 border-brand-accent/45' 
+                          : 'border-transparent hover:bg-brand-elevated/75 hover:border-brand-border/80'}`}
                     >
                       {sidebarCollapsed ? (
-                        <div className={`w-8 h-8 rounded flex items-center justify-center font-bold text-[10px] ring-1 ring-inset
-                          ${item.side === 'Long' ? 'bg-trade-long/20 text-trade-long ring-trade-long/30' : 'bg-trade-short/20 text-trade-short ring-trade-short/30'}`}>
-                          {item.symbol.substring(0, 2)}
+                        <div className={`streak-badge ${resultTone}`} aria-label={`${item.symbol} ${resultLabel}${streakCount > 1 ? ` streak ${streakCount}` : ''}`}>
+                          <span>{result ? resultLabel : item.symbol.substring(0, 2)}</span>
+                          {result && streakCount > 1 && <sup>{streakCount}</sup>}
                         </div>
                       ) : (
                         <>
                           <div className="flex justify-between items-start mb-1">
-                            <span className="monospace-data text-xs">{item.symbol}</span>
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase
-                              ${item.side === 'Long' ? 'bg-trade-long/20 text-trade-long' : 'bg-trade-short/20 text-trade-short'}`}>
-                              {item.side}
+                            <div className="min-w-0">
+                              <span className="monospace-data block truncate text-xs">{item.symbol}</span>
+                              <span className="font-mono text-[8px] uppercase tracking-[0.16em] text-brand-text-dim/55">{item.side}</span>
+                            </div>
+                            <span className={`streak-pill ${resultTone}`}>
+                              {resultLabel}
+                              {result && streakCount > 1 && <sup>{streakCount}</sup>}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[9px] text-brand-text-dim uppercase font-mono">
+                          <div className="flex items-center justify-between gap-2 text-[9px] text-brand-text-dim uppercase font-mono">
+                            <span className="flex min-w-0 items-center gap-1.5 truncate">
                             <Clock size={10} />
                             {item.date}
+                            </span>
+                            {result && streakCount > 1 && (
+                              <span className="text-[8px] text-brand-text-dim/55">{streakCount}x streak</span>
+                            )}
                           </div>
                         </>
                       )}
@@ -2159,13 +2282,20 @@ const NoteTooltip = ({ note }: { note: string }) => {
                             <div className="bg-brand-elevated/80 backdrop-blur-md border border-brand-accent/30 p-3 rounded-xl shadow-2xl min-w-[140px]">
                               <div className="flex justify-between items-center mb-2 gap-4">
                                 <span className="text-xs font-bold text-brand-text-bright">{item.symbol}</span>
-                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${item.side === 'Long' ? 'bg-trade-long/20 text-trade-long' : 'bg-trade-short/20 text-trade-short'}`}>
-                                  {item.side}
+                                <span className={`streak-pill ${resultTone}`}>
+                                  {resultLabel}
+                                  {result && streakCount > 1 && <sup>{streakCount}</sup>}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2 text-[9px] text-brand-text-dim font-bold uppercase">
-                                <Clock size={10} />
-                                {item.date}
+                              <div className="grid gap-1.5 text-[9px] text-brand-text-dim font-bold uppercase">
+                                <div className="flex items-center gap-2">
+                                  <Clock size={10} />
+                                  {item.date}
+                                </div>
+                                <div className="flex items-center justify-between gap-3 font-mono text-[8px] tracking-[0.14em]">
+                                  <span>{item.side}</span>
+                                  <span>{result ? `${resultLabel}${streakCount > 1 ? ` x${streakCount}` : ''}` : item.status}</span>
+                                </div>
                               </div>
                               <RadixTooltip.Arrow className="fill-brand-elevated/80" />
                             </div>
@@ -2181,7 +2311,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
             </div>
           </RadixTooltip.Provider>
 
-          <div className={`p-4 border-t border-brand-border bg-brand-elevated/80 flex flex-col gap-2 ${sidebarCollapsed ? 'items-center px-2' : ''}`}>
+          <div className={`p-4 border-t border-brand-border/70 bg-brand-elevated/55 flex flex-col gap-2 ${sidebarCollapsed ? 'items-center px-2' : ''}`}>
             <div className={`flex items-center gap-2 ${sidebarCollapsed ? 'justify-center w-full' : ''}`}>
               <div className={`shrink-0 w-2 h-2 rounded-full ${isAnalyzing ? 'bg-brand-warning animate-pulse' : 'bg-trade-long'}`} />
               {!sidebarCollapsed && (
@@ -2569,7 +2699,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 </div>
 
                 {stats && stats.totalTrades > 0 ? (
-                  <AnalyticsCommandCenter stats={stats} history={history} t={t} />
+                  <AnalyticsCommandCenter stats={stats} history={history} t={t} language={language} />
                 ) : (
                   <div className="technical-panel p-10 sm:p-20 flex flex-col items-center gap-4 text-center opacity-50">
                     <Database size={48} />
@@ -2593,7 +2723,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 </div>
 
                 {stats && stats.totalTrades > 0 ? (
-                  <AnalyticsCommandCenter stats={stats} history={history} t={t} />
+                  <AnalyticsCommandCenter stats={stats} history={history} t={t} language={language} />
                 ) : (
                   <div className="technical-panel p-10 sm:p-20 flex flex-col items-center gap-4 text-center opacity-50">
                     <Database size={48} />
@@ -2604,7 +2734,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   </div>
                 )}
               </div>
-            ) : mainTab === 'StrategyLab' ? (
+            ) : mainTab === 'StrategyLab' && isAdmin ? (
               <Suspense fallback={<StrategyLabLoading language={language} />}>
                 <StrategyLab stats={stats} isAdmin={!!isAdmin} language={language} />
               </Suspense>

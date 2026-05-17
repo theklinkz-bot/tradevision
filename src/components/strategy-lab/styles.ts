@@ -32,6 +32,22 @@ export const strategyLabStyles = `
   .strategy-lab[lang="th"] .font-mono { line-height: 1.45; }
   .strategy-section-layout { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
   .strategy-section { min-width: 0; }
+  .strategy-workbench-hero {
+    background:
+      radial-gradient(circle at 12% 18%, rgba(52, 211, 153, .12), transparent 30%),
+      radial-gradient(circle at 88% 10%, rgba(56, 189, 248, .08), transparent 26%),
+      linear-gradient(135deg, rgba(2, 10, 18, .96), rgba(7, 18, 28, .88));
+  }
+  .strategy-workbench-grid {
+    background-image:
+      radial-gradient(circle at 24% 28%, rgba(52, 211, 153, .10), transparent 28%),
+      radial-gradient(circle at 78% 34%, rgba(56, 189, 248, .08), transparent 24%),
+      linear-gradient(115deg, transparent, rgba(148, 163, 184, .035), transparent);
+    mask-image: linear-gradient(180deg, #000 0%, transparent 88%);
+  }
+  .strategy-focus-board {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 18px 60px rgba(0,0,0,.16);
+  }
   .strategy-control-option {
     display: inline-flex;
     align-items: center;

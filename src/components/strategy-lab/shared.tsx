@@ -52,6 +52,13 @@ const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min,
 const toneStroke = (tone: ValidationTone) =>
   tone === 'ready' ? 'var(--brand-success)' : tone === 'caution' ? 'var(--brand-warning)' : 'var(--brand-danger)';
 
+const toneTrack = (tone: ValidationTone) =>
+  tone === 'ready'
+    ? 'from-brand-success/85 to-brand-success/35'
+    : tone === 'caution'
+      ? 'from-brand-warning/85 to-brand-warning/35'
+      : 'from-brand-danger/85 to-brand-danger/35';
+
 export const MetricDrilldown = ({
   tone,
   content,
@@ -390,8 +397,28 @@ export const ScoreTrendLine = ({
   label?: string;
 }) => {
   const normalized = clamp(score);
-  const values = [Math.max(0, normalized - 28), Math.max(0, normalized - 16), Math.max(0, normalized - 7), normalized, Math.min(100, normalized + 4)];
-  return <MicroSparkline values={values} tone={tone} label={`${label}: ${Math.round(normalized)} percent`} />;
+  const marker = `${normalized}%`;
+
+  return (
+    <div className="micro-viz mt-3" role="img" aria-label={`${label}: ${Math.round(normalized)} percent`} title={`${label}: ${Math.round(normalized)}%`}>
+      <div className="relative h-2 overflow-hidden rounded-full border border-brand-border/35 bg-brand-bg/65">
+        <div
+          className={`h-full rounded-full bg-gradient-to-r ${toneTrack(tone)} transition-[width] duration-500 ease-out`}
+          style={{ width: marker }}
+        />
+        <span
+          className={`absolute top-1/2 h-3 w-1 -translate-y-1/2 rounded-full ${toneStyles[tone].bar} shadow-[0_0_10px_currentColor]`}
+          style={{ left: `calc(${marker} - 2px)` }}
+          aria-hidden="true"
+        />
+      </div>
+      <div className="mt-1 flex justify-between text-[7px] font-black uppercase tracking-widest text-brand-text-dim">
+        <span>0</span>
+        <span className={toneStyles[tone].text}>{Math.round(normalized)}</span>
+        <span>100</span>
+      </div>
+    </div>
+  );
 };
 
 export const RadialGauge = ({ score, tone }: { score: number; tone: ValidationTone }) => {
