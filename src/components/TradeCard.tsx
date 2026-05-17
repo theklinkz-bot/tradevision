@@ -192,7 +192,7 @@ export const TradeRow: React.FC<{
           <span className="text-[9px] font-mono uppercase tracking-widest text-brand-text-dim/35">Unlinked</span>
         )}
       </td>
-      <td className="p-4">
+      <td className="p-4 max-[1500px]:hidden">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-mono opacity-40 uppercase">{item.date}</span>
           {item.notes && (
@@ -211,17 +211,17 @@ export const TradeRow: React.FC<{
               <Plus size={14} />
             </button>
           )}
-          <button 
-            onClick={() => onEdit(item)}
-            className="px-3 py-1.5 bg-brand-elevated border border-brand-border rounded text-[10px] font-bold uppercase tracking-widest hover:bg-brand-accent hover:border-brand-accent hover:text-white transition-all active:scale-95 h-[34px]"
-          >
-            {t.ui.edit_node}
-          </button>
           <PurgeButton 
             tradeId={item.id}
             onPurge={onDelete}
             t={t}
           />
+          <button 
+            onClick={() => onEdit(item)}
+            className="h-[34px] min-w-[82px] px-3 py-1.5 bg-brand-elevated border border-brand-border rounded text-[10px] font-bold uppercase tracking-widest hover:bg-brand-accent hover:border-brand-accent hover:text-white transition-all active:scale-95"
+          >
+            {t.ui.edit_node}
+          </button>
         </div>
       </td>
     </motion.tr>

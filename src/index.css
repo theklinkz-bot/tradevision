@@ -298,6 +298,8 @@
   pointer-events: none;
 }
 .tv-command-logo {
+  position: relative;
+  overflow: hidden;
   width: 32px;
   height: 32px;
   display: grid;
@@ -309,6 +311,29 @@
     linear-gradient(145deg, color-mix(in oklab, var(--brand-accent) 15%, transparent), transparent 58%),
     color-mix(in oklab, var(--brand-surface-2) 78%, transparent);
   box-shadow: 0 0 22px -12px color-mix(in oklab, var(--brand-accent) 80%, transparent);
+}
+.tv-command-logo::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.32), transparent 62%);
+  transform: translateX(-120%) rotate(12deg);
+  animation: logo-flash 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.tv-command-logo img {
+  position: relative;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 9px;
+  filter: drop-shadow(0 0 10px color-mix(in oklab, var(--brand-accent) 70%, transparent));
+}
+@keyframes logo-flash {
+  0%, 58%, 100% { transform: translateX(-120%) rotate(12deg); opacity: 0; }
+  66% { opacity: .85; }
+  78% { transform: translateX(120%) rotate(12deg); opacity: 0; }
 }
 .tv-brand-cluster {
   display: flex;

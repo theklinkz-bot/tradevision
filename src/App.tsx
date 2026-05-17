@@ -1398,13 +1398,38 @@ const NoteTooltip = ({ note }: { note: string }) => {
       <datalist id="symbols-list">
         {recentSymbols.map(s => <option key={s} value={s} />)}
       </datalist>
-      {!user ? (
-        <div className="fixed inset-0 z-[100] bg-brand-bg flex items-center justify-center p-6">
-          <div className="technical-panel w-full max-w-sm bg-brand-bg p-8 flex flex-col gap-6 shadow-2xl border-brand-accent/30">
+      <AnimatePresence mode="wait">
+        {!user ? (
+          <motion.div
+            key="auth-gateway"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.34, ease: "easeOut" }}
+            className="fixed inset-0 z-[100] bg-brand-bg flex items-center justify-center p-6"
+          >
+          <motion.div
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -12, scale: 0.985, filter: "blur(6px)" }}
+            transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+            className="technical-panel w-full max-w-sm bg-brand-bg p-8 flex flex-col gap-6 shadow-2xl border-brand-accent/30"
+          >
             <div className="flex flex-col items-center text-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-brand-accent/10 flex items-center justify-center text-brand-accent border border-brand-accent/20">
-                <Cpu size={32} className="animate-pulse" />
-              </div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.08, duration: 0.5, ease: "easeOut" }}
+                className="relative w-36 overflow-hidden rounded-xl border border-brand-accent/35 bg-black/70 shadow-[0_0_44px_rgba(52,211,153,0.24),0_0_90px_rgba(52,211,153,0.10)]"
+              >
+                <div className="pointer-events-none absolute -inset-10 animate-pulse bg-[radial-gradient(circle,rgba(52,211,153,0.28),transparent_62%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-brand-accent/10" />
+                <img
+                  src="/assets/tradevision-logo.png"
+                  alt="TradeVision"
+                  className="relative z-10 h-auto w-full object-contain drop-shadow-[0_0_18px_rgba(52,211,153,0.34)]"
+                />
+              </motion.div>
               <div>
                 <h3 className="label-caps text-lg text-brand-text-bright mb-1">TradeVision <span className="opacity-50">PRO</span></h3>
                 <p className="text-[10px] text-brand-text-dim uppercase tracking-widest">Authorized Access Only</p>
@@ -1445,9 +1470,13 @@ const NoteTooltip = ({ note }: { note: string }) => {
               <button 
                 type="submit"
                 disabled={authLoading}
-                className="w-full py-4 bg-brand-accent text-white font-mono font-bold uppercase tracking-widest text-[11px] rounded hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-lg shadow-brand-accent/30 disabled:opacity-50 disabled:shadow-none group relative overflow-hidden"
+                className={`w-full py-4 bg-brand-accent text-white font-mono font-bold uppercase tracking-widest text-[11px] rounded hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-lg shadow-brand-accent/30 disabled:opacity-70 group relative overflow-hidden ${
+                  authLoading ? 'shadow-[0_0_34px_rgba(52,211,153,0.28)]' : ''
+                }`}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] pointer-events-none" />
+                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full pointer-events-none ${
+                  authLoading ? 'animate-[shimmer_1.2s_infinite]' : 'group-hover:animate-[shimmer_2s_infinite]'
+                }`} />
                 {authLoading ? (
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
@@ -1466,7 +1495,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   </motion.div>
                 )}
                 <span className="whitespace-nowrap relative z-10">
-                  {authMode === 'login' ? 'Activate AI Engine' : 'Create new Account'}
+                  {authLoading ? 'Establishing Secure Session' : authMode === 'login' ? 'Activate AI Engine' : 'Create new Account'}
                 </span>
               </button>
             </form>
@@ -1485,9 +1514,10 @@ const NoteTooltip = ({ note }: { note: string }) => {
                  Encrypted via Supabase Auth // Neural Bridge: Stable
                </p>
             </div>
-          </div>
-        </div>
-      ) : null}
+          </motion.div>
+        </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       {/* API Key Guide Modal */}
       <AnimatePresence>
@@ -2235,17 +2265,17 @@ const NoteTooltip = ({ note }: { note: string }) => {
       <header className="tv-command-header shrink-0">
         <div className="tv-brand-cluster">
           <div className="tv-command-logo">
-            <Cpu size={15} />
+            <img src="/assets/tradevision-logo.png" alt="TradeVision" />
           </div>
           <div className="min-w-0">
             <div className="flex items-baseline gap-2">
               <h1 className="truncate text-sm font-semibold tracking-[-0.02em] text-brand-text-bright sm:text-[15px]">TradeVision</h1>
               <span className="hidden rounded-full border border-brand-border/70 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/70 sm:inline-flex">
-                v1.5
+                V2.0a
               </span>
             </div>
             <div className="hidden font-mono text-[8px] uppercase tracking-[0.22em] text-brand-text-dim/45 sm:block">
-              AI Trading Terminal
+              Discipline.exe Running
             </div>
           </div>
           <div className="tv-mode-cluster hidden min-[1120px]:flex">
@@ -2306,9 +2336,10 @@ const NoteTooltip = ({ note }: { note: string }) => {
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="hidden xl:flex items-center gap-1.5">
             <span className="tv-live-pill"><span />LIVE</span>
-            <span className="tv-status-chip">{isAnalyzing ? 'SYNC' : '42ms'}</span>
-            <span className="tv-status-chip">{user ? 'NODE CONNECTED' : 'LOCAL NODE'}</span>
-            {onlineUserCount > 0 && <span className="tv-status-chip">{onlineUserCount} ONLINE</span>}
+            <div className="flex w-[clamp(6rem,8vw,9.5rem)] shrink-0 items-center gap-1.5" aria-label="System status">
+              {isAnalyzing && <span className="tv-status-chip">SYNC</span>}
+              {isAdmin && onlineUserCount > 0 && <span className="tv-status-chip">{onlineUserCount} ONLINE</span>}
+            </div>
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
@@ -2840,7 +2871,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                           <th className="p-4 label-caps">Status</th>
                           <th className="p-4 label-caps">RR</th>
                           <th className="p-4 label-caps">Strategy</th>
-                          <th className="p-4 label-caps">Timestamp</th>
+                          <th className="p-4 label-caps max-[1500px]:hidden">Timestamp</th>
                           <th className="p-4 label-caps text-right">Actions</th>
                         </tr>
                       </thead>
