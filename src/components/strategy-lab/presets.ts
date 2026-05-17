@@ -18,6 +18,7 @@ export type StrategySectionMeta = {
 export type WorkspacePresetConfig = {
   label: WorkspacePreset;
   description: string;
+  descriptionTh: string;
   sections: StrategySectionId[];
 };
 
@@ -75,36 +76,43 @@ export const workspacePresetConfig: Record<WorkspacePreset, WorkspacePresetConfi
   EXECUTIVE: {
     label: 'EXECUTIVE',
     description: 'High-level deployment review',
+    descriptionTh: 'สรุปภาพรวมก่อนใช้งานจริง',
     sections: ['strategy-intelligence', 'strategy-validation']
   },
   QUANT: {
     label: 'QUANT',
     description: 'Full statistical validation',
+    descriptionTh: 'ตรวจสอบสถิติครบชุด',
     sections: ['strategy-validation', 'strategy-edge', 'strategy-consistency', 'strategy-risk']
   },
   RISK: {
     label: 'RISK',
     description: 'Capital protection and stress profile',
+    descriptionTh: 'ดูความเสี่ยงและแรงกดดันของทุน',
     sections: ['strategy-risk', 'strategy-psychology', 'strategy-validation']
   },
   EDGE: {
     label: 'EDGE',
     description: 'Expectancy and payoff quality',
+    descriptionTh: 'คุณภาพ Expectancy และ Payoff',
     sections: ['strategy-edge', 'strategy-consistency', 'strategy-context']
   },
   PSYCHOLOGY: {
     label: 'PSYCHOLOGY',
     description: 'Execution pressure and discipline load',
+    descriptionTh: 'แรงกดดันและวินัยในการเทรด',
     sections: ['strategy-psychology', 'strategy-risk', 'strategy-intelligence']
   },
   CONTEXT: {
     label: 'CONTEXT',
     description: 'Where the strategy performs best',
+    descriptionTh: 'บริบทที่กลยุทธ์ทำงานดีที่สุด',
     sections: ['strategy-context', 'strategy-edge', 'strategy-consistency']
   },
   FULL: {
     label: 'FULL',
     description: 'All validation modules',
+    descriptionTh: 'ทุกโมดูลตรวจสอบ',
     sections: [
       'strategy-intelligence',
       'strategy-validation',

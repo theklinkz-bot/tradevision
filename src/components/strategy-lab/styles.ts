@@ -26,8 +26,108 @@ export const strategyLabStyles = `
   .strategy-pulse-ring { animation: pulseRing 4.8s ease-in-out infinite; }
   .strategy-blink { animation: blinkNode 2.2s ease-in-out infinite; }
   .strategy-chart-pulse { animation: chartPulse 4s ease-in-out infinite; }
+  .strategy-lab[lang="th"] p,
+  .strategy-lab[lang="th"] span,
+  .strategy-lab[lang="th"] div { overflow-wrap: anywhere; }
+  .strategy-lab[lang="th"] .font-mono { line-height: 1.45; }
   .strategy-section-layout { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
   .strategy-section { min-width: 0; }
+  .strategy-control-option {
+    display: inline-flex;
+    align-items: center;
+    gap: .2rem;
+    white-space: nowrap;
+  }
+  .strategy-control-option .metric-drilldown button {
+    height: .95rem;
+    width: .95rem;
+    font-size: .48rem;
+  }
+  .strategy-anchor-rail {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .45rem;
+    min-width: min(26rem, 100%);
+    max-width: min(34rem, 100%);
+    padding: .35rem .45rem;
+    border: 1px solid rgba(45, 212, 191, .14);
+    border-radius: .4rem;
+    background:
+      linear-gradient(90deg, rgba(2, 10, 18, .92), rgba(7, 23, 30, .72)),
+      repeating-linear-gradient(90deg, rgba(45, 212, 191, .06) 0 1px, transparent 1px 18px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 0 18px rgba(16,185,129,.045);
+  }
+  .strategy-anchor-rail__label {
+    display: inline-flex;
+    align-items: center;
+    height: 1.35rem;
+    padding: 0 .45rem;
+    border-right: 1px solid rgba(148, 163, 184, .18);
+    color: rgb(52, 211, 153);
+    font-size: .48rem;
+    font-weight: 900;
+    letter-spacing: .18em;
+    line-height: 1;
+  }
+  .strategy-anchor-rail__track {
+    display: flex;
+    min-width: 0;
+    gap: .35rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: .05rem .2rem;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 .75rem, #000 calc(100% - .75rem), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 .75rem, #000 calc(100% - .75rem), transparent 100%);
+  }
+  .strategy-anchor-rail__track::-webkit-scrollbar { display: none; }
+  .strategy-anchor-rail__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border: 1px solid rgba(45, 212, 191, .16);
+    border-radius: .28rem;
+    background: rgba(15, 23, 42, .72);
+    color: rgba(148, 163, 184, .86);
+    transition: border-color .16s ease, color .16s ease, background-color .16s ease, box-shadow .16s ease;
+  }
+  .strategy-anchor-rail__button:hover,
+  .strategy-anchor-rail__button:focus-visible {
+    border-color: rgba(52, 211, 153, .55);
+    background: rgba(16, 185, 129, .1);
+    color: rgb(52, 211, 153);
+    box-shadow: 0 0 12px rgba(16, 185, 129, .08);
+    outline: none;
+  }
+  .strategy-anchor-rail__link {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    white-space: nowrap;
+    border: 1px solid rgba(148, 163, 184, .14);
+    border-radius: .28rem;
+    background: rgba(15, 23, 42, .62);
+    padding: .34rem .55rem;
+    color: rgba(148, 163, 184, .9);
+    font-size: .5rem;
+    font-weight: 900;
+    letter-spacing: .14em;
+    line-height: 1;
+    text-transform: uppercase;
+    transition: border-color .16s ease, color .16s ease, background-color .16s ease, box-shadow .16s ease;
+  }
+  .strategy-anchor-rail__link:hover,
+  .strategy-anchor-rail__link:focus-visible {
+    border-color: rgba(52, 211, 153, .55);
+    background: rgba(16, 185, 129, .09);
+    color: rgb(52, 211, 153);
+    box-shadow: 0 0 12px rgba(16, 185, 129, .08);
+    outline: none;
+  }
   .strategy-lab--dense { gap: .8rem !important; }
   .strategy-lab--dense header { padding-bottom: .6rem !important; }
   .strategy-lab--dense header h2 { font-size: 1.15rem !important; line-height: 1.2 !important; }
@@ -103,7 +203,15 @@ export const strategyLabStyles = `
   .strategy-lab--dense .strategy-verdict-bar .grid > div { min-width: 5.5rem; padding: .28rem .45rem !important; }
   .strategy-lab--dense .strategy-verdict-bar a,
   .strategy-lab--dense .strategy-verdict-bar span { padding: .28rem .45rem !important; }
+  .strategy-lab--dense .strategy-anchor-rail { min-width: min(20rem, 100%); max-width: min(28rem, 100%); gap: .28rem !important; padding: .24rem .32rem !important; }
+  .strategy-lab--dense .strategy-anchor-rail__label { height: 1.05rem; padding: 0 .32rem !important; font-size: .42rem !important; letter-spacing: .14em !important; }
+  .strategy-lab--dense .strategy-anchor-rail__button { width: 1.05rem; height: 1.05rem; border-radius: .22rem; }
+  .strategy-lab--dense .strategy-anchor-rail__button svg { width: .65rem; height: .65rem; }
+  .strategy-lab--dense .strategy-anchor-rail__track { gap: .24rem !important; padding: 0 .16rem !important; }
+  .strategy-lab--dense .strategy-anchor-rail__link { border-radius: .22rem; padding: .25rem .38rem !important; font-size: .43rem !important; letter-spacing: .1em !important; }
   .strategy-lab--dense .workspace-preset-control { gap: .2rem !important; }
+  .strategy-lab--dense .strategy-control-option { gap: .12rem !important; }
+  .strategy-lab--dense .strategy-control-option .metric-drilldown button { height: .82rem; width: .82rem; font-size: .4rem !important; }
   .strategy-lab--dense .workspace-preset-control button { padding: .25rem .45rem !important; font-size: .43rem !important; letter-spacing: .1em !important; }
   .strategy-lab--dense .layout-mode-control { gap: .2rem !important; }
   .strategy-lab--dense .layout-mode-control button { padding: .25rem .45rem !important; font-size: .43rem !important; letter-spacing: .1em !important; }

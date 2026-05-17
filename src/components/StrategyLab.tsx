@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, AlertTriangle, CheckCircle2, ShieldAlert, XCircle, Zap } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Activity, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, ShieldAlert, XCircle, Zap } from 'lucide-react';
 import { calculateTradeStatistics } from '../services/statsEngine';
 import { TradeStats } from '../types';
 import { AIStrategyIntelligenceSection } from './strategy-lab/AIStrategyIntelligenceSection';
@@ -30,6 +30,7 @@ import {
   UnderwaterDrawdownChart,
   VerdictTile,
   type ContextRow,
+  type DrilldownContent,
   type ValidationTone,
   createDemoTrades,
   formatR,
@@ -47,14 +48,354 @@ import {
 interface StrategyLabProps {
   stats: TradeStats;
   isAdmin?: boolean;
+  language?: 'EN' | 'TH';
 }
+
+type StrategyLabLanguage = NonNullable<StrategyLabProps['language']>;
+
+const strategyLabCopy = {
+  EN: {
+    sampleEmpty: 'No closed trade sample is available for deployment validation.',
+    readyReason: 'Edge, risk, and sample reliability are aligned for controlled live deployment.',
+    notReadyReason: 'Core edge is not positive enough for live deployment.',
+    positiveEdgeReason: 'Edge is positive, but sample depth or risk controls still need validation.',
+    mixedReason: 'Validation remains mixed. Continue backtesting before live exposure.',
+    readyLive: 'READY FOR LIVE DEPLOYMENT',
+    readySim: 'READY FOR SIMULATED DEPLOYMENT',
+    unsafeCapital: 'NOT SAFE FOR CAPITAL DEPLOYMENT',
+    positiveEdgeThin: 'Edge quality is positive, but statistical confidence remains weak.',
+    limitedSampleCluster: 'Profitability is concentrated in a limited sample cluster.',
+    stableExpectancyLimited: 'System shows stable expectancy with limited deployment validation.',
+    drawdownPressure: 'Risk pressure is elevated by observed drawdown expansion.',
+    filtersReject: 'Core deployment filters reject capital allocation at current metrics.',
+    sampleIncomplete: 'Edge stability remains statistically incomplete.',
+    sampleReliable: 'Sample depth is approaching institutional reliability.',
+    expectancyFavorable: 'Current expectancy profile is favorable.',
+    expectancyRejects: 'Current expectancy profile rejects live deployment.',
+    confidenceLimited: 'Deployment confidence limited by sample depth.',
+    confidenceSupported: 'Deployment confidence supported by sample depth.',
+    riskAcceptable: 'Risk profile remains within acceptable range.',
+    riskElevated: 'Risk pressure is elevated by drawdown expansion.',
+    riskStable: 'Capital preservation remains stable despite localized volatility.',
+    riskNeedsMonitoring: 'Capital preservation requires continued simulation monitoring.',
+    lossClusterPressure: 'Loss clustering increased recovery pressure during recent executions.',
+    lossClusterContained: 'Loss clustering remains contained across the current sample.',
+    recoveryDeployable: 'Drawdown recovery efficiency remains within deployable tolerance.',
+    recoveryDeteriorating: 'Recovery efficiency deteriorating under volatility.',
+    equityInstability: 'Equity instability detected during high-volatility sequences.',
+    equityControlled: 'Equity volatility remains controlled inside the current sample.',
+    winratePayoffMismatch: 'Winrate is strong, but average win size is not yet compensating enough.',
+    payoffAligned: 'Payoff and hit-rate are aligned enough for continued validation.',
+    outlierDependent: 'Performance appears dependent on a small number of outlier winners.',
+    outlierControlled: 'Return distribution is not materially dependent on outlier winners.',
+    edgeBroken: 'Recent performance has broken below the early sample baseline.',
+    edgeDrifting: 'Recent performance is positive but drifting below the early baseline.',
+    edgeSupported: 'Recent sample continues to support the original edge baseline.',
+    consistencyThin: 'Sample depth is insufficient for consistency validation.',
+    consistencyStable: 'Performance remains stable across recent trade buckets.',
+    consistencyDeveloping: 'Performance consistency is still developing across trade buckets.',
+    recentWeaker: 'Recent expectancy is weaker than the early sample.',
+    recentDrifting: 'Recent expectancy is drifting below the early sample.',
+    recentAligned: 'Recent expectancy remains aligned with the early sample.',
+    curveUnstable: 'Equity curve shows unstable recovery rhythm.',
+    curveControlled: 'Equity smoothness remains within controlled tolerance.',
+    redDominant: 'Red periods are outnumbering green periods in the current bucket map.',
+    greenDominant: 'Green periods remain dominant in the current bucket map.',
+    contextTimingThin: 'Session sample is not yet deep enough for timing confidence.',
+    contextSymbolThin: 'Symbol concentration remains unavailable until more executions close.',
+    noWeakContext: 'No materially weak context pocket is confirmed yet.',
+    contextThin: 'Context sample is still too shallow for deployment confidence.',
+    lossDisciplineRisk: 'Loss streaks may pressure discipline after repeated invalidations.',
+    lossDisciplineOk: 'Loss sequences remain tolerable for rule-following discipline.',
+    recoveryTolerable: 'Recovery rhythm appears psychologically tolerable.',
+    recoveryFatigue: 'Extended recovery windows may create decision fatigue.',
+    whiplashRisk: 'Equity whiplash could weaken rule-following consistency.',
+    whiplashOk: 'Equity movement is unlikely to disrupt execution discipline.',
+    cadenceRisk: 'Trade frequency may increase impulsive execution risk.',
+    cadenceOk: 'Execution cadence remains unlikely to trigger rapid-fire behavior.',
+    noDominantStrength: 'No dominant institutional strength confirmed',
+    noMajorWeakness: 'No major weakness isolated',
+    liveSuitable: 'Suitable for controlled live deployment',
+    avoidLive: 'Avoid live deployment until stability improves',
+    continuePaper: 'Continue paper validation',
+    reduceRisk: 'Reduce risk allocation',
+    emptyTitle: 'No closed trades yet. Complete backtest samples to unlock validation.',
+    validationOnline: 'Validation terminal is online. Execute and close backtest samples to activate readiness scoring.',
+    previewDemo: 'Preview with Demo Data',
+    emptyDrillMeaning: 'Strategy Lab activates after closed backtest or real trade samples exist.',
+    emptyDrillWhy: 'Close trades or use demo data to preview drilldowns.'
+  },
+  TH: {
+    sampleEmpty: 'ยังไม่มีตัวอย่างเทรดที่ปิดแล้วสำหรับตรวจสอบ Deployment',
+    readyReason: 'Edge, Risk และจำนวนตัวอย่างสอดคล้องพอสำหรับทดลองใช้เงินจริงแบบคุมความเสี่ยง',
+    notReadyReason: 'Core Edge ยังไม่แข็งแรงพอสำหรับใช้งานจริง',
+    positiveEdgeReason: 'Edge เป็นบวก แต่ยังต้องยืนยันจำนวนตัวอย่างหรือ Risk Control เพิ่ม',
+    mixedReason: 'ผลตรวจยังผสมกัน ควร Backtest ต่อก่อนรับเงินจริง',
+    readyLive: 'READY FOR LIVE DEPLOYMENT',
+    readySim: 'READY FOR SIMULATED DEPLOYMENT',
+    unsafeCapital: 'NOT SAFE FOR CAPITAL DEPLOYMENT',
+    positiveEdgeThin: 'Edge เป็นบวก แต่ความมั่นใจเชิงสถิติยังบาง',
+    limitedSampleCluster: 'กำไรยังกระจุกอยู่ในตัวอย่างจำนวนจำกัด',
+    stableExpectancyLimited: 'ระบบมี Expectancy ค่อนข้างนิ่ง แต่หลักฐาน Deployment ยังจำกัด',
+    drawdownPressure: 'Risk Pressure สูงขึ้นจาก Drawdown ที่ขยายตัว',
+    filtersReject: 'ตัวกรอง Deployment ยังไม่อนุมัติการใช้ทุนจริง',
+    sampleIncomplete: 'ความนิ่งของ Edge ยังมีตัวอย่างไม่พอ',
+    sampleReliable: 'จำนวนตัวอย่างเริ่มเข้าใกล้ระดับที่น่าเชื่อถือ',
+    expectancyFavorable: 'โปรไฟล์ Expectancy ปัจจุบันเป็นบวก',
+    expectancyRejects: 'Expectancy ปัจจุบันยังไม่รองรับการใช้งานจริง',
+    confidenceLimited: 'ความมั่นใจ Deployment ถูกจำกัดด้วยจำนวนตัวอย่าง',
+    confidenceSupported: 'จำนวนตัวอย่างช่วยหนุนความมั่นใจ Deployment',
+    riskAcceptable: 'Risk Profile ยังอยู่ในกรอบที่รับได้',
+    riskElevated: 'Risk Pressure สูงขึ้นจาก Drawdown ที่ขยายตัว',
+    riskStable: 'การรักษาทุนยังนิ่ง แม้มีความผันผวนบางช่วง',
+    riskNeedsMonitoring: 'การรักษาทุนยังต้องติดตามในโหมด Simulation',
+    lossClusterPressure: 'กลุ่ม Loss ทำให้แรงกดดันการฟื้นตัวสูงขึ้น',
+    lossClusterContained: 'ลำดับ Loss ยังอยู่ในกรอบที่ควบคุมได้',
+    recoveryDeployable: 'ประสิทธิภาพ Recovery ยังอยู่ในกรอบที่พอใช้ Deployment',
+    recoveryDeteriorating: 'Recovery เริ่มอ่อนลงเมื่อเจอความผันผวน',
+    equityInstability: 'พบความไม่นิ่งของ Equity ในช่วง Volatility สูง',
+    equityControlled: 'Equity Volatility ยังอยู่ในกรอบที่ควบคุมได้',
+    winratePayoffMismatch: 'Winrate ดี แต่ขนาดกำไรเฉลี่ยยังชดเชยไม่พอ',
+    payoffAligned: 'Payoff และ Hit-rate สอดคล้องพอสำหรับตรวจสอบต่อ',
+    outlierDependent: 'ผลลัพธ์อาจพึ่งพา Winner ขนาดใหญ่ไม่กี่ไม้',
+    outlierControlled: 'การกระจายผลตอบแทนไม่ได้พึ่ง Outlier มากเกินไป',
+    edgeBroken: 'ผลลัพธ์ล่าสุดต่ำกว่า Baseline ช่วงต้นอย่างชัดเจน',
+    edgeDrifting: 'ผลลัพธ์ล่าสุดยังบวก แต่เริ่มต่ำกว่า Baseline ช่วงต้น',
+    edgeSupported: 'ตัวอย่างล่าสุดยังสนับสนุน Edge เดิม',
+    consistencyThin: 'จำนวนตัวอย่างยังไม่พอสำหรับตรวจ Consistency',
+    consistencyStable: 'ผลลัพธ์นิ่งดีใน Bucket ล่าสุด',
+    consistencyDeveloping: 'Consistency ยังอยู่ระหว่างสะสมหลักฐาน',
+    recentWeaker: 'Expectancy ล่าสุดอ่อนกว่าช่วงต้น',
+    recentDrifting: 'Expectancy ล่าสุดเริ่ม Drift ต่ำกว่าช่วงต้น',
+    recentAligned: 'Expectancy ล่าสุดยังสอดคล้องกับช่วงต้น',
+    curveUnstable: 'Equity Curve มีจังหวะ Recovery ที่ยังไม่นิ่ง',
+    curveControlled: 'ความเรียบของ Equity ยังอยู่ในกรอบควบคุม',
+    redDominant: 'ช่วง Red มีมากกว่า Green ใน Bucket Map ปัจจุบัน',
+    greenDominant: 'ช่วง Green ยังนำใน Bucket Map ปัจจุบัน',
+    contextTimingThin: 'ตัวอย่าง Session ยังไม่ลึกพอสำหรับมั่นใจเรื่องเวลา',
+    contextSymbolThin: 'ยังยืนยัน Symbol Concentration ไม่ได้จนกว่าจะมีเทรดปิดเพิ่ม',
+    noWeakContext: 'ยังไม่พบ Context ที่อ่อนชัดเจน',
+    contextThin: 'ตัวอย่าง Context ยังตื้นเกินไปสำหรับความมั่นใจ Deployment',
+    lossDisciplineRisk: 'Loss Streak อาจกดดันวินัยหลังโดน Invalidation ซ้ำ',
+    lossDisciplineOk: 'ลำดับ Loss ยังพอรับได้ต่อวินัยการทำตามกฎ',
+    recoveryTolerable: 'จังหวะ Recovery ยังรับได้ทางจิตวิทยา',
+    recoveryFatigue: 'Recovery ที่ยืดนานอาจทำให้ Decision Fatigue',
+    whiplashRisk: 'Equity Whiplash อาจลดความสม่ำเสมอในการทำตามกฎ',
+    whiplashOk: 'การเคลื่อนไหวของ Equity ไม่น่ารบกวนวินัยการเทรด',
+    cadenceRisk: 'ความถี่การเทรดอาจเพิ่มความเสี่ยงจาก Impulse',
+    cadenceOk: 'จังหวะการเทรดยังไม่น่ากระตุ้นพฤติกรรมรีบเข้าไม้',
+    noDominantStrength: 'ยังไม่พบจุดแข็งระดับสถาบันที่เด่นชัด',
+    noMajorWeakness: 'ยังไม่พบจุดอ่อนหลักที่แยกชัด',
+    liveSuitable: 'เหมาะสำหรับทดลองใช้เงินจริงแบบคุมความเสี่ยง',
+    avoidLive: 'หลีกเลี่ยง Live จนกว่าความนิ่งจะดีขึ้น',
+    continuePaper: 'ตรวจสอบต่อใน Paper Trading',
+    reduceRisk: 'ลดขนาดความเสี่ยงก่อน',
+    emptyTitle: 'ยังไม่มีเทรดที่ปิดแล้ว ปิดตัวอย่าง Backtest เพื่อเปิดระบบตรวจสอบ',
+    validationOnline: 'Validation Terminal พร้อมทำงาน ปิดตัวอย่างเทรดเพื่อเริ่มคำนวณ Readiness',
+    previewDemo: 'ดูตัวอย่างด้วย Demo Data',
+    emptyDrillMeaning: 'Strategy Lab จะทำงานเมื่อมีตัวอย่าง Backtest หรือเทรดจริงที่ปิดแล้ว',
+    emptyDrillWhy: 'ปิดเทรดหรือใช้ Demo Data เพื่อดูตัวอย่าง Drilldown'
+  }
+} as const;
+
+type ControlDrilldownKey =
+  | 'STANDARD'
+  | 'DENSE'
+  | 'STACK'
+  | 'TERMINAL_GRID'
+  | WorkspacePreset;
+
+const controlDrilldownCopy: Record<StrategyLabLanguage, Record<ControlDrilldownKey, DrilldownContent>> = {
+  EN: {
+    STANDARD: {
+      title: 'STANDARD',
+      current: 'Balanced density',
+      meaning: 'Balanced layout with comfortable spacing. Recommended for general analysis.',
+      signals: ['Comfortable spacing', 'Readable cards', 'General review'],
+      ranges: ['Use when scanning normally', 'Best default view'],
+      why: 'Keeps Strategy Lab readable without compressing modules.'
+    },
+    DENSE: {
+      title: 'DENSE',
+      current: 'Terminal density',
+      meaning: 'Ultra-compact terminal density. Shows more signals per screen.',
+      signals: ['Reduced spacing', 'Smaller labels', 'Compressed metrics'],
+      ranges: ['Use on data-heavy reviews', 'Best for experienced scanning'],
+      why: 'Fits more validation data into the same viewport.'
+    },
+    STACK: {
+      title: 'STACK',
+      current: 'Vertical layout',
+      meaning: 'Traditional vertical analysis layout. Best for smaller screens.',
+      signals: ['Single-column flow', 'Natural reading order', 'Mobile-friendly'],
+      ranges: ['Use on laptops', 'Use on narrow screens'],
+      why: 'Preserves the current section order without columns.'
+    },
+    TERMINAL_GRID: {
+      title: 'TERMINAL GRID',
+      current: 'Multi-column layout',
+      meaning: 'Multi-column quant terminal layout. Optimized for wide displays.',
+      signals: ['Wide-screen columns', 'Parallel section reading', 'Terminal wall view'],
+      ranges: ['Use on desktop', 'Best on wide monitors'],
+      why: 'Places visible Strategy Lab sections into a denser workstation grid.'
+    },
+    EXECUTIVE: {
+      title: 'EXECUTIVE',
+      current: 'Deployment summary',
+      meaning: 'High-level deployment review. Focus on readiness and AI summary.',
+      signals: ['AI Review', 'Deployment Validation', 'Readiness verdict'],
+      ranges: ['Use for decision review', 'Fastest high-level scan'],
+      why: 'Shows only the modules needed for a top-line go/no-go view.'
+    },
+    QUANT: {
+      title: 'QUANT',
+      current: 'Statistical workspace',
+      meaning: 'Full statistical validation workspace.',
+      signals: ['Deployment', 'Edge', 'Consistency', 'Risk'],
+      ranges: ['Use for model validation', 'Best for evidence review'],
+      why: 'Prioritizes statistical quality, repeatability, and capital pressure.'
+    },
+    RISK: {
+      title: 'RISK',
+      current: 'Capital stress view',
+      meaning: 'Capital protection and stress analysis.',
+      signals: ['Drawdown', 'Psychology', 'Deployment filters'],
+      ranges: ['Use before scaling', 'Use during stress review'],
+      why: 'Centers capital protection before strategy expansion.'
+    },
+    EDGE: {
+      title: 'EDGE',
+      current: 'Payoff quality view',
+      meaning: 'Expectancy, payoff, and edge quality.',
+      signals: ['Expectancy', 'Payoff ratio', 'Consistency', 'Context'],
+      ranges: ['Use for edge review', 'Best for rule refinement'],
+      why: 'Focuses on whether the strategy has a repeatable advantage.'
+    },
+    PSYCHOLOGY: {
+      title: 'PSYCHOLOGY',
+      current: 'Discipline pressure view',
+      meaning: 'Execution pressure and discipline survivability.',
+      signals: ['Tilt risk', 'Loss streaks', 'Recovery fatigue'],
+      ranges: ['Use after rough streaks', 'Use for live readiness'],
+      why: 'Highlights whether the system is survivable for the trader.'
+    },
+    CONTEXT: {
+      title: 'CONTEXT',
+      current: 'Market behavior view',
+      meaning: 'Session, symbol, and timing analysis.',
+      signals: ['Session edge', 'Symbol quality', 'Weekday timing'],
+      ranges: ['Use for filter tuning', 'Best for market selection'],
+      why: 'Shows where the strategy performs best or weakest.'
+    },
+    FULL: {
+      title: 'FULL',
+      current: 'All modules',
+      meaning: 'Complete institutional validation workspace.',
+      signals: ['AI Review', 'Deployment', 'Risk', 'Edge', 'Consistency', 'Context', 'Psychology'],
+      ranges: ['Use for complete review', 'Best when screen space allows'],
+      why: 'Keeps every Strategy Lab module visible.'
+    }
+  },
+  TH: {
+    STANDARD: {
+      title: 'STANDARD',
+      current: 'Balanced density',
+      meaning: 'เลย์เอาต์มาตรฐาน อ่านง่ายและสมดุล เหมาะสำหรับการวิเคราะห์ทั่วไป',
+      signals: ['ระยะห่างอ่านง่าย', 'การ์ดไม่แน่นเกินไป', 'ภาพรวมทั่วไป'],
+      ranges: ['ใช้เป็นค่าเริ่มต้น', 'เหมาะกับการอ่านปกติ'],
+      why: 'คงความอ่านง่ายของ Strategy Lab โดยไม่บีบข้อมูลมากเกินไป'
+    },
+    DENSE: {
+      title: 'DENSE',
+      current: 'Terminal density',
+      meaning: 'โหมดข้อมูลแน่นแบบ Terminal แสดงข้อมูลได้มากขึ้นในหน้าจอเดียว',
+      signals: ['ลดช่องว่าง', 'Label เล็กลง', 'Metric กระชับขึ้น'],
+      ranges: ['ใช้เมื่ออยากดูข้อมูลเยอะ', 'เหมาะกับการสแกนเร็ว'],
+      why: 'ช่วยให้เห็นสัญญาณตรวจสอบได้มากขึ้นในพื้นที่เท่าเดิม'
+    },
+    STACK: {
+      title: 'STACK',
+      current: 'Vertical layout',
+      meaning: 'เลย์เอาต์แนวตั้งแบบดั้งเดิม เหมาะกับหน้าจอขนาดเล็ก',
+      signals: ['อ่านจากบนลงล่าง', 'หนึ่งคอลัมน์', 'เหมาะกับมือถือ'],
+      ranges: ['ใช้กับจอแคบ', 'เหมาะกับ Laptop'],
+      why: 'คงลำดับ Section เดิมโดยไม่แบ่งคอลัมน์'
+    },
+    TERMINAL_GRID: {
+      title: 'TERMINAL GRID',
+      current: 'Multi-column layout',
+      meaning: 'เลย์เอาต์หลายคอลัมน์แบบ Quant Terminal เหมาะสำหรับจอกว้าง',
+      signals: ['หลายคอลัมน์', 'อ่าน Section คู่กัน', 'Terminal wall view'],
+      ranges: ['ใช้กับ Desktop', 'เหมาะกับจอกว้าง'],
+      why: 'จัด Section ที่มองเห็นให้เป็น Grid สำหรับ Workstation'
+    },
+    EXECUTIVE: {
+      title: 'EXECUTIVE',
+      current: 'Deployment summary',
+      meaning: 'มุมมองสรุประดับสูง เน้นความพร้อมและ AI Summary',
+      signals: ['AI Review', 'Deployment Validation', 'Readiness verdict'],
+      ranges: ['ใช้ดูภาพรวมการตัดสินใจ', 'สแกนเร็วที่สุด'],
+      why: 'แสดงเฉพาะ Module ที่จำเป็นต่อการตัดสินใจ Go/No-go'
+    },
+    QUANT: {
+      title: 'QUANT',
+      current: 'Statistical workspace',
+      meaning: 'มุมมองวิเคราะห์เชิงสถิติแบบเต็มรูปแบบ',
+      signals: ['Deployment', 'Edge', 'Consistency', 'Risk'],
+      ranges: ['ใช้ตรวจ Model', 'เหมาะกับการดูหลักฐาน'],
+      why: 'เน้นคุณภาพสถิติ ความทำซ้ำ และแรงกดดันด้านทุน'
+    },
+    RISK: {
+      title: 'RISK',
+      current: 'Capital stress view',
+      meaning: 'วิเคราะห์ความเสี่ยงและแรงกดดันของระบบ',
+      signals: ['Drawdown', 'Psychology', 'Deployment filters'],
+      ranges: ['ใช้ก่อนเพิ่มขนาด', 'ใช้เมื่อระบบเริ่มกดดัน'],
+      why: 'ให้ความสำคัญกับการรักษาทุนก่อนขยายระบบ'
+    },
+    EDGE: {
+      title: 'EDGE',
+      current: 'Payoff quality view',
+      meaning: 'วิเคราะห์ Expectancy, Payoff และคุณภาพของระบบ',
+      signals: ['Expectancy', 'Payoff ratio', 'Consistency', 'Context'],
+      ranges: ['ใช้ตรวจ Edge', 'เหมาะกับการปรับกฎ'],
+      why: 'โฟกัสว่าระบบมีความได้เปรียบที่ทำซ้ำได้หรือไม่'
+    },
+    PSYCHOLOGY: {
+      title: 'PSYCHOLOGY',
+      current: 'Discipline pressure view',
+      meaning: 'วิเคราะห์แรงกดดันและวินัยในการเทรด',
+      signals: ['Tilt risk', 'Loss streaks', 'Recovery fatigue'],
+      ranges: ['ใช้หลังช่วง Drawdown', 'ใช้ก่อน Live'],
+      why: 'ช่วยดูว่าระบบนี้อยู่รอดทางวินัยสำหรับ Trader ได้ไหม'
+    },
+    CONTEXT: {
+      title: 'CONTEXT',
+      current: 'Market behavior view',
+      meaning: 'วิเคราะห์ Session, Symbol และช่วงเวลาที่เหมาะสม',
+      signals: ['Session edge', 'Symbol quality', 'Weekday timing'],
+      ranges: ['ใช้ปรับ Filter', 'เหมาะกับการเลือกตลาด'],
+      why: 'แสดงว่ากลยุทธ์ทำงานดีที่สุดหรืออ่อนที่สุดในบริบทใด'
+    },
+    FULL: {
+      title: 'FULL',
+      current: 'All modules',
+      meaning: 'มุมมองวิเคราะห์ครบทุกระบบ',
+      signals: ['AI Review', 'Deployment', 'Risk', 'Edge', 'Consistency', 'Context', 'Psychology'],
+      ranges: ['ใช้ตรวจครบชุด', 'เหมาะเมื่อมีพื้นที่หน้าจอ'],
+      why: 'แสดงทุก Module ของ Strategy Lab'
+    }
+  }
+};
 
 const DensityToggle = ({
   denseMode,
-  onChange
+  onChange,
+  language
 }: {
   denseMode: boolean;
   onChange: (denseMode: boolean) => void;
+  language: StrategyLabLanguage;
 }) => (
   <div className="inline-flex rounded border border-brand-border/70 bg-brand-bg/60 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
     {[
@@ -63,19 +404,21 @@ const DensityToggle = ({
     ].map(([label, value]) => {
       const active = denseMode === value;
       return (
-        <button
-          key={label as string}
-          type="button"
-          onClick={() => onChange(value as boolean)}
-          className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
-            active
-              ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
-              : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
-          }`}
-          aria-pressed={active}
-        >
-          {label as string}
-        </button>
+        <span key={label as string} className="strategy-control-option">
+          <button
+            type="button"
+            onClick={() => onChange(value as boolean)}
+            className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
+              active
+                ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
+                : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
+            }`}
+            aria-pressed={active}
+          >
+            {label as string}
+          </button>
+          <MetricDrilldown tone={active ? 'ready' : 'caution'} content={controlDrilldownCopy[language][label as 'STANDARD' | 'DENSE']} label={`Explain ${label as string} mode`} />
+        </span>
       );
     })}
   </div>
@@ -83,28 +426,32 @@ const DensityToggle = ({
 
 const WorkspacePresetControl = ({
   preset,
-  onChange
+  onChange,
+  language
 }: {
   preset: WorkspacePreset;
   onChange: (preset: WorkspacePreset) => void;
+  language: StrategyLabLanguage;
 }) => (
   <div className="workspace-preset-control flex max-w-full gap-1 overflow-x-auto rounded border border-brand-border/70 bg-brand-bg/60 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]" aria-label="Strategy Lab workspace preset">
     {workspacePresets.map((option) => {
       const active = preset === option;
       return (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onChange(option)}
-          className={`shrink-0 whitespace-nowrap px-2 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
-            active
-              ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
-              : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
-          }`}
-          aria-pressed={active}
-        >
-          {option}
-        </button>
+        <span key={option} className="strategy-control-option shrink-0">
+          <button
+            type="button"
+            onClick={() => onChange(option)}
+            className={`shrink-0 whitespace-nowrap px-2 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
+              active
+                ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
+                : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
+            }`}
+            aria-pressed={active}
+          >
+            {option}
+          </button>
+          <MetricDrilldown tone={active ? 'ready' : 'caution'} content={controlDrilldownCopy[language][option]} label={`Explain ${option} workspace preset`} />
+        </span>
       );
     })}
   </div>
@@ -112,34 +459,42 @@ const WorkspacePresetControl = ({
 
 const LayoutModeControl = ({
   layoutMode,
-  onChange
+  onChange,
+  language
 }: {
   layoutMode: StrategyLayoutMode;
   onChange: (layoutMode: StrategyLayoutMode) => void;
+  language: StrategyLabLanguage;
 }) => (
   <div className="layout-mode-control inline-flex max-w-full gap-1 overflow-x-auto rounded border border-brand-border/70 bg-brand-bg/60 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]" aria-label="Strategy Lab layout mode">
     {strategyLayoutModes.map((option) => {
       const active = layoutMode === option.value;
+      const drilldownKey = option.value === 'terminal-grid' ? 'TERMINAL_GRID' : 'STACK';
       return (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => onChange(option.value)}
-          className={`shrink-0 whitespace-nowrap px-2 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
-            active
-              ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
-              : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
-          }`}
-          aria-pressed={active}
-        >
-          {option.label}
-        </button>
+        <span key={option.value} className="strategy-control-option shrink-0">
+          <button
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={`shrink-0 whitespace-nowrap px-2 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
+              active
+                ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
+                : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
+            }`}
+            aria-pressed={active}
+          >
+            {option.label}
+          </button>
+          <MetricDrilldown tone={active ? 'ready' : 'caution'} content={controlDrilldownCopy[language][drilldownKey]} label={`Explain ${option.label} layout mode`} />
+        </span>
       );
     })}
   </div>
 );
 
-export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false }) => {
+export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false, language = 'EN' }) => {
+  const strategyLanguage: StrategyLabLanguage = language === 'TH' ? 'TH' : 'EN';
+  const copy = strategyLabCopy[strategyLanguage];
+  const isThai = strategyLanguage === 'TH';
   const [demoMode, setDemoMode] = useState(false);
   const [denseMode, setDenseMode] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -155,6 +510,7 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
     const storedLayoutMode = window.localStorage.getItem(layoutModeStorageKey);
     return isStrategyLayoutMode(storedLayoutMode) ? storedLayoutMode : 'stack';
   });
+  const anchorTrackRef = useRef<HTMLDivElement>(null);
   const demoStats = useMemo(() => calculateTradeStatistics(createDemoTrades()), []);
   const labStats = isAdmin && demoMode ? demoStats : stats;
   const closedTrades = labStats.totalTrades;
@@ -215,34 +571,34 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
   const readinessScore = Math.round((passedScore / checklist.length) * 100);
 
   const reason = closedTrades === 0
-    ? 'No closed trade sample is available for deployment validation.'
+    ? copy.sampleEmpty
     : ready
-      ? 'Edge, risk, and sample reliability are aligned for controlled live deployment.'
+      ? copy.readyReason
       : notReady
-        ? 'Core edge is not positive enough for live deployment.'
+        ? copy.notReadyReason
         : positiveEdge
-          ? 'Edge is positive, but sample depth or risk controls still need validation.'
-          : 'Validation remains mixed. Continue backtesting before live exposure.';
+          ? copy.positiveEdgeReason
+          : copy.mixedReason;
   const deploymentMeaning = ready
-    ? 'READY FOR LIVE DEPLOYMENT'
+    ? copy.readyLive
     : statusTone === 'caution'
-      ? 'READY FOR SIMULATED DEPLOYMENT'
-      : 'NOT SAFE FOR CAPITAL DEPLOYMENT';
+      ? copy.readySim
+      : copy.unsafeCapital;
   const aiInsights = [
     positiveEdge && closedTrades < 100
-      ? 'Edge quality is positive, but statistical confidence remains weak.'
+      ? copy.positiveEdgeThin
       : null,
     closedTrades < 30
-      ? 'Profitability is concentrated in a limited sample cluster.'
+      ? copy.limitedSampleCluster
       : null,
     labStats.expectancy > 0 && labStats.profitFactor >= 1.5
-      ? 'System shows stable expectancy with limited deployment validation.'
+      ? copy.stableExpectancyLimited
       : null,
     labStats.maxDrawdown > 5
-      ? 'Risk pressure is elevated by observed drawdown expansion.'
+      ? copy.drawdownPressure
       : null,
     notReady
-      ? 'Core deployment filters reject capital allocation at current metrics.'
+      ? copy.filtersReject
       : null
   ].filter(Boolean) as string[];
   const riskTone: ValidationTone = labStats.maxDrawdown <= 3 && labStats.recoveryFactor > 1 ? 'ready' : labStats.maxDrawdown <= 7 && labStats.recoveryFactor > 0 ? 'caution' : 'fail';
@@ -388,13 +744,13 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
   const systemIndicators = ['VALIDATION ONLINE', 'EDGE MONITOR ACTIVE', 'MARKET SYNCED', 'DEPLOYMENT WATCHING'];
   const rotatingInsights = useMemo(() => {
     const base = [
-      closedTrades < 100 ? 'Edge stability remains statistically incomplete.' : 'Sample depth is approaching institutional reliability.',
-      labStats.expectancy > 0 ? 'Current expectancy profile is favorable.' : 'Current expectancy profile rejects live deployment.',
-      closedTrades < 100 ? 'Deployment confidence limited by sample depth.' : 'Deployment confidence supported by sample depth.',
-      labStats.maxDrawdown <= 5 ? 'Risk profile remains within acceptable range.' : 'Risk pressure is elevated by drawdown expansion.'
+      closedTrades < 100 ? copy.sampleIncomplete : copy.sampleReliable,
+      labStats.expectancy > 0 ? copy.expectancyFavorable : copy.expectancyRejects,
+      closedTrades < 100 ? copy.confidenceLimited : copy.confidenceSupported,
+      labStats.maxDrawdown <= 5 ? copy.riskAcceptable : copy.riskElevated
     ];
     return [...base, ...aiInsights];
-  }, [aiInsights, closedTrades, labStats.expectancy, labStats.maxDrawdown]);
+  }, [aiInsights, closedTrades, copy, labStats.expectancy, labStats.maxDrawdown]);
   const [insightIndex, setInsightIndex] = useState(0);
 
   useEffect(() => {
@@ -418,41 +774,41 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
   }, [layoutMode]);
 
   const riskInsights = [
-    riskPressureTone === 'ready' ? 'Capital preservation remains stable despite localized volatility.' : 'Capital preservation requires continued simulation monitoring.',
-    labStats.maxConsecutiveLosses >= 3 ? 'Loss clustering increased recovery pressure during recent executions.' : 'Loss clustering remains contained across the current sample.',
-    labStats.recoveryFactor > 0 ? 'Drawdown recovery efficiency remains within deployable tolerance.' : 'Recovery efficiency deteriorating under volatility.',
-    equityVolatility > 1.8 ? 'Equity instability detected during high-volatility sequences.' : 'Equity volatility remains controlled inside the current sample.'
+    riskPressureTone === 'ready' ? copy.riskStable : copy.riskNeedsMonitoring,
+    labStats.maxConsecutiveLosses >= 3 ? copy.lossClusterPressure : copy.lossClusterContained,
+    labStats.recoveryFactor > 0 ? copy.recoveryDeployable : copy.recoveryDeteriorating,
+    equityVolatility > 1.8 ? copy.equityInstability : copy.equityControlled
   ];
   const edgeInsights = [
     labStats.winRate >= 55 && payoffRatio < 1
-      ? 'Winrate is strong, but average win size is not yet compensating enough.'
-      : 'Payoff and hit-rate are aligned enough for continued validation.',
+      ? copy.winratePayoffMismatch
+      : copy.payoffAligned,
     outlierDependency > 35
-      ? 'Performance appears dependent on a small number of outlier winners.'
-      : 'Return distribution is not materially dependent on outlier winners.',
+      ? copy.outlierDependent
+      : copy.outlierControlled,
     edgeDecayTone === 'fail'
-      ? 'Recent performance has broken below the early sample baseline.'
+      ? copy.edgeBroken
       : edgeDecayTone === 'caution'
-        ? 'Recent performance is positive but drifting below the early baseline.'
-        : 'Recent sample continues to support the original edge baseline.'
+        ? copy.edgeDrifting
+        : copy.edgeSupported
   ];
   const consistencyInsights = [
     tradeReturns.length < 30
-      ? 'Sample depth is insufficient for consistency validation.'
+      ? copy.consistencyThin
       : consistencyTone === 'ready'
-        ? 'Performance remains stable across recent trade buckets.'
-        : 'Performance consistency is still developing across trade buckets.',
+        ? copy.consistencyStable
+        : copy.consistencyDeveloping,
     driftTone === 'fail'
-      ? 'Recent expectancy is weaker than the early sample.'
+      ? copy.recentWeaker
       : driftTone === 'caution'
-        ? 'Recent expectancy is drifting below the early sample.'
-        : 'Recent expectancy remains aligned with the early sample.',
+        ? copy.recentDrifting
+        : copy.recentAligned,
     smoothnessScore < 45
-      ? 'Equity curve shows unstable recovery rhythm.'
-      : 'Equity smoothness remains within controlled tolerance.',
+      ? copy.curveUnstable
+      : copy.curveControlled,
     redPeriods > greenPeriods
-      ? 'Red periods are outnumbering green periods in the current bucket map.'
-      : 'Green periods remain dominant in the current bucket map.'
+      ? copy.redDominant
+      : copy.greenDominant
   ];
   const tradePoints = labStats.equityCurve.filter((point) => point.trade > 0);
   const sessionForHour = (hour: number) => {
@@ -579,17 +935,17 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
     .sort((a, b) => a.expectancy - b.expectancy)[0];
   const contextInsights = [
     bestSession?.trades
-      ? `Best timing window is ${bestSession.label}; validate execution rules around that session.`
-      : 'Session sample is not yet deep enough for timing confidence.',
+      ? isThai ? `ช่วงเวลาที่เด่นคือ ${bestSession.label}; ควรยืนยันกฎเข้าออกใน Session นี้` : `Best timing window is ${bestSession.label}; validate execution rules around that session.`
+      : copy.contextTimingThin,
     bestSymbol?.trades
-      ? `Strongest instrument profile is currently ${bestSymbol.label}.`
-      : 'Symbol concentration remains unavailable until more executions close.',
+      ? isThai ? `Instrument ที่เด่นที่สุดตอนนี้คือ ${bestSymbol.label}` : `Strongest instrument profile is currently ${bestSymbol.label}.`
+      : copy.contextSymbolThin,
     weakestContext?.expectancy < 0
-      ? `Weakest context is ${weakestContext.label}; reduce confidence until it improves.`
-      : 'No materially weak context pocket is confirmed yet.',
+      ? isThai ? `Context ที่อ่อนที่สุดคือ ${weakestContext.label}; ลดความมั่นใจก่อนจนกว่าจะดีขึ้น` : `Weakest context is ${weakestContext.label}; reduce confidence until it improves.`
+      : copy.noWeakContext,
     closedTrades < 60
-      ? 'Context sample is still too shallow for deployment confidence.'
-      : `${contextConfidenceLabel.toLowerCase()} across the current timing map.`
+      ? copy.contextThin
+      : isThai ? `${contextConfidenceLabel.toLowerCase()} ใน Timing Map ปัจจุบัน` : `${contextConfidenceLabel.toLowerCase()} across the current timing map.`
   ];
   const datedTradeDays = tradePoints.reduce<Record<string, number>>((days, point) => {
     if (!point.date) return days;
@@ -632,17 +988,17 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
   const psychologicalTimelineIndex = psychologicalStatus === 'STABLE' ? 0 : psychologicalStatus === 'PRESSURED' ? 1 : psychologicalStatus === 'HIGH STRESS' ? 2 : 3;
   const psychologicalInsights = [
     lossClusters.length > 0 || labStats.maxConsecutiveLosses >= 3
-      ? 'Loss streaks may pressure discipline after repeated invalidations.'
-      : 'Loss sequences remain tolerable for rule-following discipline.',
+      ? copy.lossDisciplineRisk
+      : copy.lossDisciplineOk,
     recoveryDuration <= 10
-      ? 'Recovery rhythm appears psychologically tolerable.'
-      : 'Extended recovery windows may create decision fatigue.',
+      ? copy.recoveryTolerable
+      : copy.recoveryFatigue,
     equityWhiplash > 55
-      ? 'Equity whiplash could weaken rule-following consistency.'
-      : 'Equity movement is unlikely to disrupt execution discipline.',
+      ? copy.whiplashRisk
+      : copy.whiplashOk,
     overtradingTone === 'fail'
-      ? 'Trade frequency may increase impulsive execution risk.'
-      : 'Execution cadence remains unlikely to trigger rapid-fire behavior.'
+      ? copy.cadenceRisk
+      : copy.cadenceOk
   ];
   const intelligenceStrengths = [
     payoffRatio >= 1.4 ? 'Strong payoff structure' : null,
@@ -691,40 +1047,64 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
       : deploymentAdvisory === 'HIGH RISK DEPLOYMENT'
         ? 'fail'
         : 'caution';
-  const strongestCharacteristic = intelligenceStrengths[0] || 'No dominant institutional strength confirmed';
-  const biggestWeakness = intelligenceWeaknesses[0] || 'No major weakness isolated';
+  const strongestCharacteristic = intelligenceStrengths[0] || copy.noDominantStrength;
+  const biggestWeakness = intelligenceWeaknesses[0] || copy.noMajorWeakness;
   const deploymentRecommendation =
     deploymentAdvisory === 'READY FOR LIVE DEPLOYMENT'
-      ? 'Suitable for controlled live deployment'
+      ? copy.liveSuitable
       : deploymentAdvisory === 'HIGH RISK DEPLOYMENT'
-        ? 'Avoid live deployment until stability improves'
+        ? copy.avoidLive
         : deploymentAdvisory === 'INSUFFICIENT VALIDATION'
-          ? 'Continue paper validation'
+          ? copy.continuePaper
           : riskPressureTone === 'fail' || psychologicalTone === 'fail'
-            ? 'Reduce risk allocation'
-            : 'Continue paper validation';
+            ? copy.reduceRisk
+            : copy.continuePaper;
   const intelligenceNarrative = [
     labStats.expectancy > 0 && labStats.profitFactor >= 1
-      ? `The strategy demonstrates positive expectancy with a ${labStats.profitFactor.toFixed(2)} profit factor, but deployment confidence is governed by sample depth and stability confirmation.`
-      : 'The strategy does not yet demonstrate a sufficient positive edge for capital deployment.',
+      ? isThai
+        ? `ระบบมี Expectancy เป็นบวกและ Profit Factor ${labStats.profitFactor.toFixed(2)} แต่ความมั่นใจ Deployment ยังขึ้นกับจำนวนตัวอย่างและความนิ่ง`
+        : `The strategy demonstrates positive expectancy with a ${labStats.profitFactor.toFixed(2)} profit factor, but deployment confidence is governed by sample depth and stability confirmation.`
+      : isThai
+        ? 'ระบบยังไม่แสดง Edge เชิงบวกที่พอสำหรับใช้ทุนจริง'
+        : 'The strategy does not yet demonstrate a sufficient positive edge for capital deployment.',
     consistencyTone === 'ready'
-      ? 'Performance appears stable across recent validation buckets, supporting repeatability under the current ruleset.'
-      : 'Performance repeatability remains incomplete, so the current output should be treated as validation evidence rather than deployment clearance.',
+      ? isThai
+        ? 'ผลลัพธ์นิ่งใน Validation Bucket ล่าสุด และช่วยยืนยันความทำซ้ำของกฎปัจจุบัน'
+        : 'Performance appears stable across recent validation buckets, supporting repeatability under the current ruleset.'
+      : isThai
+        ? 'ความทำซ้ำของผลลัพธ์ยังไม่ครบ ให้ใช้เป็นหลักฐานตรวจสอบ ไม่ใช่ใบอนุญาต Deployment'
+        : 'Performance repeatability remains incomplete, so the current output should be treated as validation evidence rather than deployment clearance.',
     contextConfidenceTone === 'ready'
-      ? `Market context evidence is strongest around ${bestSession?.label || 'the leading session'} and ${bestSymbol?.label || 'the leading symbol'}.`
-      : 'Context dependency remains underdeveloped, and timing or symbol concentration should be validated before scaling.',
+      ? isThai
+        ? `หลักฐาน Context เด่นที่สุดที่ ${bestSession?.label || 'Session หลัก'} และ ${bestSymbol?.label || 'Symbol หลัก'}`
+        : `Market context evidence is strongest around ${bestSession?.label || 'the leading session'} and ${bestSymbol?.label || 'the leading symbol'}.`
+      : isThai
+        ? 'Context ยังพัฒนาไม่พอ ควรยืนยัน Timing หรือ Symbol Concentration ก่อนเพิ่มขนาด'
+        : 'Context dependency remains underdeveloped, and timing or symbol concentration should be validated before scaling.',
     psychologicalTone === 'ready'
-      ? 'Psychological execution pressure remains manageable under current streak, cadence, and recovery behavior.'
-      : 'Execution pressure could challenge discipline if losses cluster or cadence accelerates during live conditions.'
+      ? isThai
+        ? 'แรงกดดันด้านจิตวิทยายังจัดการได้ภายใต้ Streak, Cadence และ Recovery ปัจจุบัน'
+        : 'Psychological execution pressure remains manageable under current streak, cadence, and recovery behavior.'
+      : isThai
+        ? 'แรงกดดันอาจกระทบวินัย หาก Loss กระจุกหรือ Cadence เร่งขึ้นในตลาดจริง'
+        : 'Execution pressure could challenge discipline if losses cluster or cadence accelerates during live conditions.'
   ];
   const activePreset = workspacePresetConfig[workspacePreset];
   const visibleAnchors = getPresetAnchors(workspacePreset);
   const showSection = (sectionId: StrategySectionId) => isPresetSectionVisible(workspacePreset, sectionId);
   const sectionOrder = (sectionId: StrategySectionId) => getPresetSectionOrder(workspacePreset, sectionId);
+  const scrollAnchorRail = (direction: -1 | 1) => {
+    anchorTrackRef.current?.scrollBy({ left: direction * 180, behavior: 'smooth' });
+  };
+  const handleAnchorRailWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (!anchorTrackRef.current || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
+    event.preventDefault();
+    anchorTrackRef.current.scrollLeft += event.deltaY;
+  };
 
   if (closedTrades === 0) {
     return (
-      <div className={`strategy-lab ${denseMode ? 'strategy-lab--dense' : ''} ${layoutMode === 'terminal-grid' ? 'strategy-lab--terminal-grid' : ''} flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+      <div lang={strategyLanguage.toLowerCase()} className={`strategy-lab ${denseMode ? 'strategy-lab--dense' : ''} ${layoutMode === 'terminal-grid' ? 'strategy-lab--terminal-grid' : ''} flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
         <style>{strategyLabStyles}</style>
         <header className="flex items-center justify-between border-b border-brand-border pb-4">
           <div>
@@ -732,9 +1112,9 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
             <p className="text-xs text-brand-text-dim uppercase tracking-[3px] font-mono">LIVE DEPLOYMENT VALIDATION // PHASE 1.2</p>
           </div>
           <div className="hidden max-w-[70%] flex-wrap items-center justify-end gap-2 md:flex">
-            <DensityToggle denseMode={denseMode} onChange={setDenseMode} />
-            <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} />
-            <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} />
+            <DensityToggle denseMode={denseMode} onChange={setDenseMode} language={strategyLanguage} />
+            <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} language={strategyLanguage} />
+            <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} language={strategyLanguage} />
             {['AI VALIDATION ACTIVE', 'NEURAL ANALYSIS ONLINE'].map((tag) => (
               <span key={tag} className="rounded-full border border-brand-accent/25 bg-brand-accent/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-brand-accent shadow-[0_0_18px_rgba(52,211,153,0.08)]">
                 {tag}
@@ -751,32 +1131,32 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
           </div>
         </header>
         <div className="flex flex-col gap-2 md:hidden">
-          <DensityToggle denseMode={denseMode} onChange={setDenseMode} />
-          <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} />
-          <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} />
+          <DensityToggle denseMode={denseMode} onChange={setDenseMode} language={strategyLanguage} />
+          <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} language={strategyLanguage} />
+          <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} language={strategyLanguage} />
         </div>
         <div className="rounded border border-brand-border/60 bg-brand-bg/35 px-3 py-2 text-left">
           <p className="text-[7px] font-black uppercase tracking-widest text-brand-text-dim">Mode // {workspacePreset}</p>
-          <p className="mt-1 text-[10px] font-mono uppercase tracking-tight text-brand-text-bright">{activePreset.description}</p>
+          <p className="mt-1 text-[10px] font-mono uppercase tracking-tight text-brand-text-bright">{isThai ? activePreset.descriptionTh : activePreset.description}</p>
         </div>
         <div className="technical-panel strategy-empty-state relative overflow-hidden p-16 text-center flex flex-col items-center gap-4 bg-brand-elevated/30 border-brand-border/60">
           <div className="absolute inset-0 dot-matrix strategy-dot-drift opacity-10 pointer-events-none" />
           <div className="strategy-scanline pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-transparent via-brand-accent/10 to-transparent" />
           <div className="strategy-radar pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border border-brand-accent/20 bg-brand-accent/5 blur-[1px]" />
           <ShieldAlert size={44} className="relative z-10 text-brand-text-dim opacity-40" />
-          <p className="relative z-10 text-xl font-black text-brand-text-bright tracking-tight">No closed trades yet. Complete backtest samples to unlock validation.</p>
+          <p className="relative z-10 text-xl font-black text-brand-text-bright tracking-tight">{copy.emptyTitle}</p>
           <div className="relative z-10 mt-4 rounded-lg border border-brand-border/50 bg-brand-bg/40 px-4 py-3 text-left">
             <p className="label-caps !mb-2">
-              Validation Terminal <MetricDrilldown tone="caution" content={{ title: 'Empty Strategy Lab', current: 'No closed trades', meaning: 'Strategy Lab activates after closed backtest or real trade samples exist.', signals: ['Closed trades', 'Equity curve', 'R-multiple outcomes'], ranges: ['0: empty', '30+: developing', '100+: reliable'], why: 'Close trades or use demo data to preview drilldowns.' }} />
+              Validation Terminal <MetricDrilldown tone="caution" content={{ title: 'Empty Strategy Lab', current: isThai ? 'ยังไม่มี Closed trades' : 'No closed trades', meaning: copy.emptyDrillMeaning, signals: ['Closed trades', 'Equity curve', 'R-multiple outcomes'], ranges: ['0: empty', '30+: developing', '100+: reliable'], why: copy.emptyDrillWhy }} />
             </p>
-            <p className="text-[11px] font-mono uppercase tracking-tight text-brand-text-dim">Validation terminal is online. Execute and close backtest samples to activate readiness scoring.</p>
+            <p className="text-[11px] font-mono uppercase tracking-tight text-brand-text-dim">{copy.validationOnline}</p>
           </div>
           {isAdmin && (
             <button
               onClick={() => setDemoMode(true)}
               className="relative z-10 mt-2 rounded-lg border border-brand-warning/30 bg-brand-warning/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand-warning transition-all hover:bg-brand-warning hover:text-brand-bg"
             >
-              Preview with Demo Data
+              {copy.previewDemo}
             </button>
           )}
         </div>
@@ -785,7 +1165,7 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
   }
 
   return (
-    <div className={`strategy-lab ${denseMode ? 'strategy-lab--dense' : ''} ${layoutMode === 'terminal-grid' ? 'strategy-lab--terminal-grid' : ''} flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+    <div lang={strategyLanguage.toLowerCase()} className={`strategy-lab ${denseMode ? 'strategy-lab--dense' : ''} ${layoutMode === 'terminal-grid' ? 'strategy-lab--terminal-grid' : ''} flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
       <style>{strategyLabStyles}</style>
       <header className="flex items-center justify-between border-b border-brand-border pb-4">
         <div>
@@ -793,9 +1173,9 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
           <p className="text-xs text-brand-text-dim uppercase tracking-[3px] font-mono">LIVE DEPLOYMENT VALIDATION // PHASE 1.2</p>
         </div>
         <div className="hidden max-w-[70%] flex-wrap items-center justify-end gap-2 md:flex">
-          <DensityToggle denseMode={denseMode} onChange={setDenseMode} />
-          <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} />
-          <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} />
+          <DensityToggle denseMode={denseMode} onChange={setDenseMode} language={strategyLanguage} />
+          <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} language={strategyLanguage} />
+          <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} language={strategyLanguage} />
           {['AI VALIDATION ACTIVE', 'NEURAL ANALYSIS ONLINE'].map((tag) => (
             <span key={tag} className="rounded-full border border-brand-accent/25 bg-brand-accent/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-brand-accent shadow-[0_0_18px_rgba(52,211,153,0.08)]">
               {tag}
@@ -816,16 +1196,16 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
         </div>
       </header>
       <div className="flex flex-col gap-2 md:hidden">
-        <DensityToggle denseMode={denseMode} onChange={setDenseMode} />
-        <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} />
-        <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} />
+        <DensityToggle denseMode={denseMode} onChange={setDenseMode} language={strategyLanguage} />
+        <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} language={strategyLanguage} />
+        <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} language={strategyLanguage} />
       </div>
       <div className="rounded border border-brand-border/60 bg-brand-bg/35 px-3 py-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-[7px] font-black uppercase tracking-widest text-brand-text-dim">Workspace Mode</p>
           <span className="rounded border border-brand-accent/25 bg-brand-accent/10 px-2 py-0.5 text-[7px] font-black uppercase tracking-widest text-brand-accent">{workspacePreset}</span>
         </div>
-        <p className="mt-1 text-[10px] font-mono uppercase tracking-tight text-brand-text-bright">{activePreset.description}</p>
+        <p className="mt-1 text-[10px] font-mono uppercase tracking-tight text-brand-text-bright">{isThai ? activePreset.descriptionTh : activePreset.description}</p>
       </div>
 
       {demoMode && (
@@ -951,13 +1331,22 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
               </div>
             ))}
           </div>
-          <div className="flex max-w-full gap-1.5 overflow-x-auto">
-            {visibleAnchors.map(({ label, href }) => (
-              <a key={label} href={href} className="shrink-0 whitespace-nowrap rounded border border-brand-border bg-brand-elevated/40 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest text-brand-text-dim transition-colors hover:border-brand-accent/40 hover:text-brand-accent">
-                {label}
-              </a>
-            ))}
-          </div>
+          <nav className="strategy-anchor-rail" aria-label="Strategy Lab section navigation">
+            <span className="strategy-anchor-rail__label">NAV</span>
+            <button type="button" className="strategy-anchor-rail__button" aria-label="Scroll section navigation left" onClick={() => scrollAnchorRail(-1)}>
+              <ChevronLeft size={12} strokeWidth={2.4} />
+            </button>
+            <div ref={anchorTrackRef} className="strategy-anchor-rail__track" onWheel={handleAnchorRailWheel}>
+              {visibleAnchors.map(({ label, href }) => (
+                <a key={label} href={href} className="strategy-anchor-rail__link">
+                  {label}
+                </a>
+              ))}
+            </div>
+            <button type="button" className="strategy-anchor-rail__button" aria-label="Scroll section navigation right" onClick={() => scrollAnchorRail(1)}>
+              <ChevronRight size={12} strokeWidth={2.4} />
+            </button>
+          </nav>
         </div>
       </div>
 

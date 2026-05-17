@@ -280,6 +280,79 @@
   border-radius: 6px;
 }
 
+/* --- Analytics Command Center ----------------------------------------- */
+.analytics-command {
+  --analytics-cyan: #67E8F9;
+  --analytics-amber: #FBBF24;
+  color: var(--brand-text-bright);
+}
+
+.analytics-panel,
+.analytics-core-card,
+.analytics-hero {
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  backdrop-filter: blur(18px) saturate(130%);
+}
+
+.analytics-panel {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 24px 70px -42px rgba(0,0,0,0.9),
+    0 0 44px -34px color-mix(in oklab, var(--brand-accent) 55%, transparent);
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+
+.analytics-panel:hover {
+  border-color: color-mix(in oklab, var(--brand-accent) 26%, transparent);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 28px 80px -42px rgba(0,0,0,0.95),
+    0 0 58px -34px color-mix(in oklab, var(--brand-accent) 70%, transparent);
+}
+
+.analytics-grid-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+    radial-gradient(circle at 20% 10%, color-mix(in oklab, var(--brand-accent) 18%, transparent), transparent 28%),
+    radial-gradient(circle at 90% 0%, rgba(103,232,249,0.14), transparent 30%);
+  background-size: 44px 44px, 44px 44px, 100% 100%, 100% 100%;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.25));
+}
+
+.analytics-winrate {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  text-shadow:
+    0 0 18px color-mix(in oklab, currentColor 32%, transparent),
+    0 0 70px color-mix(in oklab, currentColor 18%, transparent);
+}
+
+.analytics-telemetry-sweep {
+  position: absolute;
+  inset: -30% auto -30% -25%;
+  width: 38%;
+  transform: rotate(13deg);
+  background: linear-gradient(90deg, transparent, rgba(103,232,249,0.12), transparent);
+  animation: analyticsSweep 5.5s ease-in-out infinite;
+}
+
+@keyframes analyticsSweep {
+  0%, 18% { translate: -80% 0; opacity: 0; }
+  35% { opacity: 1; }
+  70%, 100% { translate: 420% 0; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analytics-telemetry-sweep,
+  .live-dot,
+  .skeleton {
+    animation: none !important;
+  }
+}
+
 /* --- Recharts polish (works against existing components) -------------- */
 .recharts-cartesian-grid line { stroke: var(--grid-line) !important; }
 .recharts-cartesian-axis-line { stroke: var(--hairline) !important; }

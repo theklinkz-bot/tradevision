@@ -77,53 +77,42 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
     };
   }, [stats.equityCurve]);
 
+  const currentEquity = chartData.at(-1)?.equity ?? 0;
+  const currentDrawdown = chartData.at(-1)?.drawdownValue ?? 0;
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[65fr_35fr] gap-4 mt-4">
-      {/* Enhanced Equity Curve Chart */}
-      <div className="technical-panel p-4 flex flex-col gap-4 bg-brand-elevated/20 backdrop-blur-md border border-brand-border/40 hover:border-brand-border/60 transition-colors shadow-lg relative overflow-hidden group/chart">
-        <div className="absolute inset-0 dot-matrix opacity-20 pointer-events-none" />
-        
-        <div className="flex flex-col border-b border-brand-border/30 pb-3 relative z-10 gap-2">
-          <div className="flex items-center justify-between">
-            <h3 className="label-caps flex items-center text-brand-text-bright mb-0 text-[10px]">
-              <TrendingUp size={12} className="text-brand-accent mr-2" />
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_230px]">
+      <div className="relative overflow-hidden rounded-[22px] border border-white/[0.08] bg-black/20 p-4 shadow-[0_24px_70px_-44px_rgba(0,0,0,0.9)] transition-colors hover:border-brand-accent/20">
+        <div className="analytics-grid-overlay opacity-25" />
+        <div className="relative z-10 flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
+            <h3 className="flex items-center font-mono text-[10px] font-black uppercase tracking-[0.22em] text-brand-text-bright">
+              <TrendingUp size={13} className="mr-2 text-brand-accent" />
               {t.ui.performance_architecture}
-              <InfoTooltip content="Comprehensive yield curve with drawdown zones and moving average smoothing." />
+              <InfoTooltip content="Capital curve with moving average smoothing and an integrated drawdown pressure layer." />
             </h3>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <div className="w-1.5 h-0.5 bg-brand-accent" />
-                <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">Equity</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-1.5 h-0.5 bg-brand-warning opacity-50" />
-                <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">MA(5)</span>
-              </div>
+            <div className="flex items-center gap-4 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-brand-text-dim">
+              <span className="flex items-center gap-1.5"><i className="h-0.5 w-4 bg-brand-accent shadow-[0_0_10px_rgba(52,211,153,0.55)]" /> Equity</span>
+              <span className="flex items-center gap-1.5"><i className="h-0.5 w-4 bg-brand-warning/60" /> MA(5)</span>
+              <span className="flex items-center gap-1.5"><i className="h-0.5 w-4 bg-trade-short/50" /> Drawdown</span>
             </div>
           </div>
-          
-          <div className="flex items-center gap-3 text-[9px] font-mono">
-            <span className="text-trade-short font-bold">{t.ui.max_drawdown_label}: {maxDrawdownInfo.value.toFixed(2)}R</span>
-            <span className="opacity-20 border-r border-brand-border h-2" />
-            <span className="text-brand-accent font-bold">{t.ui.resistance}: {maxRecoveryTrades} NODES</span>
-          </div>
-        </div>
 
-        <div className="h-[280px] w-full pt-2 relative z-10">
+          <div className="h-[320px] w-full pt-2">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
               <defs>
                 <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--brand-accent)" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="var(--brand-accent)" stopOpacity={0.34}/>
                   <stop offset="95%" stopColor="var(--brand-accent)" stopOpacity={0}/>
                 </linearGradient>
                 <linearGradient id="drawdownFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--trade-short)" stopOpacity={0.15}/>
-                  <stop offset="95%" stopColor="var(--trade-short)" stopOpacity={0.05}/>
+                  <stop offset="5%" stopColor="var(--trade-short)" stopOpacity={0.18}/>
+                  <stop offset="95%" stopColor="var(--trade-short)" stopOpacity={0}/>
                 </linearGradient>
               </defs>
               
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--brand-border)" vertical={false} opacity={0.05} />
+              <CartesianGrid strokeDasharray="3 8" stroke="var(--brand-border)" vertical opacity={0.18} />
               
               <XAxis 
                 dataKey="trade" 
@@ -137,6 +126,7 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
               />
               
               <YAxis 
+                yAxisId="equity"
                 stroke="var(--brand-text-dim)" 
                 fontSize={9} 
                 tickLine={false} 
@@ -145,6 +135,7 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
                 tick={{ fill: 'var(--brand-text-dim)', fontFamily: 'monospace', opacity: 0.3 }}
                 dx={-10}
               />
+              <YAxis yAxisId="drawdown" orientation="right" hide domain={[0, 'dataMax + 1']} />
 
               <Tooltip 
                 cursor={{ stroke: 'var(--brand-text-dim)', strokeWidth: 1, strokeDasharray: '4 4', opacity: 0.2 }}
@@ -154,7 +145,7 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
                     const data = payload[0].payload;
                     const dd = data.hwm - data.equity;
                     return (
-                      <div className="bg-brand-elevated/95 backdrop-blur-xl border border-brand-border/40 p-3 rounded shadow-2xl flex flex-col gap-2 z-50 min-w-[170px]">
+                      <div className="bg-brand-elevated/95 backdrop-blur-xl border border-brand-accent/20 p-3 rounded-xl shadow-2xl flex flex-col gap-2 z-50 min-w-[170px]">
                         <div className="flex justify-between items-center border-b border-brand-border/20 pb-2 mb-1">
                           <span className="text-[10px] font-mono font-bold text-brand-accent tracking-tighter">{data.symbol || 'SYSTEM'}</span>
                           <span className="text-[8px] font-mono opacity-40">{data.date ? new Date(data.date).toLocaleDateString() : 'T'+data.trade}</span>
@@ -189,25 +180,25 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
                 }}
               />
 
-              {/* High Water Mark Shaded Area */}
               <Area
+                yAxisId="drawdown"
                 type="monotone"
-                dataKey="hwm"
-                stroke="none"
+                dataKey="drawdownValue"
+                stroke="var(--trade-short)"
+                strokeOpacity={0.34}
+                strokeWidth={1}
                 fill="url(#drawdownFill)"
-                connectNulls
-                baseLine={0}
                 isAnimationActive={false}
               />
 
-              {/* Main Equity Area */}
               <Area 
+                yAxisId="equity"
                 type="monotone" 
                 dataKey="equity" 
                 stroke="var(--brand-accent)" 
-                strokeWidth={2} 
-                fill="var(--brand-bg)" // Use background color to 'mask' the hwm area, leaving only the gap
-                fillOpacity={0.9}
+                strokeWidth={2.4} 
+                fill="url(#equityGradient)"
+                fillOpacity={1}
                 dot={(props: any) => {
                   const { cx, cy, payload, index } = props;
                   if (payload.trade === 0) return null;
@@ -239,10 +230,11 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
               {/* Peak to Trough Indicator at Max DD */}
               {maxDrawdownInfo.index !== -1 && (
                 <ReferenceLine 
+                  yAxisId="equity"
                   x={chartData[maxDrawdownInfo.index].trade} 
                   stroke="var(--trade-short)" 
                   strokeDasharray="3 3" 
-                  opacity={0.3}
+                  opacity={0.38}
                   label={{ 
                     position: 'top', 
                     value: t.ui.max_drawdown_label.toUpperCase(), 
@@ -256,6 +248,7 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
 
               {/* Moving Average Line */}
               <Area
+                yAxisId="equity"
                 type="monotone"
                 dataKey="movingAverage"
                 stroke="var(--brand-warning)"
@@ -266,100 +259,30 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Numerical Drawdown Chart (Focusing on Delta decay) */}
-      <div className="technical-panel p-4 flex flex-col gap-4 bg-brand-elevated/20 backdrop-blur-md border border-brand-border/30 hover:border-brand-border/60 transition-colors shadow-lg relative overflow-hidden group/drawdown">
-        <div className="absolute inset-0 dot-matrix opacity-10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-trade-short/[0.03] to-transparent pointer-events-none" />
-        
-        <div className="flex items-center justify-between border-b border-brand-border/20 pb-3 relative z-10">
-          <h3 className="label-caps flex items-center text-trade-short/70 mb-0 text-[10px]">
-            <ArrowDownRight size={12} className="mr-2" />
-            {t.ui.strict_delta_excursion}
-            <InfoTooltip content="Magnified view of capital decay. Each point represents the distance from the current High Water Mark." />
-          </h3>
-          <div className="text-[8px] font-mono text-trade-short font-bold animate-pulse tracking-widest">{t.ui.risk_boundary}</div>
-        </div>
-
-        <div className="h-[280px] w-full pt-2 relative z-10">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
-              <defs>
-                <linearGradient id="drawdownGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--trade-short)" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="var(--trade-short)" stopOpacity={0.05}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--brand-border)" vertical={false} opacity={0.05} />
-              <XAxis 
-                dataKey="trade" 
-                stroke="var(--brand-text-dim)" 
-                fontSize={9} 
-                tickLine={false} 
-                axisLine={false}
-                tickFormatter={(val) => `T${val}`}
-                tick={{ fill: 'var(--brand-text-dim)', fontFamily: 'monospace', opacity: 0.3 }}
-                dy={10}
-              />
-              <YAxis 
-                stroke="var(--brand-text-dim)" 
-                fontSize={9} 
-                tickLine={false} 
-                axisLine={false}
-                tick={{ fill: 'var(--brand-text-dim)', fontFamily: 'monospace', opacity: 0.2 }}
-                tickFormatter={(val) => `-${val}R`}
-                dx={-10}
-              />
-              <Tooltip 
-                content={(props) => {
-                  const { active, payload } = props;
-                  if (active && payload && payload.length) {
-                    const data = payload[0].payload;
-                    return (
-                      <div className="bg-brand-elevated/95 backdrop-blur-xl border border-trade-short/30 p-2 rounded shadow-xl flex flex-col gap-1 z-50">
-                        <span className="text-[8px] font-mono opacity-40 uppercase">Drawdown at T{data.trade}</span>
-                        <span className="text-sm font-bold font-mono text-trade-short">-{data.drawdownValue.toFixed(2)}R</span>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="drawdownValue" 
-                stroke="var(--trade-short)" 
-                strokeWidth={1.5}
-                fill="url(#drawdownGradient)"
-                dot={(props: any) => {
-                  const { cx, cy, index } = props;
-                  if (index === maxDrawdownInfo.index) {
-                    return (
-                      <circle cx={cx} cy={cy} r={4} fill="var(--trade-short)" className="animate-ping" />
-                    );
-                  }
-                  return null;
-                }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        
-        <div className="flex justify-between items-end relative z-10 px-2 mt-[-10px]">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[7px] label-caps opacity-30">{t.ui.peak_decay}</span>
-            <span className="text-lg font-bold font-mono text-trade-short">
-              -{maxDrawdownInfo.value.toFixed(2)}R 
-            </span>
-          </div>
-          <div className="flex flex-col items-end gap-0.5">
-            <span className="text-[7px] label-caps opacity-30">{t.ui.resistance}</span>
-            <span className="text-xs font-bold font-mono text-brand-text-bright opacity-60">{maxRecoveryTrades} Trades</span>
           </div>
         </div>
       </div>
+
+      <aside className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+        <div className="rounded-2xl border border-brand-accent/15 bg-brand-accent/[0.055] p-4">
+          <p className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-brand-text-dim">current equity</p>
+          <p className={`mt-2 font-mono text-2xl font-black ${currentEquity >= 0 ? 'text-brand-accent' : 'text-trade-short'}`}>
+            {currentEquity >= 0 ? '+' : ''}{currentEquity.toFixed(2)}R
+          </p>
+        </div>
+        <div className="rounded-2xl border border-trade-short/15 bg-trade-short/[0.055] p-4">
+          <div className="flex items-center gap-2">
+            <ArrowDownRight size={13} className="text-trade-short" />
+            <p className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-brand-text-dim">{t.ui.max_drawdown_label}</p>
+          </div>
+          <p className="mt-2 font-mono text-2xl font-black text-trade-short">-{maxDrawdownInfo.value.toFixed(2)}R</p>
+        </div>
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
+          <p className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-brand-text-dim">{t.ui.resistance}</p>
+          <p className="mt-2 font-mono text-2xl font-black text-brand-text-bright">{maxRecoveryTrades}</p>
+          <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-brand-text-dim">trades to recover</p>
+        </div>
+      </aside>
     </div>
   );
 };

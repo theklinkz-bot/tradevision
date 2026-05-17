@@ -56,9 +56,8 @@ import { AnalysisHistoryItem, TradeStatus, TradeStats, TranslationSchema } from 
 import { calculateTradeStatistics } from './services/statsEngine';
 import { calculateRMultiple } from './lib/tradeUtils';
 import { TradeRow, MobileLogItem } from './components/TradeCard';
-import { StatsPanel, DataCard, PriceLevel } from './components/StatsPanel';
-import { EquityChart } from './components/EquityChart';
-import { InsightPanel } from './components/InsightPanel';
+import { DataCard, PriceLevel } from './components/StatsPanel';
+import { AnalyticsCommandCenter } from './components/AnalyticsCommandCenter';
 import { PerformanceDashboard } from './components/PerformanceDashboard';
 import { SignalValidationOverlay, ExpandedImageOverlay } from './components/UploadModal';
 import { 
@@ -84,14 +83,16 @@ const StrategyLab = lazy(() =>
   import('./components/StrategyLab').then((module) => ({ default: module.StrategyLab }))
 );
 
-const StrategyLabLoading = () => (
+const StrategyLabLoading = ({ language }: { language: 'EN' | 'TH' }) => (
   <div className="technical-panel relative overflow-hidden border-brand-border/70 bg-brand-elevated/20 p-8">
     <div className="absolute inset-0 dot-matrix opacity-10" />
     <div className="absolute inset-x-0 top-0 h-20 animate-pulse bg-gradient-to-b from-transparent via-brand-accent/10 to-transparent" />
     <div className="relative z-10 flex items-center justify-between gap-4">
       <div>
         <p className="label-caps !mb-2 text-brand-accent">Strategy Lab</p>
-        <p className="font-mono text-[11px] font-black uppercase tracking-[0.2em] text-brand-text-bright">Loading Strategy Lab...</p>
+        <p className="font-mono text-[11px] font-black uppercase tracking-[0.2em] text-brand-text-bright">
+          {language === 'TH' ? 'กำลังโหลด Strategy Lab...' : 'Loading Strategy Lab...'}
+        </p>
       </div>
       <span className="h-2 w-2 rounded-full bg-brand-accent animate-pulse shadow-[0_0_14px_rgba(52,211,153,0.45)]" />
     </div>
@@ -2556,31 +2557,21 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   )}
                 </div>
             ) : mainTab === 'Analytics' ? (
-              <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-center justify-between border-b border-brand-border pb-4">
+              <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-brand-border/50 pb-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-brand-text-bright uppercase tracking-tighter">{t.ui.performance_stats}</h2>
-                    <p className="text-xs text-brand-text-dim uppercase tracking-[3px] font-mono">Statistical Oversight // Neural Signal Analysis</p>
+                    <h2 className="text-2xl font-black text-brand-text-bright uppercase tracking-[-0.04em]">{t.ui.performance_stats}</h2>
+                    <p className="mt-1 text-[11px] text-brand-text-dim uppercase tracking-[0.22em] font-mono">Trading Performance Command Center // Live Edge Telemetry</p>
+                  </div>
+                  <div className="hidden rounded-full border border-brand-accent/20 bg-brand-accent/[0.06] px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-brand-accent sm:block">
+                    command core online
                   </div>
                 </div>
 
                 {stats && stats.totalTrades > 0 ? (
-                  <>
-                    <InsightPanel stats={stats} t={t} />
-                    <StatsPanel 
-                      stats={stats} 
-                      history={history} 
-                      t={t}
-                      tradingMode={tradingMode}
-                      strategies={strategies}
-                      onAddStrategy={handleAddStrategy}
-                      onUpdateStrategy={handleUpdateStrategy}
-                      onDeleteStrategy={handleDeleteStrategy}
-                    />
-                    <EquityChart stats={stats} t={t} />
-                  </>
+                  <AnalyticsCommandCenter stats={stats} history={history} t={t} />
                 ) : (
-                  <div className="technical-panel p-20 flex flex-col items-center gap-4 text-center opacity-30">
+                  <div className="technical-panel p-10 sm:p-20 flex flex-col items-center gap-4 text-center opacity-50">
                     <Database size={48} />
                     <div>
                       <h3 className="text-xl font-bold uppercase tracking-widest">{t.ui.insufficient_data}</h3>
@@ -2590,18 +2581,32 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 )}
               </div>
             ) : mainTab === 'Performance' ? (
-              <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-center justify-between border-b border-brand-border pb-4">
+              <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-brand-border/50 pb-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-brand-text-bright uppercase tracking-tighter">{t.ui.performance}</h2>
-                    <p className="text-xs text-brand-text-dim uppercase tracking-[3px] font-mono">Analytics Architecture // Strategic Edge Evaluation</p>
+                    <h2 className="text-2xl font-black text-brand-text-bright uppercase tracking-[-0.04em]">{t.ui.performance}</h2>
+                    <p className="mt-1 text-[11px] text-brand-text-dim uppercase tracking-[0.22em] font-mono">Trading Performance Command Center // Live Edge Telemetry</p>
+                  </div>
+                  <div className="hidden rounded-full border border-brand-accent/20 bg-brand-accent/[0.06] px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-brand-accent sm:block">
+                    command core online
                   </div>
                 </div>
-                <PerformanceDashboard stats={stats} t={t} isSidebarCollapsed={sidebarCollapsed} />
+
+                {stats && stats.totalTrades > 0 ? (
+                  <AnalyticsCommandCenter stats={stats} history={history} t={t} />
+                ) : (
+                  <div className="technical-panel p-10 sm:p-20 flex flex-col items-center gap-4 text-center opacity-50">
+                    <Database size={48} />
+                    <div>
+                      <h3 className="text-xl font-bold uppercase tracking-widest">{t.ui.insufficient_data}</h3>
+                      <p className="text-sm text-brand-text-dim mt-2 max-w-md">{t.ui.stats_engine_requirement}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : mainTab === 'StrategyLab' ? (
-              <Suspense fallback={<StrategyLabLoading />}>
-                <StrategyLab stats={stats} isAdmin={!!isAdmin} />
+              <Suspense fallback={<StrategyLabLoading language={language} />}>
+                <StrategyLab stats={stats} isAdmin={!!isAdmin} language={language} />
               </Suspense>
             ) : mainTab === 'Gallery' ? (
               <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
