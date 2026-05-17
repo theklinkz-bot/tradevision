@@ -941,20 +941,197 @@
 }
 
 .analytics-side-metric-value {
-  font-family: 'Bahnschrift', 'Aptos Display', 'Segoe UI Variable Display', system-ui, sans-serif;
-  font-stretch: semi-condensed;
-  letter-spacing: -0.035em;
+  font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: -0.045em;
+  text-shadow:
+    0 0 10px color-mix(in oklab, currentColor 28%, transparent),
+    0 0 26px color-mix(in oklab, currentColor 13%, transparent);
 }
 
 .analytics-r-suffix {
   display: inline-block;
-  margin-left: 0.14em;
-  transform: skewX(-11deg) translateY(0.05em);
-  font-size: 0.66em;
+  margin-left: 0.08em;
+  transform: skewX(-9deg) translateY(0.04em);
+  font-size: 0.82em;
   font-style: italic;
   font-weight: 950;
-  letter-spacing: -0.02em;
-  opacity: 0.78;
+  letter-spacing: -0.06em;
+  opacity: 0.9;
+}
+
+.analytics-strategy-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid color-mix(in oklab, var(--brand-border) 82%, var(--brand-accent));
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand-elevated) 74%, transparent), color-mix(in oklab, var(--brand-bg) 62%, transparent)),
+    color-mix(in oklab, var(--brand-accent) 4%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.055),
+    0 12px 28px -22px rgba(0,0,0,0.92),
+    0 0 24px -22px color-mix(in oklab, var(--brand-accent) 72%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  backdrop-filter: blur(16px) saturate(130%);
+}
+
+.analytics-strategy-pill button {
+  position: relative;
+  min-height: 26px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 10px;
+  color: var(--brand-text-dim);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition: color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.analytics-strategy-pill button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.analytics-strategy-pill .strategy-color-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.analytics-strategy-pill button:hover,
+.analytics-strategy-pill button:focus-visible {
+  color: var(--brand-text-bright);
+  background: color-mix(in oklab, var(--brand-accent) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--brand-accent) 18%, transparent);
+  outline: none;
+}
+
+.analytics-strategy-pill button:focus-visible {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--brand-accent) 45%, transparent),
+    0 0 0 3px color-mix(in oklab, var(--brand-accent) 14%, transparent);
+}
+
+.analytics-strategy-pill button.is-active {
+  color: var(--brand-accent);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand-accent) 13%, transparent), color-mix(in oklab, var(--brand-accent) 6%, transparent));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 0 0 1px color-mix(in oklab, var(--brand-accent) 28%, transparent),
+    0 0 20px -14px color-mix(in oklab, var(--brand-accent) 82%, transparent);
+}
+
+.analytics-strategy-pill button.is-active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 18px;
+  height: 1px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.65;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.analytics-strategy-pill--header {
+  flex: 0 1 auto;
+  max-width: min(100%, 560px);
+  padding: 2px;
+  overflow-x: auto;
+  border-color: color-mix(in oklab, var(--brand-border) 88%, var(--brand-accent));
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand-elevated) 66%, transparent), color-mix(in oklab, var(--brand-bg) 72%, transparent)),
+    color-mix(in oklab, var(--brand-accent) 3%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.045),
+    0 10px 26px -23px rgba(0,0,0,0.9);
+  scrollbar-width: none;
+}
+
+.analytics-strategy-pill--header::-webkit-scrollbar {
+  display: none;
+}
+
+.analytics-strategy-pill--header button {
+  display: inline-flex;
+  max-width: 132px;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  min-height: 28px;
+  padding: 0 12px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+
+.analytics-strategy-pill--core {
+  max-width: min(100%, 460px);
+  align-self: flex-start;
+  overflow-x: auto;
+  border-color: color-mix(in oklab, var(--brand-border) 78%, var(--brand-accent));
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand-bg) 62%, transparent), color-mix(in oklab, var(--brand-elevated) 48%, transparent)),
+    color-mix(in oklab, var(--brand-accent) 3%, transparent);
+  scrollbar-width: none;
+}
+
+.analytics-strategy-pill--core::-webkit-scrollbar {
+  display: none;
+}
+
+.analytics-strategy-pill--core button {
+  display: inline-flex;
+  max-width: 142px;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .analytics-strategy-pill--header {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .analytics-strategy-pill--header button {
+    flex: 1 0 auto;
+    padding: 0 9px;
+  }
+}
+
+[data-theme='nexus'] .analytics-strategy-pill {
+  border-color: color-mix(in oklab, var(--nexus-cyan) 18%, var(--brand-border));
+  background:
+    linear-gradient(180deg, rgba(23,17,47,0.72), rgba(7,5,26,0.6)),
+    color-mix(in oklab, var(--nexus-pink) 4%, transparent);
+}
+
+[data-theme='nexus'] .analytics-strategy-pill button:hover,
+[data-theme='nexus'] .analytics-strategy-pill button:focus-visible {
+  background: color-mix(in oklab, var(--nexus-pink) 7%, transparent);
+}
+
+[data-theme='nexus'] .analytics-strategy-pill button.is-active {
+  color: var(--brand-accent);
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--brand-accent) 16%, transparent), color-mix(in oklab, var(--nexus-cyan) 9%, transparent));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.09),
+    inset 0 0 0 1px color-mix(in oklab, var(--brand-accent) 30%, var(--nexus-cyan)),
+    0 0 20px -13px rgba(57,255,20,0.82),
+    0 0 26px -20px rgba(0,229,255,0.78);
 }
 
 .analytics-telemetry-sweep {

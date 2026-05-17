@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   Target,
 } from 'lucide-react';
-import { AnalysisHistoryItem, TradeStats, TranslationSchema } from '../types';
+import { AnalysisHistoryItem, Strategy, TradeStats, TranslationSchema } from '../types';
 import { EquityChart } from './EquityChart';
 
 interface AnalyticsCommandCenterProps {
@@ -19,6 +19,9 @@ interface AnalyticsCommandCenterProps {
   history: AnalysisHistoryItem[];
   t: TranslationSchema;
   language: 'EN' | 'TH';
+  strategies: Strategy[];
+  selectedStrategyId: string;
+  onStrategyChange: (strategyId: string) => void;
 }
 
 type TooltipKey =
@@ -252,25 +255,21 @@ const IntelligenceMetricCard = ({
     <motion.article
       whileHover={{ y: -2 }}
       transition={{ duration: 0.16 }}
-      className={`analytics-intel-card group relative min-h-[88px] overflow-hidden rounded-2xl border p-4 sm:p-4 ${toneClass}`}
+      className={`analytics-intel-card group relative min-h-[104px] overflow-hidden rounded-2xl border p-4 sm:min-h-[118px] sm:p-4 ${toneClass}`}
     >
       <div className="analytics-grid-overlay opacity-15" />
       <MetricTooltip tooltipKey={tooltipKey} language={language}>
-        <div className="relative z-10 flex h-full min-h-[58px] flex-col justify-between">
-          <div>
-            <p className="font-mono text-[9px] font-black uppercase tracking-[0.24em] text-brand-text-dim">{eyebrow}</p>
-          </div>
-          <div className="mt-2 min-w-0">
-            <h3 className="sr-only">{label}</h3>
-            <p className="analytics-side-metric-value text-[clamp(1.42rem,2.2vw,2.05rem)] font-black leading-none tabular-nums text-brand-text-bright">
-              {rMatch ? (
-                <>
-                  <span>{rMatch[1]}</span>
-                  <span className="analytics-r-suffix">R</span>
-                </>
-              ) : value}
-            </p>
-          </div>
+        <div className="relative z-10 min-w-0">
+          <p className="font-mono text-[9px] font-black uppercase tracking-[0.24em] text-brand-text-dim">{eyebrow}</p>
+          <h3 className="sr-only">{label}</h3>
+          <p className="analytics-side-metric-value mt-1.5 text-[17px] font-black leading-none tabular-nums text-current sm:text-[18px]">
+            {rMatch ? (
+              <>
+                <span>{rMatch[1]}</span>
+                <span className="analytics-r-suffix">R</span>
+              </>
+            ) : value}
+          </p>
         </div>
       </MetricTooltip>
     </motion.article>
@@ -281,7 +280,7 @@ const MicroTelemetryCard = ({ stats, language }: { stats: TradeStats; language: 
   <motion.article
     whileHover={{ y: -2 }}
     transition={{ duration: 0.16 }}
-    className="analytics-intel-card group relative min-h-[116px] overflow-hidden rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.045] p-4 sm:p-5"
+    className="analytics-intel-card group relative min-h-[132px] overflow-hidden rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.045] p-4 sm:min-h-[158px] sm:p-5"
   >
     <div className="analytics-grid-overlay opacity-15" />
     <div className="relative z-10 flex h-full min-h-[78px] flex-col justify-between gap-4">
@@ -303,6 +302,52 @@ const MicroTelemetryCard = ({ stats, language }: { stats: TradeStats; language: 
     </div>
   </motion.article>
 );
+
+export const StrategyCommandPill = ({
+  strategies,
+  selectedStrategyId,
+  onStrategyChange,
+  placement = 'header',
+}: {
+  strategies: Strategy[];
+  selectedStrategyId: string;
+  onStrategyChange: (strategyId: string) => void;
+  placement?: 'header' | 'core';
+}) => {
+  const isAllActive = selectedStrategyId === 'all' || selectedStrategyId === '';
+
+  return (
+    <div className={`analytics-strategy-pill analytics-strategy-pill--${placement}`} role="tablist" aria-label="Strategy mapping selector">
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isAllActive}
+        className={isAllActive ? 'is-active' : ''}
+        onClick={() => onStrategyChange('all')}
+        title="All strategies"
+      >
+        ALL
+      </button>
+      {strategies.map((strategy) => {
+        const isActive = selectedStrategyId === strategy.id;
+        return (
+          <button
+            key={strategy.id}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            className={isActive ? 'is-active' : ''}
+            onClick={() => onStrategyChange(strategy.id)}
+            title={strategy.name}
+          >
+            <span className="strategy-color-dot" style={{ backgroundColor: strategy.color }} />
+            <span className="truncate">{strategy.name}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
 
 const AnalysisCard = ({
   title,
@@ -348,7 +393,15 @@ const AnalysisCard = ({
   </motion.section>
 );
 
-export const AnalyticsCommandCenter = ({ stats, history, t, language }: AnalyticsCommandCenterProps) => {
+export const AnalyticsCommandCenter = ({
+  stats,
+  history,
+  t,
+  language,
+  strategies,
+  selectedStrategyId,
+  onStrategyChange,
+}: AnalyticsCommandCenterProps) => {
   const closedTradeNodes = stats.equityCurve.filter((point) => typeof point.rMultiple === 'number');
   const winners = closedTradeNodes.map((point) => point.rMultiple ?? 0).filter((value) => value > 0);
   const losers = closedTradeNodes.map((point) => point.rMultiple ?? 0).filter((value) => value < 0);
@@ -370,6 +423,15 @@ export const AnalyticsCommandCenter = ({ stats, history, t, language }: Analytic
   const winRateTone = stats.winRate >= 60 ? 'positive' : stats.winRate >= 45 ? 'warning' : 'negative';
   const confidence = Math.min(99, Math.round((stats.winRate * 0.6) + (Math.max(0, stats.profitFactor) * 12) + Math.min(20, stats.totalTrades)));
   const latestTrade = history[0];
+  const selectedStrategy = strategies.find((strategy) => strategy.id === selectedStrategyId);
+  const mappedTradeCount = selectedStrategy
+    ? history.filter((item) => item.strategyId === selectedStrategy.id).length
+    : 0;
+  const strategyContext = selectedStrategy
+    ? `${selectedStrategy.name} mapping selected // ${mappedTradeCount || selectedStrategy.tradeCount || 0} linked nodes`
+    : selectedStrategyId === 'all' || selectedStrategyId === ''
+      ? `All strategy mappings // ${history.length} total nodes`
+      : 'No strategy mapping selected // add mappings from Strategy Mapping';
 
   return (
     <div className="analytics-command relative isolate flex flex-col gap-4 xl:gap-5">
@@ -389,19 +451,15 @@ export const AnalyticsCommandCenter = ({ stats, history, t, language }: Analytic
             <div className="relative z-10 flex h-full flex-col justify-between gap-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-brand-accent live-dot" />
-                    <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-brand-accent">Performance Core</p>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-brand-accent/85">Performance Core</p>
                   </div>
                   <h2 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em] text-brand-text-bright sm:text-4xl">
                     Trading Performance Command Center
                   </h2>
-                </div>
-                <div className="rounded-2xl border border-brand-accent/20 bg-brand-accent/[0.06] px-3.5 py-2.5 text-right">
-                  <MetricTooltip tooltipKey="closedTrades" language={language}>
-                    <p className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-brand-text-dim">closed trades</p>
-                    <p className="font-mono text-xl font-black text-brand-text-bright">{stats.totalTrades}</p>
-                  </MetricTooltip>
+                  <p className="mt-2 max-w-2xl font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-text-dim">
+                    {strategyContext}
+                  </p>
                 </div>
               </div>
 

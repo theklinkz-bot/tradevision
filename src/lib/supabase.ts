@@ -158,8 +158,8 @@ export async function updateTradeInSupabase(id: string, data: Partial<AnalysisHi
       trade_status: data.status,
       timestamp: data.date || data.timestamp,
       trade_notes: data.notes,
-      strategy_id: data.strategyId,
-      strategy_name: data.strategyName
+      strategy_id: data.strategyId ?? null,
+      strategy_name: data.strategyName ?? null
     })
     .eq('id', id);
 
@@ -378,7 +378,7 @@ export async function deleteStrategyFromSupabase(id: string) {
   
   await supabase
     .from('trades')
-    .update({ strategy_id: null })
+    .update({ strategy_id: null, strategy_name: null })
     .eq('strategy_id', id);
 
   const { error } = await supabase

@@ -144,11 +144,6 @@ export const TradeRow: React.FC<{
             <Activity size={14} className="text-brand-accent" />
           </div>
           <span className="monospace-data font-bold">{item.symbol}</span>
-          {item.strategyName && (
-            <span className="text-[8px] px-1.5 py-0.5 rounded bg-brand-accent/10 border border-brand-accent/20 text-brand-accent font-mono uppercase tracking-tighter">
-              {item.strategyName}
-            </span>
-          )}
         </div>
       </td>
       <td className="p-4">
@@ -178,6 +173,23 @@ export const TradeRow: React.FC<{
           </span>
         ) : (
           <span className="monospace-data text-[10px] opacity-20">---</span>
+        )}
+      </td>
+      <td className="p-4">
+        {item.strategyName ? (
+          <span
+            className="inline-flex max-w-[120px] items-center gap-1 rounded border px-2 py-1 text-[9px] font-black uppercase tracking-tighter"
+            style={{
+              borderColor: item.strategyColor ? `${item.strategyColor}55` : undefined,
+              backgroundColor: item.strategyColor ? `${item.strategyColor}18` : undefined,
+              color: item.strategyColor || undefined
+            }}
+          >
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: item.strategyColor || 'currentColor' }} />
+            <span className="truncate">{item.strategyName}</span>
+          </span>
+        ) : (
+          <span className="text-[9px] font-mono uppercase tracking-widest text-brand-text-dim/35">Unlinked</span>
         )}
       </td>
       <td className="p-4">
@@ -264,11 +276,6 @@ export const MobileLogItem: React.FC<{
             </div>
             <div className="flex flex-col">
               <span className="monospace-data font-bold text-sm tracking-tight">{item.symbol}</span>
-              {item.strategyName && (
-                <span className="text-[8px] font-mono text-brand-accent uppercase tracking-tighter opacity-80 border-b border-brand-accent/20 w-fit">
-                  {item.strategyName}
-                </span>
-              )}
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-mono opacity-40 uppercase tracking-tighter">{item.date}</span>
                 {item.notes && (
@@ -309,6 +316,16 @@ export const MobileLogItem: React.FC<{
             ) : (
               <span className="monospace-data text-[10px] opacity-30 italic">ANALYZING...</span>
             )}
+          </div>
+        </div>
+
+        <div className="rounded border border-brand-border/50 bg-brand-elevated/25 px-2 py-1">
+          <span className="text-[8px] label-caps opacity-40">Strategy</span>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: item.strategyColor || 'rgba(148,163,184,.35)' }} />
+            <span className="text-[9px] font-black uppercase tracking-tight text-brand-text-bright">
+              {item.strategyName || 'Unlinked'}
+            </span>
           </div>
         </div>
 

@@ -57,7 +57,7 @@ import { calculateTradeStatistics } from './services/statsEngine';
 import { calculateRMultiple } from './lib/tradeUtils';
 import { TradeRow, MobileLogItem } from './components/TradeCard';
 import { DataCard, PriceLevel } from './components/StatsPanel';
-import { AnalyticsCommandCenter } from './components/AnalyticsCommandCenter';
+import { AnalyticsCommandCenter, StrategyCommandPill } from './components/AnalyticsCommandCenter';
 import { PerformanceDashboard } from './components/PerformanceDashboard';
 import { SignalValidationOverlay, ExpandedImageOverlay } from './components/UploadModal';
 import { 
@@ -622,6 +622,7 @@ export default function App() {
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [language, setLanguage] = useState<'EN' | 'TH'>('EN');
   const [tradingMode, setTradingMode] = useState<'live' | 'backtest'>('live');
+  const [selectedAnalyticsStrategyId, setSelectedAnalyticsStrategyId] = useState('all');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -630,6 +631,10 @@ export default function App() {
   // Edit State
   const [editingItem, setEditingItem] = useState<AnalysisHistoryItem | null>(null);
   const [editForm, setEditForm] = useState<AnalysisHistoryItem | null>(null);
+  const [isStrategyEditorOpen, setIsStrategyEditorOpen] = useState(false);
+  const [strategyDraftName, setStrategyDraftName] = useState('');
+  const [strategyDraftColor, setStrategyDraftColor] = useState('#10b981');
+  const [editingStrategyId, setEditingStrategyId] = useState<string | null>(null);
   const [recentSymbols, setRecentSymbols] = useState<string[]>([]);
 
   // Load recent symbols from localStorage
@@ -801,13 +806,60 @@ export default function App() {
     setStrategies(prev => prev.map(s => s.id === id ? { ...s, name, color } : s));
     // Reactively update names and colors in history display
     setHistory(prev => prev.map(h => h.strategyId === id ? { ...h, strategyName: name, strategyColor: color } : h));
+    setEditForm(prev => prev?.strategyId === id ? { ...prev, strategyName: name, strategyColor: color } : prev);
   };
 
   const handleDeleteStrategy = async (id: string) => {
     await deleteStrategyFromSupabase(id);
     setStrategies(prev => prev.filter(s => s.id !== id));
     // Unlink strategy from current history trades
-    setHistory(prev => prev.map(h => h.strategyId === id ? { ...h, strategyId: undefined, strategyColor: undefined } : h));
+    setHistory(prev => prev.map(h => h.strategyId === id ? { ...h, strategyId: undefined, strategyName: undefined, strategyColor: undefined } : h));
+    setEditForm(prev => prev?.strategyId === id ? { ...prev, strategyId: undefined, strategyName: undefined, strategyColor: undefined } : prev);
+  };
+
+  const resetStrategyDraft = () => {
+    setStrategyDraftName('');
+    setStrategyDraftColor('#10b981');
+    setEditingStrategyId(null);
+  };
+
+  const submitStrategyDraft = async () => {
+    const name = strategyDraftName.trim();
+    if (!name) return;
+
+    try {
+      if (editingStrategyId) {
+        await handleUpdateStrategy(editingStrategyId, name, strategyDraftColor);
+      } else {
+        await handleAddStrategy(name, strategyDraftColor);
+      }
+      resetStrategyDraft();
+    } catch (err) {
+      console.error('Strategy save failed:', err);
+      setError(err instanceof Error ? err.message : 'Strategy save failed.');
+    }
+  };
+
+  const startStrategyEdit = (strategy: Strategy) => {
+    setEditingStrategyId(strategy.id);
+    setStrategyDraftName(strategy.name);
+    setStrategyDraftColor(strategy.color);
+  };
+
+  const handleEditFormStrategyChange = (strategyId: string) => {
+    if (!editForm) return;
+    if (strategyId === 'none') {
+      setEditForm({ ...editForm, strategyId: undefined, strategyName: undefined, strategyColor: undefined });
+      return;
+    }
+
+    const selectedStrategy = strategies.find(strategy => strategy.id === strategyId);
+    setEditForm({
+      ...editForm,
+      strategyId: selectedStrategy?.id,
+      strategyName: selectedStrategy?.name,
+      strategyColor: selectedStrategy?.color
+    });
   };
 
   // Handle mode change specifically to trigger a clean refresh
@@ -1151,6 +1203,17 @@ const NoteTooltip = ({ note }: { note: string }) => {
     try {
       await updateTradeInSupabase(editForm.id, editForm);
       setHistory(prev => prev.map(item => item.id === editForm.id ? editForm : item));
+      if (editingItem?.strategyId !== editForm.strategyId) {
+        setStrategies(prev => prev.map(strategy => {
+          if (strategy.id === editingItem?.strategyId) {
+            return { ...strategy, tradeCount: Math.max(0, (strategy.tradeCount || 0) - 1) };
+          }
+          if (strategy.id === editForm.strategyId) {
+            return { ...strategy, tradeCount: (strategy.tradeCount || 0) + 1 };
+          }
+          return strategy;
+        }));
+      }
       setEditingItem(null);
     } catch (err) {
       console.error("Update failed:", err);
@@ -1285,6 +1348,17 @@ const NoteTooltip = ({ note }: { note: string }) => {
       setMainTab('Dashboard');
     }
   }, [isAdmin, mainTab]);
+
+  React.useEffect(() => {
+    if (strategies.length === 0) {
+      if (selectedAnalyticsStrategyId !== 'all') setSelectedAnalyticsStrategyId('all');
+      return;
+    }
+
+    if (selectedAnalyticsStrategyId !== 'all' && !strategies.some((strategy) => strategy.id === selectedAnalyticsStrategyId)) {
+      setSelectedAnalyticsStrategyId('all');
+    }
+  }, [selectedAnalyticsStrategyId, strategies]);
 
   const formatMainTabLabel = (tab: typeof mainTab) => {
     if (tab === 'StrategyLab') return 'Strategy Lab';
@@ -1885,6 +1959,109 @@ const NoteTooltip = ({ note }: { note: string }) => {
         )}
       </AnimatePresence>
 
+      {/* Strategy Editor Overlay */}
+      <AnimatePresence>
+        {isStrategyEditorOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.94, y: 18 }}
+              animate={{ scale: 1, y: 0 }}
+              className="technical-panel w-full max-w-xl bg-brand-bg p-6 flex flex-col gap-5 shadow-2xl border-brand-danger/35"
+            >
+              <div className="flex items-center justify-between border-b border-brand-border pb-4">
+                <div>
+                  <h3 className="label-caps mb-1 text-brand-text-bright flex items-center gap-2 text-sm">
+                    <Palette size={14} className="text-brand-danger" />
+                    Edit Strategy
+                  </h3>
+                  <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-brand-text-dim">
+                    Add, rename, recolor, or unlink strategy groups
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsStrategyEditorOpen(false);
+                    resetStrategyDraft();
+                  }}
+                  className="text-brand-text-dim hover:text-brand-text-bright"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="rounded-lg border border-brand-danger/25 bg-brand-danger/5 p-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
+                  <input
+                    className="bg-brand-elevated border border-brand-border p-2 monospace-data rounded uppercase text-xs focus:border-brand-danger outline-none"
+                    placeholder="Strategy name"
+                    value={strategyDraftName}
+                    onChange={(event) => setStrategyDraftName(event.target.value.toUpperCase())}
+                  />
+                  <input
+                    type="color"
+                    className="h-9 w-full sm:w-12 rounded border border-brand-border bg-brand-elevated p-1"
+                    value={strategyDraftColor}
+                    onChange={(event) => setStrategyDraftColor(event.target.value)}
+                    aria-label="Strategy color"
+                  />
+                  <button
+                    onClick={submitStrategyDraft}
+                    className="rounded bg-brand-danger px-4 py-2 text-[10px] font-black uppercase tracking-widest text-black transition-opacity hover:opacity-85"
+                  >
+                    {editingStrategyId ? 'Update' : 'Add'}
+                  </button>
+                </div>
+                {editingStrategyId && (
+                  <button
+                    onClick={resetStrategyDraft}
+                    className="mt-2 text-[9px] font-black uppercase tracking-widest text-brand-text-dim hover:text-brand-text-bright"
+                  >
+                    Cancel edit
+                  </button>
+                )}
+              </div>
+
+              <div className="max-h-[320px] overflow-y-auto custom-scrollbar space-y-2">
+                {strategies.length === 0 ? (
+                  <div className="rounded border border-dashed border-brand-border p-6 text-center text-[10px] font-black uppercase tracking-widest text-brand-text-dim">
+                    No strategies yet
+                  </div>
+                ) : strategies.map((strategy) => (
+                  <div key={strategy.id} className="flex items-center justify-between gap-3 rounded-lg border border-brand-border/60 bg-brand-elevated/30 p-3">
+                    <div className="min-w-0 flex items-center gap-3">
+                      <span className="h-3 w-3 shrink-0 rounded-full shadow-[0_0_12px_currentColor]" style={{ backgroundColor: strategy.color, color: strategy.color }} />
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-black uppercase tracking-tight text-brand-text-bright">{strategy.name}</p>
+                        <p className="text-[9px] font-mono uppercase tracking-widest text-brand-text-dim">{strategy.tradeCount || 0} linked nodes</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => startStrategyEdit(strategy)}
+                        className="rounded border border-brand-border px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-brand-text-dim hover:border-brand-accent hover:text-brand-accent"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteStrategy(strategy.id)}
+                        className="rounded border border-brand-danger/30 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-brand-danger hover:bg-brand-danger/10"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Edit Modal Overlay */}
       <AnimatePresence>
         {editingItem && editForm && (
@@ -1904,8 +2081,11 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   <Terminal size={14} className="text-brand-accent" />
                   Manual Signal override // {editingItem.symbol}
                 </h3>
-                <button onClick={() => setEditingItem(null)} className="text-brand-text-dim hover:text-brand-text-bright">
-                  <Activity size={18} className="rotate-45" />
+                <button
+                  onClick={() => setEditingItem(null)}
+                  className="rounded border border-brand-border bg-brand-elevated/50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-brand-text-dim transition-colors hover:border-brand-accent hover:text-brand-accent"
+                >
+                  Close
                 </button>
               </div>
 
@@ -1929,6 +2109,21 @@ const NoteTooltip = ({ note }: { note: string }) => {
                     <option value="Long">LONG</option>
                     <option value="Short">SHORT</option>
                     <option value="Neutral">NEUTRAL</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1 col-span-2">
+                  <label className="label-caps text-[9px]">Strategy</label>
+                  <select
+                    className="bg-brand-elevated border border-brand-border p-2 monospace-data rounded text-xs"
+                    value={editForm.strategyId || 'none'}
+                    onChange={event => handleEditFormStrategyChange(event.target.value)}
+                  >
+                    <option value="none">UNLINKED</option>
+                    {strategies.map(strategy => (
+                      <option key={strategy.id} value={strategy.id}>
+                        {strategy.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -2612,6 +2807,13 @@ const NoteTooltip = ({ note }: { note: string }) => {
                     <p className="text-xs text-brand-text-dim uppercase tracking-[3px] font-mono">Raw Signal Buffer // {history.length} Nodes</p>
                   </div>
                   <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsStrategyEditorOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-brand-danger/10 border border-brand-danger/35 rounded text-[10px] font-bold uppercase tracking-widest text-brand-danger hover:bg-brand-danger hover:text-black transition-all"
+                    >
+                      <Palette size={14} />
+                      Edit Strategy
+                    </button>
                     <button 
                       onClick={exportToCSV}
                       className="flex items-center gap-2 px-4 py-2 bg-brand-elevated border border-brand-border rounded text-[10px] font-bold uppercase tracking-widest hover:border-brand-accent hover:text-brand-accent transition-all"
@@ -2637,6 +2839,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                           <th className="p-4 label-caps">SL / TP</th>
                           <th className="p-4 label-caps">Status</th>
                           <th className="p-4 label-caps">RR</th>
+                          <th className="p-4 label-caps">Strategy</th>
                           <th className="p-4 label-caps">Timestamp</th>
                           <th className="p-4 label-caps text-right">Actions</th>
                         </tr>
@@ -2693,13 +2896,23 @@ const NoteTooltip = ({ note }: { note: string }) => {
                     <h2 className="text-2xl font-black text-brand-text-bright uppercase tracking-[-0.04em]">{t.ui.performance_stats}</h2>
                     <p className="mt-1 text-[11px] text-brand-text-dim uppercase tracking-[0.22em] font-mono">Trading Performance Command Center // Live Edge Telemetry</p>
                   </div>
-                  <div className="hidden rounded-full border border-brand-accent/20 bg-brand-accent/[0.06] px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-brand-accent sm:block">
-                    command core online
-                  </div>
+                  <StrategyCommandPill
+                    strategies={strategies}
+                    selectedStrategyId={selectedAnalyticsStrategyId}
+                    onStrategyChange={setSelectedAnalyticsStrategyId}
+                  />
                 </div>
 
                 {stats && stats.totalTrades > 0 ? (
-                  <AnalyticsCommandCenter stats={stats} history={history} t={t} language={language} />
+                  <AnalyticsCommandCenter
+                    stats={stats}
+                    history={history}
+                    t={t}
+                    language={language}
+                    strategies={strategies}
+                    selectedStrategyId={selectedAnalyticsStrategyId}
+                    onStrategyChange={setSelectedAnalyticsStrategyId}
+                  />
                 ) : (
                   <div className="technical-panel p-10 sm:p-20 flex flex-col items-center gap-4 text-center opacity-50">
                     <Database size={48} />
@@ -2717,13 +2930,23 @@ const NoteTooltip = ({ note }: { note: string }) => {
                     <h2 className="text-2xl font-black text-brand-text-bright uppercase tracking-[-0.04em]">{t.ui.performance}</h2>
                     <p className="mt-1 text-[11px] text-brand-text-dim uppercase tracking-[0.22em] font-mono">Trading Performance Command Center // Live Edge Telemetry</p>
                   </div>
-                  <div className="hidden rounded-full border border-brand-accent/20 bg-brand-accent/[0.06] px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-brand-accent sm:block">
-                    command core online
-                  </div>
+                  <StrategyCommandPill
+                    strategies={strategies}
+                    selectedStrategyId={selectedAnalyticsStrategyId}
+                    onStrategyChange={setSelectedAnalyticsStrategyId}
+                  />
                 </div>
 
                 {stats && stats.totalTrades > 0 ? (
-                  <AnalyticsCommandCenter stats={stats} history={history} t={t} language={language} />
+                  <AnalyticsCommandCenter
+                    stats={stats}
+                    history={history}
+                    t={t}
+                    language={language}
+                    strategies={strategies}
+                    selectedStrategyId={selectedAnalyticsStrategyId}
+                    onStrategyChange={setSelectedAnalyticsStrategyId}
+                  />
                 ) : (
                   <div className="technical-panel p-10 sm:p-20 flex flex-col items-center gap-4 text-center opacity-50">
                     <Database size={48} />
