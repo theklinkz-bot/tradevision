@@ -57,7 +57,7 @@ import { calculateTradeStatistics } from './services/statsEngine';
 import { calculateRMultiple } from './lib/tradeUtils';
 import { TradeRow, MobileLogItem } from './components/TradeCard';
 import { DataCard, PriceLevel } from './components/StatsPanel';
-import { AnalyticsCommandCenter, StrategyCommandPill } from './components/AnalyticsCommandCenter';
+import { AnalyticsCommandCenter, NinjaAdvisorButton, StrategyCommandPill } from './components/AnalyticsCommandCenter';
 import { PerformanceDashboard } from './components/PerformanceDashboard';
 import { SignalValidationOverlay, ExpandedImageOverlay } from './components/UploadModal';
 import { 
@@ -100,6 +100,111 @@ const StrategyLabLoading = ({ language }: { language: 'EN' | 'TH' }) => (
 );
 
 type AppTheme = 'default' | 'light' | 'tactical' | 'cyber' | 'nexus';
+
+const DEMO_USER = {
+  id: 'demo-tradevision-session',
+  email: 'demo@tradevision.local',
+  aud: 'authenticated',
+  role: 'authenticated',
+  app_metadata: {},
+  user_metadata: { name: 'TradeVision Demo' },
+  created_at: '2026-01-01T00:00:00.000Z',
+  updated_at: '2026-01-01T00:00:00.000Z'
+} as unknown as User;
+
+const DEMO_STRATEGIES: Strategy[] = [
+  { id: 'demo-reaper', name: 'REAPER', color: '#10b981', createdAt: '2026-05-01T00:00:00.000Z', tradeCount: 3 },
+  { id: 'demo-wyckoff', name: 'WYCKOFF', color: '#22d3ee', createdAt: '2026-05-01T00:00:00.000Z', tradeCount: 2 }
+];
+
+const DEMO_HISTORY: AnalysisHistoryItem[] = [
+  {
+    id: 'demo-001',
+    symbol: 'MNQ!',
+    side: 'Long',
+    levels: { entry: 78171.5, takeProfit: 79018.62, stopLoss: 78167.5 },
+    timestamp: '2026-05-03 06:25',
+    fiboTarget: '1.618',
+    confidence: 92,
+    imageUrl: '/assets/demo/demo-mnq-long.svg',
+    date: '2026-05-03 06:25',
+    status: 'Win',
+    savedToDb: false,
+    tradingMode: 'live',
+    notes: 'Demo node: clean continuation after liquidity sweep.',
+    strategyId: 'demo-reaper',
+    strategyName: 'REAPER',
+    strategyColor: '#10b981'
+  },
+  {
+    id: 'demo-002',
+    symbol: 'MGC1!',
+    side: 'Short',
+    levels: { entry: 4734.3, takeProfit: 4723.3, stopLoss: 4735.1 },
+    timestamp: '2026-05-08 21:47',
+    fiboTarget: '1.272',
+    confidence: 88,
+    imageUrl: '/assets/demo/demo-mgc-short.svg',
+    date: '2026-05-08 21:47',
+    status: 'Win',
+    savedToDb: false,
+    tradingMode: 'live',
+    strategyId: 'demo-wyckoff',
+    strategyName: 'WYCKOFF',
+    strategyColor: '#22d3ee'
+  },
+  {
+    id: 'demo-003',
+    symbol: 'MNQ!',
+    side: 'Long',
+    levels: { entry: 27615.25, takeProfit: 27634.75, stopLoss: 27613 },
+    timestamp: '2026-05-01 20:30',
+    fiboTarget: '2.0',
+    confidence: 95,
+    imageUrl: '/assets/demo/demo-mnq-breakout.svg',
+    date: '2026-05-01 20:30',
+    status: 'Win',
+    savedToDb: false,
+    tradingMode: 'live',
+    strategyId: 'demo-reaper',
+    strategyName: 'REAPER',
+    strategyColor: '#10b981'
+  },
+  {
+    id: 'demo-004',
+    symbol: 'MNQ!',
+    side: 'Long',
+    levels: { entry: 29156.75, takeProfit: 29181.75, stopLoss: 29155 },
+    timestamp: '2026-05-15 20:03',
+    fiboTarget: '1.618',
+    confidence: 90,
+    imageUrl: '/assets/demo/demo-mnq-continuation.svg',
+    date: '2026-05-15 20:03',
+    status: 'Win',
+    savedToDb: false,
+    tradingMode: 'live',
+    strategyId: 'demo-reaper',
+    strategyName: 'REAPER',
+    strategyColor: '#10b981'
+  },
+  {
+    id: 'demo-005',
+    symbol: 'MNQ!',
+    side: 'Short',
+    levels: { entry: 29169.75, takeProfit: 29147, stopLoss: 29170.25 },
+    timestamp: '2026-05-15 20:02',
+    fiboTarget: '0.786',
+    confidence: 76,
+    imageUrl: '/assets/demo/demo-mnq-loss.svg',
+    date: '2026-05-15 20:02',
+    status: 'Loss',
+    savedToDb: false,
+    tradingMode: 'live',
+    strategyId: 'demo-wyckoff',
+    strategyName: 'WYCKOFF',
+    strategyColor: '#22d3ee'
+  }
+];
 
 const TRANSLATIONS: Record<'EN' | 'TH', TranslationSchema> = {
   EN: {
@@ -574,6 +679,7 @@ import {
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [isDemoSession, setIsDemoSession] = useState(false);
   const ADMIN_EMAILS = ['ookami.0609@gmail.com'];
   const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email);
   const [authEmail, setAuthEmail] = useState('');
@@ -630,6 +736,15 @@ export default function App() {
 
   const t = TRANSLATIONS[language];
 
+  const activateDemoSession = React.useCallback(() => {
+    setIsDemoSession(true);
+    setUser(DEMO_USER);
+    setHistory(DEMO_HISTORY);
+    setStrategies(DEMO_STRATEGIES);
+    setMainTab('Dashboard');
+    setError(null);
+  }, []);
+
   // Edit State
   const [editingItem, setEditingItem] = useState<AnalysisHistoryItem | null>(null);
   const [editForm, setEditForm] = useState<AnalysisHistoryItem | null>(null);
@@ -669,12 +784,19 @@ export default function App() {
 
   // Load history, theme, and auth on mount
   React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shouldOpenDemo = params.get('demo') === '1' || params.get('demo') === 'true';
+
     // Check local storage for Gemini key
     const savedKey = localStorage.getItem('tradevision-gemini-key');
     if (savedKey) setGeminiKey(savedKey);
 
+    if (shouldOpenDemo) {
+      activateDemoSession();
+    }
+
     // Auth listener
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!shouldOpenDemo) supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         refreshFromDb(session.user.id);
@@ -683,6 +805,7 @@ export default function App() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (isDemoSession || shouldOpenDemo) return;
       setUser(session?.user ?? null);
       if (session?.user) {
         refreshFromDb(session.user.id);
@@ -707,11 +830,11 @@ export default function App() {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [activateDemoSession, isDemoSession]);
 
   // Real-time Presence
   React.useEffect(() => {
-    if (!user) return;
+    if (!user || isDemoSession) return;
 
     const channel = supabase.channel('online-users', {
       config: {
@@ -738,7 +861,7 @@ export default function App() {
     return () => {
       channel.unsubscribe();
     };
-  }, [user]);
+  }, [user, isDemoSession]);
 
   const toggleSidebar = () => {
     const newState = !sidebarCollapsed;
@@ -776,6 +899,7 @@ export default function App() {
   const stats = React.useMemo(() => calculateTradeStatistics(filteredHistory), [filteredHistory]);
 
   const refreshFromDb = useCallback(async (userId?: string, mode?: 'live' | 'backtest') => {
+    if (isDemoSession) return;
     const targetUserId = userId || user?.id;
     if (!targetUserId) return;
     
@@ -794,17 +918,28 @@ export default function App() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [user, tradingMode]);
+  }, [user, tradingMode, isDemoSession]);
 
   const handleAddStrategy = async (name: string, color: string) => {
     if (!user) throw new Error('Authentication required');
+    if (isDemoSession) {
+      const newStrategy: Strategy = {
+        id: `demo-strategy-${Date.now()}`,
+        name,
+        color,
+        createdAt: new Date().toISOString(),
+        tradeCount: 0
+      };
+      setStrategies(prev => [...prev, newStrategy]);
+      return newStrategy;
+    }
     const newStrategy = await saveStrategyToSupabase(name, color, user.id);
     setStrategies(prev => [...prev, newStrategy]);
     return newStrategy;
   };
 
   const handleUpdateStrategy = async (id: string, name: string, color: string) => {
-    await updateStrategyInSupabase(id, name, color);
+    if (!isDemoSession) await updateStrategyInSupabase(id, name, color);
     setStrategies(prev => prev.map(s => s.id === id ? { ...s, name, color } : s));
     // Reactively update names and colors in history display
     setHistory(prev => prev.map(h => h.strategyId === id ? { ...h, strategyName: name, strategyColor: color } : h));
@@ -812,7 +947,7 @@ export default function App() {
   };
 
   const handleDeleteStrategy = async (id: string) => {
-    await deleteStrategyFromSupabase(id);
+    if (!isDemoSession) await deleteStrategyFromSupabase(id);
     setStrategies(prev => prev.filter(s => s.id !== id));
     // Unlink strategy from current history trades
     setHistory(prev => prev.map(h => h.strategyId === id ? { ...h, strategyId: undefined, strategyName: undefined, strategyColor: undefined } : h));
@@ -867,7 +1002,11 @@ export default function App() {
   // Handle mode change specifically to trigger a clean refresh
   const changeMode = (newMode: 'live' | 'backtest') => {
     setTradingMode(newMode);
-    refreshFromDb(user?.id, newMode);
+    if (isDemoSession) {
+      setHistory(DEMO_HISTORY.filter(item => (item.tradingMode || 'live') === newMode));
+    } else {
+      refreshFromDb(user?.id, newMode);
+    }
   };
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -897,9 +1036,14 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (!isDemoSession) await supabase.auth.signOut();
+    setIsDemoSession(false);
     setUser(null);
     setHistory([]);
+    setStrategies([]);
+    if (window.location.search.includes('demo=')) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   };
 
   const saveGeminiKey = (key: string) => {
@@ -1134,17 +1278,22 @@ const NoteTooltip = ({ note }: { note: string }) => {
     try {
       const historyItem: AnalysisHistoryItem = {
         ...analysis,
+        id: isDemoSession ? `demo-${Date.now()}` : analysis.id,
         imageUrl: preview,
         status: status,
-        savedToDb: true
+        savedToDb: !isDemoSession
       };
 
-      // Save to Supabase
-      await saveTradeToSupabase(historyItem, user?.id, tradingMode);
-      
+      if (isDemoSession) {
+        setHistory(prev => [historyItem, ...prev]);
+      } else {
+        // Save to Supabase
+        await saveTradeToSupabase(historyItem, user?.id, tradingMode);
+        // Refresh to get the actual ID from DB
+        await refreshFromDb(user?.id);
+      }
+
       setSaveSuccess(true);
-      // Refresh to get the actual ID from DB
-      await refreshFromDb(user?.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "System Error: Failed to transmit signal to database.");
     } finally {
@@ -1203,7 +1352,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
     saveRecentSymbol(editForm.symbol);
 
     try {
-      await updateTradeInSupabase(editForm.id, editForm);
+      if (!isDemoSession) await updateTradeInSupabase(editForm.id, editForm);
       setHistory(prev => prev.map(item => item.id === editForm.id ? editForm : item));
       if (editingItem?.strategyId !== editForm.strategyId) {
         setStrategies(prev => prev.map(strategy => {
@@ -1237,8 +1386,10 @@ const NoteTooltip = ({ note }: { note: string }) => {
     setError(null);
 
     try {
-      // Persistent database update
-      await deleteTradeFromSupabase(id);
+      if (!isDemoSession) {
+        // Persistent database update
+        await deleteTradeFromSupabase(id);
+      }
       
       // Update state
       setHistory(prev => prev.filter(item => item.id !== id));
@@ -1274,6 +1425,15 @@ const NoteTooltip = ({ note }: { note: string }) => {
     };
 
     try {
+      if (isDemoSession) {
+        setFeedbackSuccess(true);
+        setFeedbackSubject('');
+        setFeedbackMessage('');
+        setFeedbackCategory('General');
+        setTimeout(() => setFeedbackSuccess(false), 5000);
+        return;
+      }
+
       await submitFeedbackToSupabase({
         userId: user?.id,
         category: feedbackCategory,
@@ -1503,6 +1663,13 @@ const NoteTooltip = ({ note }: { note: string }) => {
             </form>
 
             <div className="flex justify-center flex-col gap-2">
+              <button
+                type="button"
+                onClick={activateDemoSession}
+                className="w-full rounded border border-brand-accent/35 bg-brand-accent/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent transition-all hover:bg-brand-accent hover:text-black"
+              >
+                Try Demo Account
+              </button>
               <button 
                 onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
                 className="text-[9px] text-brand-text-dim hover:text-brand-accent font-bold uppercase tracking-[2px] transition-colors"
@@ -2926,7 +3093,10 @@ const NoteTooltip = ({ note }: { note: string }) => {
               <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-brand-border/50 pb-4">
                   <div>
-                    <h2 className="text-2xl font-black text-brand-text-bright uppercase tracking-[-0.04em]">{t.ui.performance_stats}</h2>
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-black text-brand-text-bright uppercase tracking-[-0.04em]">{t.ui.performance_stats}</h2>
+                      <NinjaAdvisorButton stats={stats || undefined} />
+                    </div>
                     <p className="mt-1 text-[11px] text-brand-text-dim uppercase tracking-[0.22em] font-mono">Trading Performance Command Center // Live Edge Telemetry</p>
                   </div>
                   <StrategyCommandPill
@@ -2960,7 +3130,10 @@ const NoteTooltip = ({ note }: { note: string }) => {
               <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-brand-border/50 pb-4">
                   <div>
-                    <h2 className="text-2xl font-black text-brand-text-bright uppercase tracking-[-0.04em]">{t.ui.performance}</h2>
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-black text-brand-text-bright uppercase tracking-[-0.04em]">{t.ui.performance}</h2>
+                      <NinjaAdvisorButton stats={stats || undefined} />
+                    </div>
                     <p className="mt-1 text-[11px] text-brand-text-dim uppercase tracking-[0.22em] font-mono">Trading Performance Command Center // Live Edge Telemetry</p>
                   </div>
                   <StrategyCommandPill

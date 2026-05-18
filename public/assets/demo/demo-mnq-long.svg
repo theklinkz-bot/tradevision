@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07100d"/>
+      <stop offset="1" stop-color="#0b1418"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <g stroke="#1f2a33" stroke-width="1" opacity=".8">
+    <path d="M80 80H1180M80 180H1180M80 280H1180M80 380H1180M80 480H1180M80 580H1180"/>
+    <path d="M160 60V640M320 60V640M480 60V640M640 60V640M800 60V640M960 60V640M1120 60V640"/>
+  </g>
+  <polyline points="90,548 180,520 250,500 340,460 430,470 520,410 610,390 700,330 790,300 900,245 1030,190 1180,155" fill="none" stroke="#34d399" stroke-width="5" filter="url(#glow)"/>
+  <path d="M90 548 180 520 250 500 340 460 430 470 520 410 610 390 700 330 790 300 900 245 1030 190 1180 155 L1180 620 L90 620Z" fill="#34d399" opacity=".10"/>
+  <line x1="120" y1="470" x2="1180" y2="470" stroke="#38bdf8" stroke-width="3" stroke-dasharray="10 8"/>
+  <line x1="120" y1="220" x2="1180" y2="220" stroke="#34d399" stroke-width="3"/>
+  <line x1="120" y1="575" x2="1180" y2="575" stroke="#f87171" stroke-width="3"/>
+  <g font-family="JetBrains Mono, monospace" font-weight="800">
+    <text x="80" y="45" fill="#34d399" font-size="22" letter-spacing="5">DEMO TRADEVISION // MNQ LONG</text>
+    <text x="126" y="455" fill="#38bdf8" font-size="18">ENTRY 78171.5</text>
+    <text x="126" y="205" fill="#34d399" font-size="18">TP 79018.62</text>
+    <text x="126" y="560" fill="#f87171" font-size="18">SL 78167.5</text>
+    <text x="910" y="94" fill="#e6ecf5" font-size="18">REAPER / WIN / +211.78R</text>
+  </g>
+</svg>

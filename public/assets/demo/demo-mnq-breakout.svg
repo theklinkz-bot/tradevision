@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#080b10"/>
+  <g stroke="#1e293b" stroke-width="1" opacity=".8">
+    <path d="M80 100H1200M80 200H1200M80 300H1200M80 400H1200M80 500H1200M80 600H1200"/>
+    <path d="M160 70V640M320 70V640M480 70V640M640 70V640M800 70V640M960 70V640M1120 70V640"/>
+  </g>
+  <rect x="110" y="290" width="1040" height="120" fill="#34d399" opacity=".05" stroke="#34d399" stroke-opacity=".25"/>
+  <polyline points="90,485 170,455 250,470 330,440 410,430 490,405 570,392 650,360 730,320 810,250 900,210 1000,165 1180,128" fill="none" stroke="#34d399" stroke-width="5"/>
+  <line x1="120" y1="410" x2="1180" y2="410" stroke="#38bdf8" stroke-width="3" stroke-dasharray="10 8"/>
+  <line x1="120" y1="170" x2="1180" y2="170" stroke="#34d399" stroke-width="3"/>
+  <line x1="120" y1="520" x2="1180" y2="520" stroke="#f87171" stroke-width="3"/>
+  <g font-family="JetBrains Mono, monospace" font-weight="800">
+    <text x="80" y="45" fill="#34d399" font-size="22" letter-spacing="5">DEMO TRADEVISION // BREAKOUT NODE</text>
+    <text x="126" y="394" fill="#38bdf8" font-size="18">ENTRY 27615.25</text>
+    <text x="126" y="155" fill="#34d399" font-size="18">TP 27634.75</text>
+    <text x="126" y="505" fill="#f87171" font-size="18">SL 27613</text>
+    <text x="940" y="94" fill="#e6ecf5" font-size="18">REAPER / WIN / +8.67R</text>
+  </g>
+</svg>

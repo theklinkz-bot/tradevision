@@ -182,6 +182,105 @@ const formatR = (value: number, signed = false) => {
   return `${prefix}${value.toFixed(2)}R`;
 };
 
+const getNinjaAdvisorCopy = (stats?: TradeStats) => {
+  if (!stats || stats.totalTrades === 0) {
+    return {
+      tone: 'standby',
+      title: 'คำแนะนำจากการวิเคราะห์',
+      message: 'ยังไม่มี node ให้ด่า เอ้ย ให้ดู ไปเก็บภาพมาก่อน'
+    };
+  }
+
+  if (stats.totalTrades < 8 && stats.winRate >= 80) {
+    return {
+      tone: 'warning',
+      title: 'Sample ยังบาง',
+      message: 'Winrate โหด แต่ node ยังน้อย อย่าเพิ่งทำตัวเป็น legend'
+    };
+  }
+
+  if (stats.totalTrades < 12) {
+    return {
+      tone: 'warning',
+      title: 'Sample ยังไม่พอ',
+      message: 'Node ยังน้อยไปว่ะ ไปเก็บภาพเพิ่มก่อนค่อยเชื่อ stat'
+    };
+  }
+
+  if (stats.maxDrawdown >= 6) {
+    return {
+      tone: 'danger',
+      title: 'Risk เริ่มเสียงดัง',
+      message: 'Drawdown เริ่มกัดพอร์ตแล้ว หยุดซ่าแล้วลด risk ก่อน'
+    };
+  }
+
+  if (stats.expectancy > 0 && stats.profitFactor >= 2 && stats.winRate >= 55) {
+    return {
+      tone: 'positive',
+      title: 'Stat มีของ',
+      message: 'Stat ดีจัด ถ้าวินัยไม่พัง เทรดจริงมีลุ้นรวยไม่ไหว'
+    };
+  }
+
+  if (stats.avgRR < 1) {
+    return {
+      tone: 'warning',
+      title: 'RR ยังไม่คุ้ม',
+      message: 'Reward ไม่จ่ายพอสำหรับ risk ที่รับอยู่ แก้ geometry ก่อน'
+    };
+  }
+
+  if (stats.expectancy < 0) {
+    return {
+      tone: 'danger',
+      title: 'Edge ยังไม่มา',
+      message: 'ตอนนี้ยังไม่ใช่เวลาซิ่ง เป็นเวลาตรวจเบรก'
+    };
+  }
+
+  return {
+    tone: 'positive',
+    title: 'Edge online',
+    message: 'ระบบเริ่มมีไฟเขียว แต่สมองมึงต้อง online ด้วย'
+  };
+};
+
+export const NinjaAdvisorButton = ({ stats }: { stats?: TradeStats }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const advice = getNinjaAdvisorCopy(stats);
+
+  return (
+    <div
+      className="ninja-advisor"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
+      <button
+        type="button"
+        className={`ninja-advisor__trigger ninja-advisor__trigger--${advice.tone}`}
+        aria-label="คำแนะนำจากการวิเคราะห์"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((current) => !current)}
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => setIsOpen(false)}
+      >
+        <img src="/assets/tradevision-logo.png" alt="" />
+        <span className="ninja-advisor__ping" />
+      </button>
+      {isOpen && (
+        <div className="ninja-advisor__panel" role="tooltip">
+          <div className="ninja-advisor__header">
+            <span>CAT SENSEI</span>
+            <span>{advice.title}</span>
+          </div>
+          <p>{advice.message}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const MiniBars = ({ values, tone = 'accent' }: { values: number[]; tone?: 'accent' | 'risk' | 'cyan' }) => {
   const max = Math.max(...values.map((value) => Math.abs(value)), 1);
   const toneClass = tone === 'risk' ? 'bg-brand-danger/70' : tone === 'cyan' ? 'bg-cyan-300/70' : 'bg-brand-accent/75';

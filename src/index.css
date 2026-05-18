@@ -1081,6 +1081,152 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
+.ninja-advisor {
+  position: relative;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ninja-advisor__trigger {
+  position: relative;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--brand-accent) 32%, var(--brand-border));
+  background:
+    radial-gradient(circle at 50% 18%, color-mix(in oklab, var(--brand-accent) 22%, transparent), transparent 58%),
+    color-mix(in oklab, var(--brand-elevated) 84%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 0 24px -14px color-mix(in oklab, var(--brand-accent) 86%, transparent);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.ninja-advisor__trigger:hover,
+.ninja-advisor__trigger:focus-visible {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--brand-accent) 58%, var(--brand-border));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 0 30px -12px color-mix(in oklab, var(--brand-accent) 94%, transparent);
+  outline: none;
+}
+
+.ninja-advisor__trigger img {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  object-fit: cover;
+  filter: drop-shadow(0 0 10px color-mix(in oklab, var(--brand-accent) 60%, transparent));
+}
+
+.ninja-advisor__trigger::after {
+  content: "";
+  position: absolute;
+  inset: -45%;
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.38), transparent 62%);
+  transform: translateX(-125%) rotate(14deg);
+  animation: logo-flash 3.2s ease-in-out infinite;
+}
+
+.ninja-advisor__ping {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  z-index: 2;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--brand-accent);
+  box-shadow: 0 0 12px var(--brand-accent);
+}
+
+.ninja-advisor__trigger--warning .ninja-advisor__ping { background: var(--brand-warning); box-shadow: 0 0 12px var(--brand-warning); }
+.ninja-advisor__trigger--danger .ninja-advisor__ping { background: var(--brand-danger); box-shadow: 0 0 12px var(--brand-danger); }
+
+.ninja-advisor__panel {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 12px);
+  width: min(330px, calc(100vw - 28px));
+  transform: translateX(-50%);
+  border-radius: 16px;
+  border: 1px solid color-mix(in oklab, var(--brand-accent) 30%, var(--brand-border));
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand-elevated) 94%, transparent), color-mix(in oklab, var(--brand-bg) 88%, transparent)),
+    radial-gradient(220px 120px at 12% 0%, color-mix(in oklab, var(--brand-accent) 13%, transparent), transparent 70%);
+  padding: 13px 14px;
+  color: var(--brand-text-bright);
+  box-shadow:
+    0 24px 60px -34px rgba(0,0,0,0.96),
+    0 0 36px -26px color-mix(in oklab, var(--brand-accent) 70%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  animation: analytics-tip-in .16s ease both;
+}
+
+.ninja-advisor__panel::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%) rotate(45deg);
+  border-left: 1px solid color-mix(in oklab, var(--brand-accent) 30%, var(--brand-border));
+  border-top: 1px solid color-mix(in oklab, var(--brand-accent) 30%, var(--brand-border));
+  background: color-mix(in oklab, var(--brand-elevated) 94%, transparent);
+}
+
+.ninja-advisor__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid color-mix(in oklab, var(--brand-border) 64%, transparent);
+  padding-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--brand-accent);
+}
+
+.ninja-advisor__header span:last-child {
+  color: var(--brand-text-dim);
+  text-align: right;
+}
+
+.ninja-advisor__panel p {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+[data-theme='light'] .ninja-advisor__trigger {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(5,150,105,0.18), transparent 58%),
+    rgba(255,255,255,0.9);
+}
+
+[data-theme='light'] .ninja-advisor__panel {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94)),
+    radial-gradient(220px 120px at 12% 0%, rgba(5,150,105,0.08), transparent 70%);
+  box-shadow:
+    0 24px 58px -38px rgba(15,23,42,0.36),
+    0 0 30px -24px rgba(5,150,105,0.34);
+}
+
 [data-theme='light'] .analytics-summary-rail {
   border-color: color-mix(in oklab, var(--brand-accent) 14%, var(--brand-border));
   background:
