@@ -192,6 +192,7 @@ export interface TranslationSchema {
     day_profile: string;
     performance_architecture: string;
     resistance: string;
+    trades_to_recover: string;
     strict_delta_excursion: string;
     peak_decay: string;
   };

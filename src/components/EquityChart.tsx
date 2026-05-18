@@ -91,7 +91,7 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
 
   return (
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_210px]">
-      <div className="relative overflow-hidden rounded-[20px] border border-white/[0.08] bg-black/20 p-3.5 shadow-[0_22px_64px_-44px_rgba(0,0,0,0.9)] transition-colors hover:border-brand-accent/20">
+      <div className="analytics-equity-chart-shell relative overflow-hidden rounded-[20px] border border-white/[0.08] bg-black/20 p-3.5 shadow-[0_22px_64px_-44px_rgba(0,0,0,0.9)] transition-colors hover:border-brand-accent/20">
         <div className="analytics-grid-overlay opacity-25" />
         <div className="relative z-10 flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-2.5">
@@ -316,7 +316,7 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-3.5">
           <p className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-brand-text-dim">{t.ui.resistance}</p>
           <p className="mt-1.5 font-mono text-xl font-black text-brand-text-bright">{maxRecoveryTrades}</p>
-          <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-brand-text-dim">trades to recover</p>
+          <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-brand-text-dim">{t.ui.trades_to_recover}</p>
         </div>
       </aside>
     </div>

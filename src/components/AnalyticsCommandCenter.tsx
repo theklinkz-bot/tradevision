@@ -280,23 +280,23 @@ const MicroTelemetryCard = ({ stats, language }: { stats: TradeStats; language: 
   <motion.article
     whileHover={{ y: -2 }}
     transition={{ duration: 0.16 }}
-    className="analytics-intel-card group relative min-h-[132px] overflow-hidden rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.045] p-4 sm:min-h-[158px] sm:p-5"
+    className="analytics-intel-card analytics-micro-card group relative min-h-[132px] overflow-hidden rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.045] p-4 sm:min-h-[158px] sm:p-5"
   >
     <div className="analytics-grid-overlay opacity-15" />
     <div className="relative z-10 flex h-full min-h-[78px] flex-col justify-between gap-4">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-mono text-[9px] font-black uppercase tracking-[0.24em] text-cyan-200/75">micro telemetry</p>
+          <p className="analytics-micro-label font-mono text-[9px] font-black uppercase tracking-[0.24em] text-cyan-200/75">micro telemetry</p>
           <p className="mt-2 text-sm font-black leading-snug tracking-[-0.02em] text-brand-text-bright">
             Equity pulse from the last closed nodes
           </p>
         </div>
-        <RadioTower className="shrink-0 text-cyan-200/80" size={20} />
+        <RadioTower className="analytics-micro-icon shrink-0 text-cyan-200/80" size={20} />
       </div>
       <MetricTooltip tooltipKey="sample" language={language}>
         <div className="flex items-center justify-between border-t border-cyan-300/10 pt-3 font-mono">
           <span className="text-[9px] font-black uppercase tracking-[0.18em] text-brand-text-dim">sample</span>
-          <span className="text-sm font-black text-cyan-100">{stats.totalTrades} nodes</span>
+          <span className="analytics-micro-value text-sm font-black text-cyan-100">{stats.totalTrades} nodes</span>
         </div>
       </MetricTooltip>
     </div>
@@ -484,7 +484,7 @@ export const AnalyticsCommandCenter = ({
                   </div>
                 </div>
 
-                <div className="grid min-w-0 gap-x-5 rounded-2xl border border-white/[0.08] bg-black/20 p-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="analytics-confidence-strip grid min-w-0 gap-x-5 rounded-2xl border border-white/[0.08] bg-black/20 p-3 sm:grid-cols-2 xl:grid-cols-4">
                   <TelemetryLine label="confidence" value={`${confidence}%`} active tooltipKey="confidence" language={language} />
                   <TelemetryLine label="wins / losses / be" value={`${wins} / ${losses} / ${breakEvens}`} tooltipKey="winsLosses" language={language} />
                   <TelemetryLine label="latest node" value={latestTrade ? latestTrade.symbol : 'standby'} tooltipKey="latestNode" language={language} />
@@ -564,27 +564,38 @@ export const AnalyticsCommandCenter = ({
         </AnalysisCard>
       </section>
 
-      <section className="analytics-summary-grid grid gap-1 sm:grid-cols-2 xl:grid-cols-4 xl:gap-1.5">
-        {[
-          { label: t.ui.profit_factor, value: stats.profitFactor > 0 ? stats.profitFactor.toFixed(2) : '0.00', icon: BarChart3, tone: 'text-brand-accent', tooltipKey: 'profitFactor' as const },
-          { label: t.ui.risk_reward, value: `1:${stats.avgRR.toFixed(2)}`, icon: Gauge, tone: 'text-cyan-200', tooltipKey: 'avgRR' as const },
-          { label: t.ui.day_profile, value: bestDay?.day ?? '--', icon: CalendarDays, tone: 'text-brand-text-bright', tooltipKey: 'bestDay' as const },
-          { label: t.ui.leading_symbols, value: bestSymbol?.symbol ?? '--', icon: LineChart, tone: 'text-brand-warning', tooltipKey: 'bestSymbol' as const }
-        ].map((item) => (
-          <div key={item.label}>
-            <MetricTooltip tooltipKey={item.tooltipKey} language={language}>
-              <div className="analytics-panel flex min-h-[64px] items-center justify-between rounded-xl border border-white/[0.07] bg-white/[0.025] p-2.5">
+      <section className="analytics-summary-rail analytics-panel relative overflow-hidden rounded-[18px] border border-white/[0.08] bg-brand-elevated/35 p-3">
+        <div className="analytics-grid-overlay opacity-10" />
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-2.5">
+          <div>
+            <p className="font-mono text-[9px] font-black uppercase tracking-[0.24em] text-brand-accent/75">Signal snapshot</p>
+            <p className="mt-0.5 text-xs font-semibold text-brand-text-dim">Fast read across edge, risk, and market fit</p>
+          </div>
+          <span className="rounded-full border border-brand-accent/20 bg-brand-accent/[0.06] px-2.5 py-1 font-mono text-[8px] font-black uppercase tracking-[0.18em] text-brand-accent">
+            {stats.totalTrades} nodes
+          </span>
+        </div>
+        <div className="relative z-10 grid gap-px overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.06] sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            { label: t.ui.profit_factor, value: stats.profitFactor > 0 ? stats.profitFactor.toFixed(2) : '0.00', icon: BarChart3, tone: 'is-positive', tooltipKey: 'profitFactor' as const, meta: 'edge efficiency' },
+            { label: t.ui.risk_reward, value: `1:${stats.avgRR.toFixed(2)}`, icon: Gauge, tone: 'is-cyan', tooltipKey: 'avgRR' as const, meta: 'reward geometry' },
+            { label: t.ui.day_profile, value: bestDay?.day ?? '--', icon: CalendarDays, tone: 'is-neutral', tooltipKey: 'bestDay' as const, meta: 'timing advantage' },
+            { label: t.ui.leading_symbols, value: bestSymbol?.symbol ?? '--', icon: LineChart, tone: 'is-warning', tooltipKey: 'bestSymbol' as const, meta: 'best performer' }
+          ].map((item) => (
+            <MetricTooltip key={item.label} tooltipKey={item.tooltipKey} language={language}>
+              <div className={`analytics-summary-cell ${item.tone}`}>
                 <div className="min-w-0">
-                  <p className="font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-brand-text-dim">{item.label}</p>
-                  <p className={`mt-0.5 font-mono text-base font-black ${item.tone}`}>{item.value}</p>
+                  <p className="font-mono text-[8px] font-black uppercase tracking-[0.18em] text-brand-text-dim">{item.label}</p>
+                  <p className="analytics-summary-value mt-1 truncate font-mono text-xl font-black">{item.value}</p>
+                  <p className="mt-1 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-brand-text-dim/70">{item.meta}</p>
                 </div>
-                <div className="ml-2 rounded-lg border border-white/[0.06] bg-black/15 p-1.5 text-brand-text-dim">
-                  <item.icon size={16} />
+                <div className="analytics-summary-icon">
+                  <item.icon size={15} />
                 </div>
               </div>
             </MetricTooltip>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
     </div>
   );

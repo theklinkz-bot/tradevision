@@ -915,6 +915,60 @@
   background-size: 44px 44px, 44px 44px, 100% 100%, 100% 100%;
   mask-image: linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.25));
 }
+[data-theme='light'] .analytics-hero,
+[data-theme='light'] .analytics-core-card,
+[data-theme='light'] .analytics-panel,
+[data-theme='light'] .analytics-intel-card {
+  border-color: color-mix(in oklab, var(--brand-accent) 14%, var(--brand-border));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.86), rgba(245,248,250,0.72)),
+    radial-gradient(340px 220px at 92% 0%, rgba(5,150,105,0.07), transparent 72%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.88),
+    0 24px 64px -44px rgba(15,23,42,0.34),
+    0 0 34px -28px rgba(5,150,105,0.32);
+}
+[data-theme='light'] .analytics-core-card {
+  border-color: color-mix(in oklab, var(--brand-accent) 24%, var(--brand-border));
+  background:
+    linear-gradient(135deg, rgba(236,253,245,0.78), rgba(255,255,255,0.86) 56%, rgba(240,253,250,0.78)),
+    radial-gradient(460px 240px at 16% 8%, rgba(5,150,105,0.10), transparent 62%);
+}
+[data-theme='light'] .analytics-confidence-strip {
+  border-color: color-mix(in oklab, var(--brand-accent) 22%, var(--brand-border)) !important;
+  background:
+    linear-gradient(135deg, rgba(236,253,245,0.72), rgba(255,255,255,0.9)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.92),
+    0 16px 34px -30px rgba(5,150,105,0.34);
+}
+[data-theme='light'] .analytics-micro-card {
+  border-color: color-mix(in oklab, var(--brand-warning) 28%, var(--brand-border)) !important;
+  background:
+    linear-gradient(135deg, rgba(255,251,235,0.82), rgba(255,255,255,0.88)) !important;
+}
+[data-theme='light'] .analytics-micro-label,
+[data-theme='light'] .analytics-micro-icon,
+[data-theme='light'] .analytics-micro-value {
+  color: var(--brand-warning) !important;
+}
+[data-theme='light'] .analytics-equity-chart-shell {
+  border-color: color-mix(in oklab, var(--brand-accent) 18%, var(--brand-border)) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.9), rgba(240,253,250,0.66)),
+    radial-gradient(420px 220px at 82% 0%, rgba(5,150,105,0.08), transparent 70%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.92),
+    0 22px 60px -44px rgba(15,23,42,0.38),
+    0 0 28px -24px rgba(5,150,105,0.28) !important;
+}
+[data-theme='light'] .analytics-grid-overlay {
+  background-image:
+    linear-gradient(rgba(15,23,42,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,23,42,0.04) 1px, transparent 1px),
+    radial-gradient(circle at 18% 8%, rgba(5,150,105,0.10), transparent 28%),
+    radial-gradient(circle at 90% 0%, rgba(217,119,6,0.07), transparent 32%);
+}
 [data-theme='nexus'] .analytics-hero,
 [data-theme='nexus'] .analytics-core-card,
 [data-theme='nexus'] .analytics-panel,
@@ -971,6 +1025,74 @@
   text-shadow:
     0 0 10px color-mix(in oklab, currentColor 28%, transparent),
     0 0 26px color-mix(in oklab, currentColor 13%, transparent);
+}
+
+.analytics-summary-rail {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.045),
+    0 18px 54px -42px rgba(0,0,0,0.9),
+    0 0 38px -32px color-mix(in oklab, var(--brand-accent) 58%, transparent);
+}
+
+.analytics-summary-cell {
+  position: relative;
+  display: flex;
+  min-height: 92px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand-elevated) 74%, transparent), color-mix(in oklab, var(--brand-bg) 70%, transparent));
+  padding: 16px;
+}
+
+.analytics-summary-cell::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: currentColor;
+  opacity: .68;
+  box-shadow: 0 0 14px currentColor;
+}
+
+.analytics-summary-cell.is-positive { color: var(--brand-accent); }
+.analytics-summary-cell.is-cyan { color: var(--analytics-cyan); }
+.analytics-summary-cell.is-neutral { color: var(--brand-text-bright); }
+.analytics-summary-cell.is-warning { color: var(--brand-warning); }
+
+.analytics-summary-value {
+  color: currentColor;
+  letter-spacing: -0.04em;
+  text-shadow: 0 0 18px color-mix(in oklab, currentColor 22%, transparent);
+}
+
+.analytics-summary-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 11px;
+  border: 1px solid color-mix(in oklab, currentColor 22%, var(--brand-border));
+  background: color-mix(in oklab, currentColor 8%, transparent);
+  color: currentColor;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+[data-theme='light'] .analytics-summary-rail {
+  border-color: color-mix(in oklab, var(--brand-accent) 14%, var(--brand-border));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.88), rgba(245,248,250,0.78));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    0 20px 58px -44px rgba(15,23,42,0.32);
+}
+
+[data-theme='light'] .analytics-summary-cell {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,252,0.82));
 }
 
 .analytics-r-suffix {
