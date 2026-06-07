@@ -2722,7 +2722,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
         <aside className="recent-rail hidden lg:flex w-[220px] border-r border-brand-border/70 bg-brand-bg flex-col shrink-0">
 
           {/* Nav Section */}
-          <nav className="p-3 flex flex-col gap-0.5 border-b border-brand-border/40">
+          <nav className="px-3 pt-4 pb-3 flex flex-col gap-0.5 border-b border-brand-border/30">
             {([
               { tab: 'Dashboard' as typeof mainTab, icon: Layout },
               { tab: 'Analytics' as typeof mainTab, icon: BarChart3 },
@@ -2738,31 +2738,30 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 onClick={() => setMainTab(tab)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group ${
                   mainTab === tab
-                    ? 'bg-brand-accent/12 text-brand-accent'
-                    : 'text-brand-text-dim hover:bg-brand-elevated/60 hover:text-brand-text-bright'
+                    ? 'bg-brand-accent/15 text-brand-accent'
+                    : 'text-brand-text-dim/70 hover:bg-brand-elevated/70 hover:text-brand-text-bright'
                 }`}
               >
-                <Icon size={15} className={mainTab === tab ? 'text-brand-accent' : 'text-brand-text-dim/60 group-hover:text-brand-text-bright'} />
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em]">
+                <Icon size={16} className={mainTab === tab ? 'text-brand-accent' : 'opacity-50 group-hover:opacity-100'} />
+                <span className={`text-[11px] font-bold uppercase tracking-[0.14em] ${mainTab === tab ? 'text-brand-accent' : ''}`}>
                   {tab === 'StrategyLab' ? 'Strategy Lab' : tab}
                 </span>
-                {mainTab === tab && <span className="ml-auto w-1 h-4 rounded-full bg-brand-accent" />}
+                {mainTab === tab && <span className="ml-auto w-[3px] h-4 rounded-full bg-brand-accent shadow-[0_0_8px_var(--brand-accent)]" />}
               </button>
             ))}
           </nav>
 
           {/* Extractions Header */}
-          <div className="px-4 py-3 bg-brand-elevated/20">
-            <h2 className="label-caps text-[9px] text-brand-text-bright flex items-center gap-2">
-              <Database size={10} className="text-brand-accent" />
+          <div className="px-4 py-2.5 border-b border-brand-border/20">
+            <p className="font-mono text-[9px] font-black uppercase tracking-[0.22em] text-brand-accent/80">
               {t.ui.recent_extractions}
-            </h2>
-            <p className="font-mono text-[8px] uppercase tracking-[0.16em] text-brand-text-dim/40 mt-0.5">
+            </p>
+            <p className="font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/35 mt-0.5">
               Win/Loss continuity rail
             </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-px">
             {history.length === 0 ? (
               <div className="p-8 text-center opacity-20">
                 <Layout size={28} className="mx-auto mb-2" />
@@ -2776,28 +2775,28 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   <button
                     key={item.id}
                     onClick={() => { setCurrentAnalysis(item); setPreview(item.imageUrl); }}
-                    className={`recent-rail-item w-full rounded-xl border transition-all text-left group p-3 ${
+                    className={`recent-rail-item w-full rounded-lg border transition-all text-left group px-3 py-2.5 ${
                       currentAnalysis?.id === item.id
-                        ? 'is-active bg-brand-accent/10 border-brand-accent/45'
-                        : 'border-transparent hover:bg-brand-elevated/75 hover:border-brand-border/80'
+                        ? 'is-active bg-brand-accent/10 border-brand-accent/40'
+                        : 'border-transparent hover:bg-brand-elevated/80 hover:border-brand-border/60'
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="min-w-0">
-                        <span className="monospace-data block truncate text-xs">{item.symbol}</span>
-                        <span className="font-mono text-[8px] uppercase tracking-[0.16em] text-brand-text-dim/55">{item.side}</span>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="min-w-0 flex items-center gap-2">
+                        <span className="text-[12px] font-black text-brand-text-bright truncate tracking-tight">{item.symbol}</span>
+                        <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-brand-text-dim/60">{item.side}</span>
                       </div>
-                      <span className={`streak-pill ${resultTone}`}>
+                      <span className={`streak-pill ${resultTone} !text-[9px] !px-2 !py-0.5`}>
                         {resultLabel}
                         {result && streakCount > 1 && <sup>{streakCount}</sup>}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between gap-2 text-[9px] text-brand-text-dim uppercase font-mono">
-                      <span className="flex min-w-0 items-center gap-1.5 truncate">
-                        <Clock size={10} />{item.date}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex min-w-0 items-center gap-1 font-mono text-[9px] text-brand-text-dim/50 uppercase truncate">
+                        <Clock size={9} />{item.date}
                       </span>
                       {result && streakCount > 1 && (
-                        <span className="text-brand-accent/70">{streakCount}x streak</span>
+                        <span className="font-mono text-[8px] font-black text-brand-accent/80 uppercase tracking-wide">{streakCount}x streak</span>
                       )}
                     </div>
                   </button>
@@ -2807,19 +2806,19 @@ const NoteTooltip = ({ note }: { note: string }) => {
           </div>
 
           {/* Profile Card */}
-          <div className="p-4 border-t border-brand-border/60 bg-brand-elevated/30 flex items-center gap-3">
-            <div className="shrink-0 w-9 h-9 rounded-full bg-brand-accent/15 border border-brand-accent/30 flex items-center justify-center overflow-hidden">
-              <span className="font-mono text-[11px] font-black text-brand-accent">
+          <div className="p-3 border-t border-brand-border/40 bg-brand-elevated/20 flex items-center gap-3">
+            <div className="shrink-0 w-9 h-9 rounded-full bg-brand-accent/20 border border-brand-accent/40 flex items-center justify-center">
+              <span className="text-[13px] font-black text-brand-accent">
                 {user?.email?.[0]?.toUpperCase() ?? 'T'}
               </span>
             </div>
-            <div className="min-w-0">
-              <p className="font-mono text-[10px] font-bold text-brand-text-bright truncate uppercase tracking-[0.08em]">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-bold text-brand-text-bright truncate uppercase tracking-[0.06em]">
                 {user?.email?.split('@')[0] ?? 'Trader'}
               </p>
-              <p className="font-mono text-[8px] uppercase tracking-[0.16em] text-brand-text-dim/50 flex items-center gap-1.5 mt-0.5">
+              <p className="font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/55 flex items-center gap-1.5 mt-0.5">
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isAnalyzing ? 'bg-brand-warning animate-pulse' : 'bg-trade-long'}`} />
-                {isAnalyzing ? 'Processing' : 'Node Online'}
+                {isAnalyzing ? 'Processing' : 'Senior Node Operative'}
               </p>
             </div>
           </div>
