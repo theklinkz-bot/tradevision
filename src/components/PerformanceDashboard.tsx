@@ -48,7 +48,7 @@ const MetricTooltip = ({ content, thaiContent }: { content: string, thaiContent:
   <RadixTooltip.Provider delayDuration={200}>
     <RadixTooltip.Root>
       <RadixTooltip.Trigger asChild>
-        <button className="p-1 hover:text-brand-accent transition-colors opacity-40 hover:opacity-100 outline-none">
+        <button className="p-1 hover:text-brand-accent transition-colors opacity-40 hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-accent/40 rounded">
           <Info size={12} />
         </button>
       </RadixTooltip.Trigger>
@@ -78,16 +78,13 @@ const MetricTooltip = ({ content, thaiContent }: { content: string, thaiContent:
 export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stats, t, isSidebarCollapsed }) => {
   const p = t.performance;
 
-  // Mock data for session if missing
-  const sessionData = stats.performanceBySession || [
-    { session: 'Asia', winRate: 50, profit: 0, count: 0 },
-    { session: 'London', winRate: 50, profit: 0, count: 0 },
-    { session: 'New York', winRate: 50, profit: 0, count: 0 }
-  ];
+  const sessionData = React.useMemo(
+    () => stats.performanceBySession ?? [],
+    [stats.performanceBySession]
+  );
 
-  // Helper to determine best/worst
-  const bestSession = [...sessionData].sort((a, b) => b.profit - a.profit)[0];
-  const worstSession = [...sessionData].sort((a, b) => a.profit - b.profit)[0];
+  const bestSession = sessionData.length > 0 ? [...sessionData].sort((a, b) => b.profit - a.profit)[0] : null;
+  const worstSession = sessionData.length > 0 ? [...sessionData].sort((a, b) => a.profit - b.profit)[0] : null;
 
   const bestSetup = stats.strategyAnalysis && stats.strategyAnalysis.length > 0 
     ? [...stats.strategyAnalysis].sort((a, b) => b.profit - a.profit)[0]
@@ -141,8 +138,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
   return (
     <div className="flex flex-col gap-6 pb-12">
       {/* 1. Primary Winrate Hero */}
-      <div className={`grid grid-cols-1 gap-4 transition-all duration-300 ${isSidebarCollapsed ? 'md:grid-cols-3 xl:grid-cols-5' : 'md:grid-cols-2 lg:grid-cols-5'}`}>
-        <div className={`md:col-span-2 min-h-[220px] bg-brand-elevated rounded-xl border ${winRateState.border} p-6 shadow-2xl ${winRateState.glow} relative overflow-hidden ring-1 ring-white/[0.03]`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transition-all duration-300 ${isSidebarCollapsed ? 'md:grid-cols-3 xl:grid-cols-5' : 'md:grid-cols-2 lg:grid-cols-5'}`}>
+        <div className={`sm:col-span-2 md:col-span-2 min-h-[220px] bg-brand-elevated rounded-xl border ${winRateState.border} p-6 shadow-2xl ${winRateState.glow} relative overflow-hidden ring-1 ring-white/[0.03]`}>
           <div className="absolute inset-0 dot-matrix opacity-10 pointer-events-none" />
           <div className={`absolute inset-x-0 top-0 h-1 ${winRateState.bar}`} />
           <div className="relative z-10 flex h-full flex-col justify-between gap-6">
@@ -171,11 +168,23 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
                     <span className="text-3xl lg:text-4xl opacity-50 ml-1">%</span>
                   </div>
                 ) : (
-                  <div className="text-3xl lg:text-4xl font-black tracking-tighter text-brand-text-bright leading-tight">
-                    No closed trades yet
+                  <div className="flex flex-col gap-3">
+                    <div className="text-xl font-display font-bold tracking-tight text-brand-text-bright leading-tight">
+                      No closed trades yet
+                    </div>
+                    <p className="text-[10px] text-brand-text-dim font-mono uppercase tracking-widest">
+                      Upload a screenshot to log your first trade
+                    </p>
                   </div>
                 )}
-                <div className="mt-4 h-2 w-full rounded-full bg-brand-bg border border-brand-border overflow-hidden">
+                <div
+                  role="progressbar"
+                  aria-valuenow={hasClosedTrades ? stats.winRate : 0}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Win rate"
+                  className="mt-4 h-2 w-full rounded-full bg-brand-bg border border-brand-border overflow-hidden"
+                >
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${hasClosedTrades ? Math.min(100, Math.max(0, stats.winRate)) : 0}%` }}
@@ -213,7 +222,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
       </div>
 
       {/* 3. Supporting Metrics Bar */}
-      <div className={`grid grid-cols-1 gap-4 transition-all duration-300 ${isSidebarCollapsed ? 'md:grid-cols-3 xl:grid-cols-5' : 'md:grid-cols-2 lg:grid-cols-5'}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transition-all duration-300 ${isSidebarCollapsed ? 'md:grid-cols-3 xl:grid-cols-5' : 'md:grid-cols-2 lg:grid-cols-5'}`}>
         {/* Net Profit */}
         <div className="bg-brand-elevated/25 p-5 rounded-xl border border-brand-border/70 flex flex-col justify-between shadow-sm group opacity-90">
           <div>
@@ -224,7 +233,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
                 thaiContent="กำไรสุทธิ: ผลรวมกำไรหรือขาดทุนจากทุกไม้ที่ปิดแล้ว โดยคิดเป็นหน่วยความเสี่ยง (R)"
               />
             </div>
-            <div className={`text-2xl font-bold tracking-tighter ${currentEquity >= 0 ? 'text-brand-success' : 'text-brand-danger'}`}>
+            <div className={`text-4xl font-black tracking-tighter leading-none ${currentEquity >= 0 ? 'text-brand-success' : 'text-brand-danger'}`}>
               {currentEquity >= 0 ? '+' : ''}{currentEquity.toFixed(2)}R
             </div>
           </div>
@@ -251,9 +260,9 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
             </div>
             
             <div className="flex items-baseline gap-2">
-              <div className="text-4xl font-black tracking-tighter text-brand-text-bright">
+              <div className="text-6xl font-display font-bold tracking-tight text-brand-text-bright leading-none">
                 {stats.expectancy.toFixed(2)}
-                <span className="text-xl opacity-50 ml-1 italic">R</span>
+                <span className="text-2xl opacity-50 ml-1 italic">R</span>
               </div>
             </div>
             
@@ -273,7 +282,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
                 thaiContent="Drawdown สูงสุด: ระยะขาดทุนที่ลึกที่สุดจากจุดสูงสุด สื่อถึงความเสี่ยงสูงสุดที่คุณเคยเผชิญ"
               />
             </div>
-            <div className={`text-2xl font-bold tracking-tighter ${stats.maxDrawdown > 5 ? 'text-brand-danger' : 'text-brand-text-bright'}`}>
+            <div className={`text-4xl font-black tracking-tighter leading-none ${stats.maxDrawdown > 5 ? 'text-brand-danger' : 'text-brand-text-bright'}`}>
               -{stats.maxDrawdown.toFixed(2)}R
             </div>
           </div>
@@ -367,8 +376,10 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
                 />
               </div>
               <div className="space-y-3">
-                {sessionData.map((session, idx) => (
-                  <div key={idx} className={`flex justify-between items-center p-3.5 rounded-lg border ${session.session === bestSession.session ? 'bg-brand-accent/5 border-brand-accent/30 ring-1 ring-brand-accent/10' : 'bg-brand-bg/40 border-brand-border'}`}>
+                {sessionData.length === 0 ? (
+                  <p className="text-[10px] text-brand-text-dim font-mono uppercase opacity-50 py-2">No session data yet</p>
+                ) : sessionData.map((session, idx) => (
+                  <div key={idx} className={`flex justify-between items-center p-3.5 rounded-lg border ${session.session === bestSession?.session ? 'bg-brand-accent/5 border-brand-accent/30 ring-1 ring-brand-accent/10' : 'bg-brand-bg/40 border-brand-border'}`}>
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-brand-text-bright uppercase">{(p as any)[session.session.toLowerCase()] || session.session}</span>
                       <span className="text-[9px] font-bold text-brand-text-dim uppercase">{session.count} Executions</span>
@@ -442,7 +453,11 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
         </div>
 
         {/* Professional Lockdown Access */}
-        <div className={`rounded-xl border p-8 flex flex-col justify-between transition-all shadow-lg backdrop-blur-md ${stats.maxConsecutiveLosses >= 3 ? 'bg-brand-danger/20 border-brand-danger/40 ring-2 ring-brand-danger/10' : 'bg-brand-elevated/50 border-brand-border opacity-60 hover:opacity-100'}`}>
+        <div
+          role={stats.maxConsecutiveLosses >= 3 ? 'alert' : undefined}
+          aria-live={stats.maxConsecutiveLosses >= 3 ? 'assertive' : undefined}
+          className={`rounded-xl border p-8 flex flex-col justify-between transition-all shadow-lg backdrop-blur-md ${stats.maxConsecutiveLosses >= 3 ? 'bg-brand-danger/20 border-brand-danger/40 ring-2 ring-brand-danger/10' : 'bg-brand-elevated/50 border-brand-border opacity-60 hover:opacity-100'}`}
+        >
           <div className="flex flex-col items-center text-center gap-6">
             <div className={`w-16 h-16 rounded-full flex items-center justify-center border shadow-xl transition-all duration-700 ${stats.maxConsecutiveLosses >= 3 ? 'bg-brand-danger text-white border-brand-danger/40 animate-pulse' : 'bg-brand-elevated text-brand-text-dim border-brand-border'}`}>
               <ShieldAlert size={32} />
@@ -463,8 +478,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
           <div className="space-y-6 pt-6 border-t border-brand-border">
             <div className="flex flex-col items-center gap-1">
               <span className="text-[9px] font-black text-brand-text-dim uppercase tracking-widest">{p.lockdown_timer}</span>
-              <div className="text-3xl font-black tabular-nums tracking-tighter text-brand-text-bright">
-                {stats.maxConsecutiveLosses >= 3 ? "23:59:42" : "00:00:00"}
+              <div className="text-3xl font-display font-bold tracking-tight text-brand-text-bright">
+                00:00:00
               </div>
             </div>
             

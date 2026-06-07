@@ -89,6 +89,10 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
     setVisibleSeries((current) => ({ ...current, [series]: !current[series] }));
   };
 
+  const handleToggleKey = (series: keyof typeof visibleSeries) => (e: React.KeyboardEvent) => {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleSeries(series); }
+  };
+
   return (
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_210px]">
       <div className="analytics-equity-chart-shell relative overflow-hidden rounded-[20px] border border-white/[0.08] bg-black/20 p-3.5 shadow-[0_22px_64px_-44px_rgba(0,0,0,0.9)] transition-colors hover:border-brand-accent/20">
@@ -104,14 +108,16 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
               <button
                 type="button"
                 onClick={() => toggleSeries('equity')}
+                onKeyDown={handleToggleKey('equity')}
                 aria-pressed={visibleSeries.equity}
-                className={`flex items-center gap-1.5 rounded-full border px-2 py-1 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-accent/40 ${visibleSeries.equity ? 'border-brand-accent/25 bg-brand-accent/[0.08] text-brand-text-bright shadow-[0_0_16px_rgba(52,211,153,0.12)]' : 'border-white/[0.06] bg-white/[0.02] opacity-45 hover:opacity-75'}`}
+                className={`flex items-center gap-1.5 rounded-full border px-2 py-1 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-accent/40 ${visibleSeries.equity ? 'border-brand-accent/25 bg-brand-accent/[0.08] text-brand-text-bright shadow-[0_0_16px_rgba(217,119,87,0.10)]' : 'border-white/[0.06] bg-white/[0.02] opacity-45 hover:opacity-75'}`}
               >
-                <i className="h-0.5 w-4 bg-brand-accent shadow-[0_0_10px_rgba(52,211,153,0.55)]" /> Equity
+                <i className="h-0.5 w-4 bg-brand-accent shadow-[0_0_10px_rgba(217,119,87,0.35)]" /> Equity
               </button>
               <button
                 type="button"
                 onClick={() => toggleSeries('movingAverage')}
+                onKeyDown={handleToggleKey('movingAverage')}
                 aria-pressed={visibleSeries.movingAverage}
                 className={`flex items-center gap-1.5 rounded-full border px-2 py-1 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-warning/30 ${visibleSeries.movingAverage ? 'border-brand-warning/25 bg-brand-warning/[0.07] text-brand-text-bright' : 'border-white/[0.06] bg-white/[0.02] opacity-45 hover:opacity-75'}`}
               >
@@ -120,6 +126,7 @@ export const EquityChart = ({ stats, t }: EquityChartProps) => {
               <button
                 type="button"
                 onClick={() => toggleSeries('drawdown')}
+                onKeyDown={handleToggleKey('drawdown')}
                 aria-pressed={visibleSeries.drawdown}
                 className={`flex items-center gap-1.5 rounded-full border px-2 py-1 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-trade-short/30 ${visibleSeries.drawdown ? 'border-trade-short/25 bg-trade-short/[0.07] text-brand-text-bright' : 'border-white/[0.06] bg-white/[0.02] opacity-45 hover:opacity-75'}`}
               >

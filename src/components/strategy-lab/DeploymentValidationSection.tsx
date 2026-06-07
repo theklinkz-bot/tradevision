@@ -59,7 +59,7 @@ export const DeploymentValidationSection = ({
       <div className="absolute inset-0 dot-matrix strategy-dot-drift opacity-10 pointer-events-none" />
       <div className="strategy-scanline pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-transparent via-brand-accent/10 to-transparent" />
       <div className={`strategy-radar pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border ${status.border} ${status.bg} blur-[1px]`} />
-      <div className="pointer-events-none absolute right-8 top-8 h-32 w-32 rounded-full border border-brand-accent/10 bg-[radial-gradient(circle,rgba(52,211,153,0.12),transparent_65%)]" />
+      <div className="pointer-events-none absolute right-8 top-8 h-32 w-32 rounded-full border border-brand-accent/10 bg-[radial-gradient(circle,rgba(217,119,87,0.10),transparent_65%)]" />
       <div className={`absolute inset-x-0 top-0 h-1 ${status.bar}`} />
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6 items-end">
         <div className="flex flex-col gap-5">
@@ -187,7 +187,7 @@ export const DeploymentValidationSection = ({
             ['Net R', formatR(netR), netR > 0 ? 'ready' : netR === 0 ? 'caution' : 'fail'],
             ['Closed Trades', String(closedTrades), closedTrades >= 100 ? 'ready' : 'caution']
           ].map(([label, value, tone]) => (
-            <div key={label} className="group rounded-lg border border-brand-border/60 bg-brand-bg/40 p-3 transition-all hover:shadow-[0_0_20px_rgba(52,211,153,0.05)]">
+            <div key={label} className="group rounded-lg border border-brand-border/60 bg-brand-bg/40 p-3 transition-all hover:shadow-[0_0_20px_rgba(217,119,87,0.05)]">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[8px] font-black uppercase tracking-widest text-brand-text-dim">METRIC // {label}</p>
                 <span className={`h-1.5 w-1.5 rounded-full ${toneStyles[tone as ValidationTone].bar}`} />

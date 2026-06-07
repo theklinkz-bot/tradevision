@@ -14,8 +14,8 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         manifest: {
-          name: 'TradeVision PRO',
-          short_name: 'TradeVision',
+          name: 'Flow the Edge PRO',
+          short_name: 'Flow the Edge',
           description: 'Flash-Speed AI Technical Analysis Hub',
           theme_color: '#0a0a0a',
           background_color: '#0a0a0a',
@@ -50,6 +50,7 @@ export default defineConfig(({mode}) => {
       },
     },
     server: {
+      port: 5174,
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',

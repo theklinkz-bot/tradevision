@@ -28,12 +28,12 @@ interface SignalValidationOverlayProps {
 }
 
 const STRATEGY_COLORS = [
-  '#6366f1', // Indigo
-  '#22d3ee', // Cyan
-  '#10b981', // Emerald
-  '#f59e0b', // Amber
-  '#ef4444', // Red
-  '#a855f7'  // Purple
+  '#D97757', // Claude terracotta
+  '#E8A850', // Warm amber
+  '#5FAD7A', // Muted sage
+  '#C4824A', // Burnt sienna
+  '#E05C5C', // Warm red
+  '#9B7FD4'  // Muted violet
 ];
 
 export const SignalValidationOverlay = ({ 
@@ -51,12 +51,15 @@ export const SignalValidationOverlay = ({
   const [newStrategyName, setNewStrategyName] = React.useState('');
   const [selectedColor, setSelectedColor] = React.useState(STRATEGY_COLORS[0]);
   const [isSavingStrategy, setIsSavingStrategy] = React.useState(false);
+  const [strategyError, setStrategyError] = React.useState<string | null>(null);
+  const [levelError, setLevelError] = React.useState<string | null>(null);
 
   if (!isOpen || !data) return null;
 
   const handleAddStrategy = async () => {
     if (!newStrategyName.trim()) return;
     setIsSavingStrategy(true);
+    setStrategyError(null);
     try {
       const newStrategy = await onAddStrategy(newStrategyName.trim(), selectedColor);
       onDataChange({
@@ -67,27 +70,42 @@ export const SignalValidationOverlay = ({
       });
       setNewStrategyName('');
       setIsAddingStrategy(false);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setStrategyError(err?.message || 'Failed to save strategy');
     } finally {
       setIsSavingStrategy(false);
     }
   };
 
+  const validateLevels = () => {
+    if (data.levels.entry && data.levels.stopLoss && data.levels.entry === data.levels.stopLoss) {
+      setLevelError('Entry and Stop Loss cannot be the same price');
+      return false;
+    }
+    setLevelError(null);
+    return true;
+  };
+
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-        <motion.div 
+      <div
+        className="fixed inset-0 z-[150] flex items-center justify-center p-4"
+        onKeyDown={e => { if (e.key === 'Escape') onClose(); }}
+      >
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 bg-brand-bg/90 backdrop-blur-xl"
           onClick={onClose}
         />
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="upload-modal-title"
           className="technical-panel w-full max-w-5xl bg-brand-elevated relative z-10 border-brand-accent/30 shadow-2xl flex flex-col md:flex-row overflow-hidden"
         >
           {/* Left: Visual Evidence (Screenshot) */}
@@ -119,7 +137,7 @@ export const SignalValidationOverlay = ({
           <div className="md:w-1/2 p-8 flex flex-col gap-6">
             <div className="flex items-center justify-between border-b border-brand-border pb-4">
               <div>
-                <h3 className="label-caps mb-0 text-brand-text-bright flex items-center gap-2">
+                <h3 id="upload-modal-title" className="label-caps mb-0 text-brand-text-bright flex items-center gap-2">
                   <Zap size={16} className="text-brand-accent" />
                   {t.ui.signal_validation_protocol}
                 </h3>
@@ -145,11 +163,13 @@ export const SignalValidationOverlay = ({
                   )}
                 </div>
                 <div className="relative group">
-                  <input 
+                  <input
                     list="symbols-list"
+                    aria-label={t.ui.pair_ticker}
+                    aria-invalid={data.symbol && !recentSymbols.includes(data.symbol.toUpperCase()) ? 'true' : undefined}
                     className={`w-full bg-brand-bg border p-3 monospace-data rounded text-sm transition-all outline-none ${
-                      data.symbol && !recentSymbols.includes(data.symbol.toUpperCase()) 
-                        ? 'border-brand-warning/50 focus:border-brand-warning shadow-lg shadow-brand-warning/10' 
+                      data.symbol && !recentSymbols.includes(data.symbol.toUpperCase())
+                        ? 'border-brand-warning/50 focus:border-brand-warning shadow-lg shadow-brand-warning/10'
                         : 'border-brand-border focus:border-brand-accent'
                     }`}
                     placeholder="e.g. XAUUSD"
@@ -190,6 +210,9 @@ export const SignalValidationOverlay = ({
                   </button>
                 </label>
                 
+                {strategyError && (
+                  <p className="text-[9px] text-brand-danger font-mono uppercase mt-1">{strategyError}</p>
+                )}
                 {isAddingStrategy ? (
                   <div className="p-3 bg-brand-bg border border-brand-accent/30 rounded-lg flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="flex gap-2">
@@ -216,6 +239,8 @@ export const SignalValidationOverlay = ({
                           <button
                             key={c}
                             onClick={() => setSelectedColor(c)}
+                            aria-label={`Select color ${c}`}
+                            aria-pressed={selectedColor === c}
                             className={`w-4 h-4 rounded-full border border-white/20 transition-transform ${selectedColor === c ? 'scale-125 border-white shadow-[0_0_5px_rgba(255,255,255,0.5)]' : 'hover:scale-110'}`}
                             style={{ backgroundColor: c }}
                           />
@@ -264,21 +289,27 @@ export const SignalValidationOverlay = ({
                     <span className="text-[9px] font-mono text-brand-accent uppercase">{t.ui.entry_matrix}</span>
                     <span className="text-[10px] text-brand-text-dim">VALUE</span>
                   </div>
-                  <input 
+                  <input
                     type="number"
                     step="any"
+                    aria-label="Entry price"
                     className="bg-brand-bg border border-brand-border p-4 monospace-data rounded text-base font-bold focus:border-brand-accent transition-colors outline-none"
                     value={data.levels.entry || ''}
-                    onChange={e => onDataChange({...data, levels: {...data.levels, entry: parseFloat(e.target.value)}})}
+                    onChange={e => { onDataChange({...data, levels: {...data.levels, entry: parseFloat(e.target.value)}}); setLevelError(null); }}
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {levelError && (
+                  <p className="text-[9px] text-brand-danger font-mono uppercase -mt-2">{levelError}</p>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
                     <span className="text-[9px] font-mono text-trade-long uppercase leading-none">{t.ui.profit_goal}</span>
-                    <input 
+                    <input
                       type="number"
                       step="any"
+                      aria-label="Take profit price"
                       className="bg-brand-bg border border-brand-border p-3 monospace-data rounded text-sm font-bold focus:border-trade-long/50 transition-colors outline-none"
                       value={data.levels.takeProfit || ''}
                       onChange={e => onDataChange({...data, levels: {...data.levels, takeProfit: parseFloat(e.target.value)}})}
@@ -286,12 +317,13 @@ export const SignalValidationOverlay = ({
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <span className="text-[9px] font-mono text-trade-short uppercase leading-none">{t.ui.risk_threshold}</span>
-                    <input 
+                    <input
                       type="number"
                       step="any"
+                      aria-label="Stop loss price"
                       className="bg-brand-bg border border-brand-border p-3 monospace-data rounded text-sm font-bold focus:border-trade-short/50 transition-colors outline-none"
                       value={data.levels.stopLoss || ''}
-                      onChange={e => onDataChange({...data, levels: {...data.levels, stopLoss: parseFloat(e.target.value)}})}
+                      onChange={e => { onDataChange({...data, levels: {...data.levels, stopLoss: parseFloat(e.target.value)}}); setLevelError(null); }}
                     />
                   </div>
                 </div>
@@ -299,7 +331,7 @@ export const SignalValidationOverlay = ({
 
               <div className="col-span-2">
                 <label className="label-caps text-[10px]">{t.ui.signal_outcome}</label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {(['Win', 'Loss', 'BE', 'Pending'] as TradeStatus[]).map((status) => (
                     <button
                       key={status}
@@ -320,8 +352,8 @@ export const SignalValidationOverlay = ({
             </div>
 
             <div className="mt-auto flex flex-col gap-3">
-              <button 
-                onClick={onConfirm}
+              <button
+                onClick={() => { if (validateLevels()) onConfirm(); }}
                 className="w-full py-5 bg-brand-accent text-white font-bold uppercase tracking-[4px] text-[11px] rounded hover:opacity-90 transition-all shadow-xl shadow-brand-accent/30 flex items-center justify-center gap-3 active:scale-[0.98]"
               >
                 <CheckCircle2 size={16} />

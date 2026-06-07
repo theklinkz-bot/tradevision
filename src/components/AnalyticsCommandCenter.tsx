@@ -45,7 +45,10 @@ type TooltipKey =
   | 'bestSymbol'
   | 'bestDay'
   | 'sample'
-  | 'avgRR';
+  | 'avgRR'
+  | 'sharpeRatio'
+  | 'sequenceTape'
+  | 'rDistribution';
 
 const ANALYTICS_TOOLTIPS: Record<'EN' | 'TH', Record<TooltipKey, string>> = {
   EN: {
@@ -69,7 +72,10 @@ const ANALYTICS_TOOLTIPS: Record<'EN' | 'TH', Record<TooltipKey, string>> = {
     bestSymbol: 'The symbol that has contributed the most R.',
     bestDay: 'The weekday where your execution has worked best.',
     sample: 'How many closed trades are included in this read.',
-    avgRR: 'Your average reward compared with the risk you planned.'
+    avgRR: 'Your average reward compared with the risk you planned.',
+    sharpeRatio: 'Sharpe Ratio measures return per unit of risk. Above 1.0 is solid, above 2.0 is excellent. Calculated as mean R divided by standard deviation of R.',
+    sequenceTape: 'Each chip is one closed trade. Green = win, red = loss, gray = break-even. Highlighted chips are your current streak — useful for spotting runs before they become a problem.',
+    rDistribution: 'Shows how your R-multiples are spread across buckets of 0.5R. A healthy edge clusters wins to the right of zero. A wide or left-skewed spread signals inconsistency.'
   },
   TH: {
     winrate: 'บอกว่าทั้งหมดแล้วคุณเทรดชนะบ่อยแค่ไหน',
@@ -92,7 +98,10 @@ const ANALYTICS_TOOLTIPS: Record<'EN' | 'TH', Record<TooltipKey, string>> = {
     bestSymbol: 'สินทรัพย์ที่สร้าง R ให้มากที่สุด',
     bestDay: 'วันในสัปดาห์ที่ execution ทำงานดีที่สุด',
     sample: 'จำนวนเทรดปิดแล้วที่ถูกนำมาคิดในหน้านี้',
-    avgRR: 'ผลตอบแทนเฉลี่ยเมื่อเทียบกับความเสี่ยงที่วางไว้'
+    avgRR: 'ผลตอบแทนเฉลี่ยเมื่อเทียบกับความเสี่ยงที่วางไว้',
+    sharpeRatio: 'Sharpe Ratio วัดผลตอบแทนต่อหนึ่งหน่วยความเสี่ยง ค่าเกิน 1.0 ถือว่าดี เกิน 2.0 ยอดเยี่ยม คำนวณจากค่าเฉลี่ย R หารด้วยค่าเบี่ยงเบนมาตรฐานของ R',
+    sequenceTape: 'แต่ละ chip คือเทรดที่ปิดแล้ว chip สีเขียว = ชนะ สีแดง = แพ้ สีเทา = เสมอ chip ที่ไฮไลต์คือ streak ปัจจุบัน ช่วยให้เห็นแนวโน้มซ้ำๆ ก่อนที่มันจะเป็นปัญหา',
+    rDistribution: 'แสดงการกระจายของ R-multiple แบ่งเป็นช่วงละ 0.5R edge ที่ดีจะกองกำไรอยู่ทางขวาของเส้น 0 ถ้ากระจายกว้างหรือกองอยู่ซ้ายแสดงว่าผลลัพธ์ยังไม่นิ่ง'
   }
 };
 
@@ -265,19 +274,203 @@ export const NinjaAdvisorButton = ({ stats }: { stats?: TradeStats }) => {
         onFocus={() => setIsOpen(true)}
         onBlur={() => setIsOpen(false)}
       >
-        <img src="/assets/tradevision-logo.png" alt="" />
+        <span className="font-display font-black text-sm leading-none">K</span>
         <span className="ninja-advisor__ping" />
       </button>
       {isOpen && (
         <div className="ninja-advisor__panel" role="tooltip">
           <div className="ninja-advisor__header">
-            <span>CAT SENSEI</span>
+            <span>AI ADVISOR</span>
             <span>{advice.title}</span>
           </div>
           <p>{advice.message}</p>
         </div>
       )}
     </div>
+  );
+};
+
+const TradeSequenceTape = ({ rValues, language }: { rValues: number[]; language: 'EN' | 'TH'; }) => {
+  const recent = rValues.slice(-40);
+  // compute current streak
+  let streakCount = 0;
+  let streakType: 'win' | 'loss' | 'be' | null = null;
+  for (let i = recent.length - 1; i >= 0; i--) {
+    const type = recent[i] > 0 ? 'win' : recent[i] < 0 ? 'loss' : 'be';
+    if (streakType === null) { streakType = type; streakCount = 1; }
+    else if (type === streakType) { streakCount++; }
+    else break;
+  }
+  const streakLabel = streakType === 'win'
+    ? (language === 'TH' ? `ชนะ ${streakCount} ต่อ` : `${streakCount} win streak`)
+    : streakType === 'loss'
+      ? (language === 'TH' ? `แพ้ ${streakCount} ต่อ` : `${streakCount} loss streak`)
+      : '--';
+  const streakTone = streakType === 'win' ? 'text-brand-accent' : streakType === 'loss' ? 'text-brand-danger' : 'text-brand-text-dim';
+
+  if (recent.length === 0) return (
+    <p className="font-mono text-[10px] text-brand-text-dim uppercase tracking-widest opacity-50 py-2">
+      No trades to display yet
+    </p>
+  );
+
+  return (
+    <section className="analytics-panel relative overflow-hidden rounded-[22px] border border-white/[0.08] bg-brand-elevated/35 p-4 shadow-2xl sm:p-5">
+      <div className="analytics-grid-overlay opacity-20" />
+      <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2">
+        <MetricTooltip tooltipKey="sequenceTape" language={language}>
+          <div>
+            <p className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent/75">Trade Sequence</p>
+            <h3 className="mt-1 text-xl font-display font-bold tracking-tight text-brand-text-bright">Node Outcome Tape</h3>
+          </div>
+        </MetricTooltip>
+        <div className="flex items-center gap-3">
+          <span className={`font-mono text-xs font-black ${streakTone}`}>{streakLabel}</span>
+          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[8px] font-black uppercase tracking-[0.18em] text-brand-text-dim">
+            last {recent.length}
+          </span>
+        </div>
+      </div>
+      <div className="relative z-10 flex flex-wrap gap-1.5">
+        {recent.map((r, i) => {
+          const isWin = r > 0;
+          const isLoss = r < 0;
+          const chipClass = isWin
+            ? 'bg-brand-accent/20 border-brand-accent/40 text-brand-accent'
+            : isLoss
+              ? 'bg-brand-danger/20 border-brand-danger/40 text-brand-danger'
+              : 'bg-white/[0.06] border-white/[0.12] text-brand-text-dim';
+          const isCurrentStreak = i >= recent.length - streakCount;
+          return (
+            <div
+              key={i}
+              title={`${r > 0 ? '+' : ''}${r.toFixed(2)}R`}
+              className={`relative flex h-7 min-w-[28px] items-center justify-center rounded-md border px-1.5 font-mono text-[9px] font-black tabular-nums transition-opacity ${chipClass} ${isCurrentStreak ? 'ring-1 ring-current ring-offset-1 ring-offset-black/50' : 'opacity-70'}`}
+            >
+              {r > 0 ? '+' : ''}{r.toFixed(1)}
+            </div>
+          );
+        })}
+      </div>
+      <div className="relative z-10 mt-3 flex gap-4 border-t border-white/[0.05] pt-2.5">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-sm bg-brand-accent/60" />
+          <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-dim">Win</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-sm bg-brand-danger/60" />
+          <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-dim">Loss</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-sm bg-white/20" />
+          <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-dim">BE</span>
+        </div>
+        <span className="ml-auto font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-dim/60">highlighted = current streak</span>
+      </div>
+    </section>
+  );
+};
+
+const RDistributionChart = ({ rValues, language }: { rValues: number[]; language: 'EN' | 'TH' }) => {
+  if (rValues.length < 3) return (
+    <p className="font-mono text-[10px] text-brand-text-dim uppercase tracking-widest opacity-50 py-2">
+      {rValues.length === 0 ? 'No trades to display yet' : `Need ${3 - rValues.length} more trade${3 - rValues.length === 1 ? '' : 's'} for distribution`}
+    </p>
+  );
+
+  const sortedR = [...rValues].sort((a, b) => a - b);
+  const mid = Math.floor(sortedR.length / 2);
+  const medianR = sortedR.length % 2 === 0
+    ? (sortedR[mid - 1] + sortedR[mid]) / 2
+    : sortedR[mid];
+
+  const rawMin = sortedR[0];
+  const rawMax = sortedR[sortedR.length - 1];
+  const q1 = sortedR[Math.floor(sortedR.length * 0.25)] ?? rawMin;
+  const q3 = sortedR[Math.floor(sortedR.length * 0.75)] ?? rawMax;
+  const iqr = q3 - q1;
+  const fenceHigh = iqr > 0 ? Math.min(rawMax, q3 + 3 * iqr) : rawMax;
+  const fenceLow = iqr > 0 ? Math.max(rawMin, q1 - 3 * iqr) : rawMin;
+  const min = Math.floor(fenceLow * 2) / 2;
+  const max = Math.ceil(fenceHigh * 2) / 2;
+  const range = max - min || 1;
+  const bucketSize = range <= 10 ? 0.5 : range <= 20 ? 1 : Math.ceil((range / 40) * 2) / 2;
+  const buckets: { label: string; count: number; from: number; to: number; hasOverflow?: boolean }[] = [];
+
+  for (let b = min; b < max; b = parseFloat((b + bucketSize).toFixed(6))) {
+    const from = parseFloat(b.toFixed(6));
+    const to = parseFloat((b + bucketSize).toFixed(6));
+    const isLast = to >= max;
+    const count = rValues.filter((r) => r >= from && (isLast ? r <= rawMax : r < to)).length;
+    const hasOverflow = isLast && rawMax > fenceHigh;
+    buckets.push({ label: `${from >= 0 ? '+' : ''}${from.toFixed(1)}`, count, from, to, hasOverflow });
+  }
+
+  const maxCount = Math.max(...buckets.map((b) => b.count), 1);
+
+  return (
+    <section className="analytics-panel relative overflow-hidden rounded-[22px] border border-white/[0.08] bg-brand-elevated/35 p-4 shadow-2xl sm:p-5">
+      <div className="analytics-grid-overlay opacity-20" />
+      <div className="relative z-10 mb-4 flex flex-wrap items-center justify-between gap-2">
+        <MetricTooltip tooltipKey="rDistribution" language={language}>
+          <div>
+            <p className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent/75">Distribution</p>
+            <h3 className="mt-1 text-xl font-display font-bold tracking-tight text-brand-text-bright">R-Multiple Distribution</h3>
+          </div>
+        </MetricTooltip>
+        <div className="flex gap-2">
+          <div className="rounded-xl border border-brand-border/30 bg-brand-elevated/30 px-3 py-2">
+            <p className="font-mono text-[8px] font-black uppercase tracking-[0.16em] text-brand-text-dim">median</p>
+            <p className={`mt-0.5 font-mono text-sm font-black tabular-nums ${medianR >= 0 ? 'text-brand-accent' : 'text-brand-danger'}`}>
+              {medianR >= 0 ? '+' : ''}{medianR.toFixed(2)}R
+            </p>
+          </div>
+          <div className="rounded-xl border border-brand-border/30 bg-brand-elevated/30 px-3 py-2">
+            <p className="font-mono text-[8px] font-black uppercase tracking-[0.16em] text-brand-text-dim">sample</p>
+            <p className="mt-0.5 font-mono text-sm font-black tabular-nums text-brand-text-bright">{rValues.length}</p>
+          </div>
+        </div>
+      </div>
+      <div className="relative z-10 flex h-28 items-end gap-px overflow-hidden rounded-xl border border-brand-border/20 bg-brand-bg/30 px-2 pb-0 pt-2">
+        {buckets.map((bucket, i) => {
+          const heightPct = (bucket.count / maxCount) * 100;
+          const isPositive = bucket.from >= 0;
+          const isNearZero = bucket.from < 0 && bucket.to > 0;
+          const barColor = isNearZero
+            ? 'bg-brand-text-dim/20'
+            : isPositive
+              ? 'bg-brand-accent/60'
+              : 'bg-brand-danger/60';
+          const tipLabel = bucket.hasOverflow
+            ? `${bucket.label}R+ — ${bucket.count} trades`
+            : `${bucket.label}R — ${bucket.count} trades`;
+          return (
+            <div key={i} className="group relative flex h-full flex-1 flex-col items-center justify-end" title={tipLabel}>
+              <div
+                className={`w-full rounded-t-sm transition-all ${barColor}`}
+                style={{ height: `${Math.max(2, heightPct)}%` }}
+              />
+              {bucket.count > 0 && (
+                <span className="absolute -top-5 left-1/2 -translate-x-1/2 rounded border border-brand-border/30 bg-brand-elevated px-1 py-0.5 font-mono text-[7px] font-bold text-brand-text-bright opacity-0 transition-opacity group-hover:opacity-100">
+                  {bucket.count}{bucket.hasOverflow ? '+' : ''}
+                </span>
+              )}
+            </div>
+          );
+        })}
+        {/* zero line */}
+        {min !== max && (
+          <div className="pointer-events-none absolute inset-y-0 border-l border-dashed border-brand-border/50"
+            style={{ left: `${Math.max(0, Math.min(100, ((0 - min) / (max - min)) * 100))}%` }}
+          />
+        )}
+      </div>
+      <div className="relative z-10 mt-1.5 flex justify-between px-2">
+        <span className="font-mono text-[8px] text-brand-text-dim">{min.toFixed(1)}R</span>
+        <span className="font-mono text-[8px] text-brand-text-dim">0R</span>
+        <span className="font-mono text-[8px] text-brand-text-dim">{rawMax > fenceHigh ? `${max.toFixed(1)}R+` : `${max.toFixed(1)}R`}</span>
+      </div>
+    </section>
   );
 };
 
@@ -477,7 +670,7 @@ const AnalysisCard = ({
       <MetricTooltip tooltipKey={tooltipKey} language={language}>
         <div>
           <p className="font-mono text-[9px] font-black uppercase tracking-[0.24em] text-brand-accent/70">{eyebrow}</p>
-          <h3 className="mt-1.5 text-lg font-black uppercase tracking-[-0.02em] text-brand-text-bright">{title}</h3>
+          <h3 className="mt-1.5 text-3xl font-black uppercase tracking-[0.01em] text-brand-text-bright leading-none">{title}</h3>
         </div>
       </MetricTooltip>
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] p-2.5 text-brand-accent">
@@ -516,6 +709,7 @@ export const AnalyticsCommandCenter = ({
   const volatility = rValues.length
     ? Math.sqrt(rValues.reduce((sum, value) => sum + Math.pow(value - rAverage, 2), 0) / rValues.length)
     : 0;
+  const sharpeRatio = volatility > 0 ? rAverage / volatility : null;
   const bestSession = [...stats.performanceBySession].sort((a, b) => b.profit - a.profit)[0];
   const bestSymbol = [...stats.symbolEfficiency].sort((a, b) => b.profit - a.profit)[0];
   const bestDay = [...stats.performanceByDay].sort((a, b) => b.profit - a.profit)[0];
@@ -544,7 +738,7 @@ export const AnalyticsCommandCenter = ({
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="analytics-core-card relative min-h-[360px] overflow-hidden rounded-[22px] border border-brand-accent/20 bg-white/[0.035] p-5 shadow-[0_0_54px_-30px_rgba(52,211,153,0.72)] sm:p-6"
+            className="analytics-core-card relative min-h-[360px] overflow-hidden rounded-[22px] border border-brand-accent/20 bg-white/[0.035] p-5 shadow-[0_0_54px_-30px_rgba(217,119,87,0.45)] sm:p-6"
           >
             <div className="analytics-telemetry-sweep" />
             <div className="relative z-10 flex h-full flex-col justify-between gap-5">
@@ -553,7 +747,7 @@ export const AnalyticsCommandCenter = ({
                   <div className="flex flex-wrap items-center gap-2.5">
                     <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-brand-accent/85">Performance Core</p>
                   </div>
-                  <h2 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em] text-brand-text-bright sm:text-4xl">
+                  <h2 className="mt-2 text-2xl font-display font-bold tracking-tight text-brand-text-bright sm:text-4xl">
                     Trading Performance Command Center
                   </h2>
                   <p className="mt-2 max-w-2xl font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-text-dim">
@@ -567,7 +761,7 @@ export const AnalyticsCommandCenter = ({
                   <MetricTooltip tooltipKey="winrate" language={language}>
                     <p className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-brand-text-dim">primary signal / winrate</p>
                     <div className={`mt-2 flex items-end gap-2 ${winRateTone === 'negative' ? 'text-brand-danger' : winRateTone === 'warning' ? 'text-brand-warning' : 'text-brand-accent'}`}>
-                      <span className="analytics-winrate text-[clamp(4.6rem,10vw,8.4rem)] font-black leading-none tracking-[-0.08em]">
+                      <span className="analytics-winrate text-[clamp(4.6rem,10vw,8.4rem)] leading-none">
                         {stats.winRate.toFixed(1)}
                       </span>
                       <span className="mb-2 text-[clamp(2.1rem,4vw,3.2rem)] font-black opacity-50">%</span>
@@ -578,7 +772,7 @@ export const AnalyticsCommandCenter = ({
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.min(100, Math.max(0, stats.winRate))}%` }}
                       transition={{ duration: 1.1, ease: 'easeOut' }}
-                      className="h-full rounded-full bg-gradient-to-r from-brand-accent via-cyan-300 to-brand-accent shadow-[0_0_24px_rgba(52,211,153,0.55)]"
+                      className="h-full rounded-full bg-gradient-to-r from-brand-accent via-brand-warning to-brand-accent shadow-[0_0_24px_rgba(217,119,87,0.35)]"
                     />
                   </div>
                 </div>
@@ -628,7 +822,7 @@ export const AnalyticsCommandCenter = ({
         <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
           <div>
             <p className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent/75">Equity architecture</p>
-            <h3 className="mt-1 text-xl font-black uppercase tracking-[-0.03em] text-brand-text-bright sm:text-2xl">Capital Curve + Drawdown Overlay</h3>
+            <h3 className="mt-1 text-xl font-display font-bold tracking-tight text-brand-text-bright sm:text-2xl">Capital Curve + Drawdown Overlay</h3>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex">
             <StatChip label="current dd" value={`-${currentDrawdown.toFixed(2)}R`} tone={currentDrawdown > 0 ? 'warning' : 'neutral'} tooltipKey="currentDrawdown" language={language} />
@@ -640,9 +834,13 @@ export const AnalyticsCommandCenter = ({
         </div>
       </section>
 
+      <TradeSequenceTape rValues={rValues} language={language} />
+      <RDistributionChart rValues={rValues} language={language} />
+
       <section className="grid gap-4 lg:grid-cols-3">
         <AnalysisCard title="Edge" eyebrow="alpha quality" icon={Target} sparkValues={rValues.length ? rValues : [0]} tone="accent" language={language} tooltipKey="expectancy">
           <TelemetryLine label="expectancy" value={formatR(stats.expectancy, true)} active={stats.expectancy >= 0} tooltipKey="expectancy" language={language} />
+          <TelemetryLine label="sharpe ratio" value={sharpeRatio !== null ? sharpeRatio.toFixed(2) : '--'} active={sharpeRatio !== null && sharpeRatio >= 1} tooltipKey="sharpeRatio" language={language} />
           <TelemetryLine label="profit factor" value={stats.profitFactor > 0 ? stats.profitFactor.toFixed(2) : '0.00'} tooltipKey="profitFactor" language={language} />
           <TelemetryLine label="avg winner" value={formatR(avgWinner, true)} active={avgWinner > 0} tooltipKey="avgWinner" language={language} />
           <TelemetryLine label="avg loser" value={formatR(avgLoser)} tooltipKey="avgLoser" language={language} />

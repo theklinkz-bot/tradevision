@@ -62,7 +62,7 @@ export const ProgressCircle = ({ value, size = 100, strokeWidth = 8, color = "va
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="transform -rotate-90">
+      <svg width={size} height={size} className="transform -rotate-90" role="img" aria-label={`${value.toFixed(1)}%`}>
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -238,7 +238,7 @@ export const StatsPanel = ({
             <span className="text-[8px] font-mono opacity-20 uppercase tracking-widest">{t.ui.eff_coeff}</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-brand-text-bright font-mono tracking-tighter">
+            <span className="text-4xl font-bold text-brand-text-bright font-display tracking-tight">
               {stats.profitFactor > 0 ? stats.profitFactor.toFixed(2) : '0.00'}
             </span>
             <span className={`text-[8px] font-bold font-mono px-1.5 py-0.5 rounded ${stats.profitFactor >= 2 ? 'bg-trade-long/10 text-trade-long' : stats.profitFactor >= 1 ? 'bg-brand-accent/10 text-brand-accent' : 'bg-trade-short/10 text-trade-short'}`}>
@@ -274,7 +274,7 @@ export const StatsPanel = ({
           </label>
         </div>
         <div className="flex flex-col">
-          <span className="text-2xl font-bold text-brand-text-bright font-mono tracking-tighter leading-none mb-1">
+          <span className="text-2xl font-bold text-brand-text-bright font-display tracking-tight leading-none mb-1">
             1:{stats.avgRR.toFixed(2)}
           </span>
           <div className="w-full bg-brand-border/20 h-1 rounded-full overflow-hidden">
@@ -306,7 +306,7 @@ export const StatsPanel = ({
 
         <div className="flex flex-col relative z-10">
           <div className="flex items-baseline justify-between">
-            <span className={`text-2xl font-bold font-mono tracking-tighter leading-none mb-1 ${expectancyColor === 'var(--trade-long)' ? 'text-trade-long' : expectancyColor === 'var(--trade-short)' ? 'text-trade-short' : 'text-brand-text-dim'}`}>
+            <span className={`text-2xl font-bold font-display tracking-tight leading-none mb-1 ${expectancyColor === 'var(--trade-long)' ? 'text-trade-long' : expectancyColor === 'var(--trade-short)' ? 'text-trade-short' : 'text-brand-text-dim'}`}>
               {stats.expectancy > 0 ? '+' : ''}{stats.expectancy.toFixed(2)}
               <span className="text-xs ml-0.5 opacity-40">R</span>
             </span>
@@ -343,7 +343,7 @@ export const StatsPanel = ({
           </label>
         </div>
         <div className="flex flex-col">
-          <span className="text-2xl font-bold text-trade-short font-mono tracking-tighter leading-none mb-1">
+          <span className="text-2xl font-bold text-trade-short font-display tracking-tight leading-none mb-1">
             -{stats.maxDrawdown.toFixed(2)}R
           </span>
           <div className="flex gap-1 h-1">

@@ -47,7 +47,8 @@ import {
   Shield,
   Trash2,
   StickyNote,
-  Plus
+  Plus,
+  Share2
 } from 'lucide-react';
 import * as RadixTooltip from '@radix-ui/react-tooltip';
 import { analyzeTradeScreenshot } from './services/geminiService';
@@ -58,6 +59,7 @@ import { calculateRMultiple } from './lib/tradeUtils';
 import { TradeRow, MobileLogItem } from './components/TradeCard';
 import { DataCard, PriceLevel } from './components/StatsPanel';
 import { AnalyticsCommandCenter, NinjaAdvisorButton, StrategyCommandPill } from './components/AnalyticsCommandCenter';
+import { ShareCardModal } from './components/ShareCardModal';
 import { PerformanceDashboard } from './components/PerformanceDashboard';
 import { SignalValidationOverlay, ExpandedImageOverlay } from './components/UploadModal';
 import { 
@@ -94,27 +96,27 @@ const StrategyLabLoading = ({ language }: { language: 'EN' | 'TH' }) => (
           {language === 'TH' ? 'กำลังโหลด Strategy Lab...' : 'Loading Strategy Lab...'}
         </p>
       </div>
-      <span className="h-2 w-2 rounded-full bg-brand-accent animate-pulse shadow-[0_0_14px_rgba(52,211,153,0.45)]" />
+      <span className="h-2 w-2 rounded-full bg-brand-accent animate-pulse shadow-[0_0_14px_rgba(217,119,87,0.45)]" />
     </div>
   </div>
 );
 
-type AppTheme = 'default' | 'light' | 'tactical' | 'cyber' | 'nexus';
+type AppTheme = 'default' | 'light' | 'tactical' | 'cyber' | 'nexus' | 'claude';
 
 const DEMO_USER = {
-  id: 'demo-tradevision-session',
-  email: 'demo@tradevision.local',
+  id: 'demo-flow-the-edge-session',
+  email: 'demo@flowtheedge.local',
   aud: 'authenticated',
   role: 'authenticated',
   app_metadata: {},
-  user_metadata: { name: 'TradeVision Demo' },
+  user_metadata: { name: 'Flow the Edge Demo' },
   created_at: '2026-01-01T00:00:00.000Z',
   updated_at: '2026-01-01T00:00:00.000Z'
 } as unknown as User;
 
 const DEMO_STRATEGIES: Strategy[] = [
-  { id: 'demo-reaper', name: 'REAPER', color: '#10b981', createdAt: '2026-05-01T00:00:00.000Z', tradeCount: 3 },
-  { id: 'demo-wyckoff', name: 'WYCKOFF', color: '#22d3ee', createdAt: '2026-05-01T00:00:00.000Z', tradeCount: 2 }
+  { id: 'demo-reaper', name: 'REAPER', color: '#D97757', createdAt: '2026-05-01T00:00:00.000Z', tradeCount: 3 },
+  { id: 'demo-wyckoff', name: 'WYCKOFF', color: '#E8A850', createdAt: '2026-05-01T00:00:00.000Z', tradeCount: 2 }
 ];
 
 const DEMO_HISTORY: AnalysisHistoryItem[] = [
@@ -151,7 +153,7 @@ const DEMO_HISTORY: AnalysisHistoryItem[] = [
     tradingMode: 'live',
     strategyId: 'demo-wyckoff',
     strategyName: 'WYCKOFF',
-    strategyColor: '#22d3ee'
+    strategyColor: '#E8A850'
   },
   {
     id: 'demo-003',
@@ -202,7 +204,7 @@ const DEMO_HISTORY: AnalysisHistoryItem[] = [
     tradingMode: 'live',
     strategyId: 'demo-wyckoff',
     strategyName: 'WYCKOFF',
-    strategyColor: '#22d3ee'
+    strategyColor: '#E8A850'
   }
 ];
 
@@ -727,6 +729,7 @@ export default function App() {
   const [filterEndDate, setFilterEndDate] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [theme, setTheme] = useState<AppTheme>('default');
+  const [shareCardOpen, setShareCardOpen] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [language, setLanguage] = useState<'EN' | 'TH'>('EN');
   const [tradingMode, setTradingMode] = useState<'live' | 'backtest'>('live');
@@ -750,7 +753,7 @@ export default function App() {
   const [editForm, setEditForm] = useState<AnalysisHistoryItem | null>(null);
   const [isStrategyEditorOpen, setIsStrategyEditorOpen] = useState(false);
   const [strategyDraftName, setStrategyDraftName] = useState('');
-  const [strategyDraftColor, setStrategyDraftColor] = useState('#10b981');
+  const [strategyDraftColor, setStrategyDraftColor] = useState('#D97757');
   const [editingStrategyId, setEditingStrategyId] = useState<string | null>(null);
   const [recentSymbols, setRecentSymbols] = useState<string[]>([]);
 
@@ -782,13 +785,31 @@ export default function App() {
   const [isValidationOpen, setIsValidationOpen] = useState(false);
   const [validationData, setValidationData] = useState<AnalysisHistoryItem | null>(null);
 
+  const isDemoSessionRef = React.useRef(isDemoSession);
+  React.useEffect(() => { isDemoSessionRef.current = isDemoSession; }, [isDemoSession]);
+
   // Load history, theme, and auth on mount
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const shouldOpenDemo = params.get('demo') === '1' || params.get('demo') === 'true';
 
+    // One-time migration from old 'tradevision-*' keys
+    const migrations: [string, string][] = [
+      ['tradevision-gemini-key', 'flow-the-edge-gemini-key'],
+      ['tradevision-theme', 'flow-the-edge-theme'],
+      ['tradevision-lang', 'flow-the-edge-lang'],
+      ['tradevision-sidebar-collapsed', 'flow-the-edge-sidebar-collapsed'],
+    ];
+    for (const [oldKey, newKey] of migrations) {
+      const oldVal = localStorage.getItem(oldKey);
+      if (oldVal && !localStorage.getItem(newKey)) {
+        localStorage.setItem(newKey, oldVal);
+      }
+      if (oldVal) localStorage.removeItem(oldKey);
+    }
+
     // Check local storage for Gemini key
-    const savedKey = localStorage.getItem('tradevision-gemini-key');
+    const savedKey = localStorage.getItem('flow-the-edge-gemini-key');
     if (savedKey) setGeminiKey(savedKey);
 
     if (shouldOpenDemo) {
@@ -805,7 +826,7 @@ export default function App() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (isDemoSession || shouldOpenDemo) return;
+      if (isDemoSessionRef.current || shouldOpenDemo) return;
       setUser(session?.user ?? null);
       if (session?.user) {
         refreshFromDb(session.user.id);
@@ -815,22 +836,22 @@ export default function App() {
     });
 
     // Theme initialization
-    const savedTheme = localStorage.getItem('tradevision-theme') as any;
+    const savedTheme = localStorage.getItem('flow-the-edge-theme') as any;
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
 
-    const savedLang = localStorage.getItem('tradevision-lang') as 'EN' | 'TH';
+    const savedLang = localStorage.getItem('flow-the-edge-lang') as 'EN' | 'TH';
     if (savedLang) setLanguage(savedLang);
 
-    const savedSidebar = localStorage.getItem('tradevision-sidebar-collapsed');
+    const savedSidebar = localStorage.getItem('flow-the-edge-sidebar-collapsed');
     if (savedSidebar) setSidebarCollapsed(savedSidebar === 'true');
     
     return () => {
       subscription.unsubscribe();
     };
-  }, [activateDemoSession, isDemoSession]);
+  }, [activateDemoSession]);
 
   // Real-time Presence
   React.useEffect(() => {
@@ -866,12 +887,12 @@ export default function App() {
   const toggleSidebar = () => {
     const newState = !sidebarCollapsed;
     setSidebarCollapsed(newState);
-    localStorage.setItem('tradevision-sidebar-collapsed', String(newState));
+    localStorage.setItem('flow-the-edge-sidebar-collapsed', String(newState));
   };
 
   const changeTheme = (newTheme: AppTheme) => {
     setTheme(newTheme);
-    localStorage.setItem('tradevision-theme', newTheme);
+    localStorage.setItem('flow-the-edge-theme', newTheme);
     if (newTheme === 'default') {
       document.documentElement.removeAttribute('data-theme');
     } else {
@@ -1035,6 +1056,22 @@ export default function App() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setAuthLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     if (!isDemoSession) await supabase.auth.signOut();
     setIsDemoSession(false);
@@ -1048,12 +1085,12 @@ export default function App() {
 
   const saveGeminiKey = (key: string) => {
     setGeminiKey(key);
-    localStorage.setItem('tradevision-gemini-key', key);
+    localStorage.setItem('flow-the-edge-gemini-key', key);
   };
 
   const saveLanguage = (lang: 'EN' | 'TH') => {
     setLanguage(lang);
-    localStorage.setItem('tradevision-lang', lang);
+    localStorage.setItem('flow-the-edge-lang', lang);
   };
 
   const [isKeyVerified, setIsKeyVerified] = useState(false);
@@ -1566,125 +1603,191 @@ const NoteTooltip = ({ note }: { note: string }) => {
             key="auth-gateway"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.34, ease: "easeOut" }}
-            className="fixed inset-0 z-[100] bg-brand-bg flex items-center justify-center p-6"
+            exit={{ opacity: 0, filter: 'blur(8px)' }}
+            transition={{ duration: 0.38, ease: 'easeOut' }}
+            className="fixed inset-0 z-[100] flex"
           >
-          <motion.div
-            initial={{ opacity: 0, y: 18, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -12, scale: 0.985, filter: "blur(6px)" }}
-            transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-            className="technical-panel w-full max-w-sm bg-brand-bg p-8 flex flex-col gap-6 shadow-2xl border-brand-accent/30"
-          >
-            <div className="flex flex-col items-center text-center gap-4">
+            {/* ── LEFT PANEL — logo + branding ── */}
+            <div className="relative hidden lg:flex lg:w-1/2 flex-col items-center justify-center overflow-hidden bg-black">
+              {/* grid texture */}
+              <div className="pointer-events-none absolute inset-0"
+                style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px)', backgroundSize: '48px 48px' }} />
+              {/* radial glow */}
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_55%,rgba(52,211,153,0.07),transparent_70%)]" />
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black to-transparent" />
+              <div className="pointer-events-none absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent" />
+
               <motion.div
-                initial={{ opacity: 0, scale: 0.94 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.08, duration: 0.5, ease: "easeOut" }}
-                className="relative w-36 overflow-hidden rounded-xl border border-brand-accent/35 bg-black/70 shadow-[0_0_44px_rgba(52,211,153,0.24),0_0_90px_rgba(52,211,153,0.10)]"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="relative z-10 flex flex-col items-center gap-8 px-12"
               >
-                <div className="pointer-events-none absolute -inset-10 animate-pulse bg-[radial-gradient(circle,rgba(52,211,153,0.28),transparent_62%)]" />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-brand-accent/10" />
-                <img
-                  src="/assets/tradevision-logo.png"
-                  alt="TradeVision"
-                  className="relative z-10 h-auto w-full object-contain drop-shadow-[0_0_18px_rgba(52,211,153,0.34)]"
-                />
-              </motion.div>
-              <div>
-                <h3 className="label-caps text-lg text-brand-text-bright mb-1">TradeVision <span className="opacity-50">PRO</span></h3>
-                <p className="text-[10px] text-brand-text-dim uppercase tracking-widest">Authorized Access Only</p>
-              </div>
-            </div>
-
-            <form onSubmit={handleAuth} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="label-caps text-[9px]">Neural ID (Email)</label>
-                <input 
-                  type="email"
-                  required
-                  value={authEmail}
-                  onChange={e => setAuthEmail(e.target.value)}
-                  className="bg-brand-elevated border border-brand-border p-3 text-sm monospace-data rounded focus:border-brand-accent transition-colors"
-                  placeholder="name@nexus.com"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="label-caps text-[9px]">Access Key (Password)</label>
-                <input 
-                  type="password"
-                  required
-                  value={authPassword}
-                  onChange={e => setAuthPassword(e.target.value)}
-                  className="bg-brand-elevated border border-brand-border p-3 text-sm monospace-data rounded focus:border-brand-accent transition-colors"
-                  placeholder="••••••••"
-                />
-              </div>
-              
-              {error && (
-                <div className="p-2 bg-trade-short/10 border border-trade-short/30 text-trade-short text-[10px] font-bold uppercase tracking-tight flex items-center gap-2">
-                  <AlertCircle size={12} />
-                  {error}
+                <div className="relative w-full max-w-[380px] overflow-hidden rounded-2xl"
+                  style={{ boxShadow: '0 0 0 1px rgba(52,211,153,0.12), 0 0 60px -10px rgba(52,211,153,0.20), 0 0 120px -20px rgba(52,211,153,0.10)' }}>
+                  <img
+                    src="/assets/flow-the-edge-logo.png"
+                    alt="Flow the Edge"
+                    className="w-full select-none"
+                    draggable={false}
+                  />
                 </div>
-              )}
+                <div className="flex flex-col items-center gap-3">
+                  <div className="h-px w-16 bg-gradient-to-r from-transparent via-brand-accent/50 to-transparent" />
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.32em] text-brand-text-dim">
+                    AI-Powered Backtest Strategy Platform
+                  </p>
+                </div>
 
-              <button 
-                type="submit"
-                disabled={authLoading}
-                className={`w-full py-4 bg-brand-accent text-white font-mono font-bold uppercase tracking-widest text-[11px] rounded hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-lg shadow-brand-accent/30 disabled:opacity-70 group relative overflow-hidden ${
-                  authLoading ? 'shadow-[0_0_34px_rgba(52,211,153,0.28)]' : ''
-                }`}
-              >
-                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full pointer-events-none ${
-                  authLoading ? 'animate-[shimmer_1.2s_infinite]' : 'group-hover:animate-[shimmer_2s_infinite]'
-                }`} />
-                {authLoading ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <motion.div
-                    animate={{ 
-                      scale: [1, 1.3, 1],
-                      filter: ["drop-shadow(0 0 0px #fff)", "drop-shadow(0 0 8px #fff)", "drop-shadow(0 0 0px #fff)"]
-                    }}
-                    transition={{ 
-                      repeat: Infinity, 
-                      duration: 2,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    <Zap size={18} fill="currentColor" />
-                  </motion.div>
-                )}
-                <span className="whitespace-nowrap relative z-10">
-                  {authLoading ? 'Establishing Secure Session' : authMode === 'login' ? 'Activate AI Engine' : 'Create new Account'}
-                </span>
-              </button>
-            </form>
+                {/* feature pills */}
+                <div className="flex flex-wrap justify-center gap-2 mt-2">
+                  {['Vision AI Analysis', 'Equity Curve', 'Strategy Mapping', 'Edge Metrics'].map((f) => (
+                    <span key={f} className="rounded-full border border-white/[0.07] bg-white/[0.03] px-3 py-1 font-mono text-[8px] font-semibold uppercase tracking-[0.18em] text-brand-text-dim">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
 
-            <div className="flex justify-center flex-col gap-2">
-              <button
-                type="button"
-                onClick={activateDemoSession}
-                className="w-full rounded border border-brand-accent/35 bg-brand-accent/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent transition-all hover:bg-brand-accent hover:text-black"
-              >
-                Try Demo Account
-              </button>
-              <button 
-                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                className="text-[9px] text-brand-text-dim hover:text-brand-accent font-bold uppercase tracking-[2px] transition-colors"
-              >
-                {authMode === 'login' ? 'Create new Account' : 'Already Linked? Access Portal'}
-              </button>
+              {/* bottom label */}
+              <div className="absolute bottom-6 left-0 right-0 flex justify-center">
+                <p className="font-mono text-[8px] font-semibold uppercase tracking-[0.24em] text-white/10">
+                  Authorized access only — v2.0a
+                </p>
+              </div>
             </div>
-            
-            <div className="pt-4 border-t border-brand-border text-center">
-               <p className="text-[8px] text-brand-text-dim opacity-30 font-mono tracking-tighter uppercase">
-                 Encrypted via Supabase Auth // Neural Bridge: Stable
-               </p>
+
+            {/* ── RIGHT PANEL — form ── */}
+            <div className="relative flex w-full flex-col items-center justify-center overflow-y-auto bg-[#07090D] p-8 lg:w-1/2">
+              {/* subtle noise */}
+              <div className="pointer-events-none absolute inset-0 opacity-[0.015]"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")', backgroundRepeat: 'repeat', backgroundSize: '128px' }} />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(52,211,153,0.05),transparent_60%)]" />
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.12, duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
+                className="relative z-10 w-full max-w-[380px] flex flex-col gap-7"
+              >
+                {/* mobile logo */}
+                <div className="flex flex-col items-center gap-4 lg:hidden">
+                  <img src="/assets/flow-the-edge-logo.png" alt="Flow the Edge" className="w-56 select-none" style={{ mixBlendMode: 'screen' }} draggable={false} />
+                  <div className="h-px w-12 bg-gradient-to-r from-transparent via-brand-accent/40 to-transparent" />
+                </div>
+
+                {/* heading */}
+                <div>
+                  <p className="font-mono text-[9px] font-black uppercase tracking-[0.3em] text-brand-accent/70">
+                    {authMode === 'login' ? 'Welcome back' : 'Create your account'}
+                  </p>
+                  <h1 className="mt-2 text-2xl font-display font-bold tracking-tight text-brand-text-bright">
+                    {authMode === 'login' ? 'Sign in to continue' : 'Join Flow the Edge'}
+                  </h1>
+                  <p className="mt-1.5 font-mono text-[10px] text-brand-text-dim">
+                    {authMode === 'login'
+                      ? 'Enter your credentials to access your dashboard.'
+                      : 'Create a free account to start tracking your edge.'}
+                  </p>
+                </div>
+
+                {/* form */}
+                <form onSubmit={handleAuth} className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-brand-text-dim">Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={authEmail}
+                      onChange={e => setAuthEmail(e.target.value)}
+                      className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 font-mono text-sm text-brand-text-bright placeholder-brand-text-dim/40 outline-none transition-all focus:border-brand-accent/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-brand-accent/20"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-brand-text-dim">Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={authPassword}
+                      onChange={e => setAuthPassword(e.target.value)}
+                      className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 font-mono text-sm text-brand-text-bright placeholder-brand-text-dim/40 outline-none transition-all focus:border-brand-accent/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-brand-accent/20"
+                      placeholder="••••••••"
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="flex items-center gap-2 rounded-xl border border-brand-danger/25 bg-brand-danger/[0.07] px-3 py-2.5 font-mono text-[10px] font-bold uppercase tracking-tight text-brand-danger">
+                      <AlertCircle size={12} className="shrink-0" />
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={authLoading}
+                    className="group relative mt-1 flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-brand-accent py-3.5 font-mono text-[11px] font-black uppercase tracking-[0.22em] text-white shadow-lg shadow-brand-accent/20 transition-all hover:brightness-110 disabled:opacity-60"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
+                    {authLoading ? (
+                      <Loader2 size={15} className="animate-spin" />
+                    ) : (
+                      <Zap size={15} fill="currentColor" />
+                    )}
+                    <span className="relative z-10">
+                      {authLoading ? 'Signing in…' : authMode === 'login' ? 'Sign In' : 'Create Account'}
+                    </span>
+                  </button>
+                </form>
+
+                {/* divider */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-white/[0.06]" />
+                  <span className="font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-brand-text-dim/50">or</span>
+                  <div className="h-px flex-1 bg-white/[0.06]" />
+                </div>
+
+                {/* google oauth */}
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={authLoading}
+                  className="group flex w-full items-center justify-center gap-3 rounded-xl border border-brand-border/50 bg-brand-elevated/60 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-brand-text-bright transition-all hover:border-brand-border hover:bg-brand-elevated disabled:opacity-50"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" className="shrink-0">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  Continue with Google
+                </button>
+
+                {/* demo + toggle */}
+                <div className="flex flex-col gap-2.5">
+                  <button
+                    type="button"
+                    onClick={activateDemoSession}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] py-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-brand-text-dim transition-all hover:border-brand-accent/30 hover:bg-brand-accent/[0.06] hover:text-brand-accent"
+                  >
+                    Try Demo Account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                    className="text-center font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-brand-text-dim/60 transition-colors hover:text-brand-accent"
+                  >
+                    {authMode === 'login' ? 'No account yet? Create one' : 'Already have an account? Sign in'}
+                  </button>
+                </div>
+
+                {/* footer */}
+                <p className="text-center font-mono text-[8px] uppercase tracking-[0.18em] text-white/10">
+                  Encrypted via Supabase · Neural Bridge: Stable
+                </p>
+              </motion.div>
             </div>
           </motion.div>
-        </motion.div>
         ) : null}
       </AnimatePresence>
 
@@ -1835,6 +1938,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: 'default', name: 'Obsidian' },
+                      { id: 'claude', name: 'Claude' },
                       { id: 'nexus', name: 'Nexus Neon' },
                       { id: 'light', name: 'Light' },
                       { id: 'tactical', name: 'Tactical' },
@@ -1872,22 +1976,29 @@ const NoteTooltip = ({ note }: { note: string }) => {
       {/* API Key Guide Modal */}
       <AnimatePresence>
         {showApiKeyGuide && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <motion.div 
+          <div
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+            onKeyDown={e => { if (e.key === 'Escape') setShowApiKeyGuide(false); }}
+          >
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowApiKeyGuide(false)}
               className="absolute inset-0 bg-brand-bg/80 backdrop-blur-md"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="api-key-guide-title"
               className="technical-panel w-full max-w-lg bg-brand-elevated p-8 relative z-10 border-brand-accent/30 shadow-2xl"
             >
-              <button 
+              <button
                 onClick={() => setShowApiKeyGuide(false)}
+                aria-label="Close API key guide"
                 className="absolute top-4 right-4 text-brand-text-dim hover:text-brand-text-bright transition-colors"
               >
                 <X size={20} />
@@ -1896,7 +2007,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
               <div className="flex flex-col gap-6">
                 <div className="flex items-center gap-3 text-brand-accent border-b border-brand-border pb-4">
                   <Cpu size={24} />
-                  <h2 className="label-caps text-lg mb-0">{t.guide.title}</h2>
+                  <h2 id="api-key-guide-title" className="label-caps text-lg mb-0">{t.guide.title}</h2>
                 </div>
 
                 <div className="grid gap-6">
@@ -1934,7 +2045,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
 
                 <button 
                   onClick={() => setShowApiKeyGuide(false)}
-                  className="w-full py-4 bg-brand-accent text-white font-bold uppercase tracking-[4px] text-[10px] rounded hover:opacity-90 transition-all shadow-lg shadow-brand-accent/20"
+                  className="w-full py-4 bg-brand-accent text-white font-bold uppercase tracking-[4px] text-[10px] rounded hover:opacity-90 transition-all shadow-lg shadow-brand-accent/15"
                 >
                   {t.guide.close}
                 </button>
@@ -1947,22 +2058,29 @@ const NoteTooltip = ({ note }: { note: string }) => {
       {/* Capture Guide Modal */}
       <AnimatePresence>
         {showCaptureGuide && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <motion.div 
+          <div
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+            onKeyDown={e => { if (e.key === 'Escape') setShowCaptureGuide(false); }}
+          >
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowCaptureGuide(false)}
               className="absolute inset-0 bg-brand-bg/80 backdrop-blur-md"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="capture-guide-title"
               className="technical-panel w-full max-w-4xl bg-brand-elevated p-8 relative z-10 border-brand-accent/30 shadow-2xl overflow-hidden"
             >
-              <button 
+              <button
                 onClick={() => setShowCaptureGuide(false)}
+                aria-label="Close capture guide"
                 className="absolute top-4 right-4 text-brand-text-dim hover:text-brand-text-bright transition-colors"
               >
                 <X size={20} />
@@ -1971,7 +2089,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
               <div className="flex flex-col gap-8">
                 <div className="flex items-center gap-3 text-brand-accent border-b border-brand-border pb-4">
                   <Camera size={24} />
-                  <h2 className="label-caps text-lg mb-0">{t.capture.title}</h2>
+                  <h2 id="capture-guide-title" className="label-caps text-lg mb-0">{t.capture.title}</h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
@@ -2083,7 +2201,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
 
                 <button 
                   onClick={() => setShowCaptureGuide(false)}
-                  className="w-full py-4 bg-brand-accent text-white font-bold uppercase tracking-[4px] text-[10px] rounded hover:opacity-90 transition-all shadow-lg shadow-brand-accent/20"
+                  className="w-full py-4 bg-brand-accent text-white font-bold uppercase tracking-[4px] text-[10px] rounded hover:opacity-90 transition-all shadow-lg shadow-brand-accent/15"
                 >
                   {t.capture.close}
                 </button>
@@ -2099,6 +2217,16 @@ const NoteTooltip = ({ note }: { note: string }) => {
         onClose={() => setIsImageExpanded(false)} 
         t={t}
       />
+
+      {/* Share Analytics Card Modal */}
+      {stats && (
+        <ShareCardModal
+          isOpen={shareCardOpen}
+          onClose={() => setShareCardOpen(false)}
+          stats={stats}
+          theme={theme}
+        />
+      )}
 
       {/* Signal Validation Overlay */}
       <SignalValidationOverlay 
@@ -2116,15 +2244,20 @@ const NoteTooltip = ({ note }: { note: string }) => {
       {/* Purge Confirmation Overlay */}
       <AnimatePresence>
         {purgingId && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center p-6"
+            onKeyDown={e => { if (e.key === 'Escape') setPurgingId(null); }}
+            onClick={e => { if (e.target === e.currentTarget) setPurgingId(null); }}
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="purge-dialog-title"
               className="technical-panel w-full max-w-sm bg-brand-bg p-8 flex flex-col gap-6 shadow-2xl border-trade-short/30"
             >
               <div className="flex flex-col items-center text-center gap-4">
@@ -2132,7 +2265,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   <Activity size={32} className="rotate-45 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="label-caps text-lg text-brand-text-bright mb-1">Purge Sequence</h3>
+                  <h3 id="purge-dialog-title" className="label-caps text-lg text-brand-text-bright mb-1">Purge Sequence</h3>
                   <p className="text-xs text-brand-text-dim leading-relaxed">
                     Confirm deletion of node <span className="monospace-data text-trade-short">{purgingId}</span>. This action cannot be undone.
                   </p>
@@ -2412,7 +2545,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 </button>
                 <button 
                   onClick={handleUpdate}
-                  className="flex-1 py-3 text-[10px] font-bold uppercase tracking-widest bg-brand-accent text-white rounded hover:opacity-80 transition-colors shadow-lg shadow-brand-accent/20"
+                  className="flex-1 py-3 text-[10px] font-bold uppercase tracking-widest bg-brand-accent text-white rounded hover:opacity-80 transition-colors shadow-lg shadow-brand-accent/15"
                 >
                   Commit changes
                 </button>
@@ -2434,11 +2567,11 @@ const NoteTooltip = ({ note }: { note: string }) => {
       <header className="tv-command-header shrink-0">
         <div className="tv-brand-cluster">
           <div className="tv-command-logo">
-            <img src="/assets/tradevision-logo.png" alt="TradeVision" />
+            <img src="/assets/flow-the-edge-logo.png" alt="Flow the Edge" />
           </div>
           <div className="min-w-0">
             <div className="flex items-baseline gap-2">
-              <h1 className="truncate text-sm font-semibold tracking-[-0.02em] text-brand-text-bright sm:text-[15px]">TradeVision</h1>
+              <h1 className="truncate text-sm font-semibold tracking-[-0.02em] text-brand-text-bright sm:text-[15px]">Flow the Edge</h1>
               <span className="hidden rounded-full border border-brand-border/70 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/70 sm:inline-flex">
                 V2.0a
               </span>
@@ -2465,7 +2598,18 @@ const NoteTooltip = ({ note }: { note: string }) => {
           </div>
         </div>
 
-        <nav className="tv-command-nav hidden lg:flex" aria-label="Primary workspace navigation">
+        {/* Center: status + current page */}
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-4 pointer-events-none">
+          <div className="flex items-center gap-1.5 rounded-full border border-trade-long/40 bg-trade-long/10 px-3 py-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-trade-long animate-pulse" />
+            <span className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-trade-long">Live Matrix Online</span>
+          </div>
+          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-brand-text-dim/50">
+            Node: Discipline.exe // Running
+          </span>
+        </div>
+
+        <nav className="tv-command-nav hidden" aria-label="Primary workspace navigation">
           {primaryNavTabs.map((tab) => (
             <button
               key={tab}
@@ -2535,6 +2679,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 <div className="w-44 bg-brand-elevated/95 backdrop-blur-xl border border-brand-border rounded-xl shadow-2xl overflow-hidden p-1.5">
                   {[
                     { id: 'default', name: 'Obsidian' },
+                    { id: 'claude', name: 'Claude' },
                     { id: 'nexus', name: 'Nexus Neon' },
                     { id: 'light', name: 'Light' },
                     { id: 'tactical', name: 'Tactical Vanguard' },
@@ -2556,7 +2701,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
 
           <button 
             onClick={() => setMainTab('Dashboard')}
-            className="hidden sm:inline-flex items-center gap-2 rounded-full bg-brand-accent px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#07120D] shadow-[0_0_22px_rgba(52,211,153,0.18)] transition-all hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
+            className="hidden sm:inline-flex items-center gap-2 rounded-full bg-brand-accent px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#07120D] shadow-[0_0_22px_rgba(217,119,87,0.18)] transition-all hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
           >
             <Plus size={13} />
             {t.ui.new_scan}
@@ -2573,159 +2718,116 @@ const NoteTooltip = ({ note }: { note: string }) => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar: Migration / History */}
-        <motion.aside 
-          initial={false}
-          animate={{ width: sidebarCollapsed ? 72 : 288 }}
-          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className="recent-rail hidden lg:flex border-r border-brand-border/70 bg-brand-bg flex-col shrink-0 relative"
-        >
-          {/* Sidebar Toggle Button */}
-          <button
-            onClick={toggleSidebar}
-            className="absolute -right-3 top-20 z-50 w-6 h-6 bg-brand-elevated/95 border border-brand-border/80 rounded-full flex items-center justify-center text-brand-text-dim hover:text-brand-accent shadow-lg shadow-black/30 transition-colors backdrop-blur"
-          >
-            {sidebarCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-          </button>
+        {/* Left Sidebar: Nav + History */}
+        <aside className="recent-rail hidden lg:flex w-[220px] border-r border-brand-border/70 bg-brand-bg flex-col shrink-0">
 
-          <div className={`p-4 border-b border-brand-border/70 bg-brand-elevated/35 flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'justify-between'}`}>
-            {!sidebarCollapsed && (
-              <div>
-                <h2 className="label-caps mb-1 text-brand-text-bright flex items-center gap-2">
-                  <Database size={12} className="text-brand-accent" />
-                  {t.ui.recent_extractions}
-                </h2>
-                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-brand-text-dim/45">
-                  Win/Loss continuity rail
-                </p>
-              </div>
-            )}
-            {sidebarCollapsed && <Database size={17} className="text-brand-accent/60" />}
-          </div>
-
-          <RadixTooltip.Provider delayDuration={100}>
-            <div className={`flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
-              {history.length === 0 ? (
-                <div className={`p-8 text-center opacity-20 ${sidebarCollapsed ? 'px-0' : ''}`}>
-                  <Layout size={sidebarCollapsed ? 20 : 32} className="mx-auto mb-2" />
-                  {!sidebarCollapsed && <p className="text-[10px] uppercase font-bold">{t.ui.no_signals}</p>}
-                </div>
-              ) : (
-                recentExtractionRows.map(({ item, result, streakCount }) => {
-                  const resultLabel = result ? result.toUpperCase() : item.status.toUpperCase();
-                  const resultTone = result === 'win'
-                    ? 'is-win'
-                    : result === 'lose'
-                      ? 'is-lose'
-                      : 'is-neutral';
-                  const content = (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setCurrentAnalysis(item);
-                        setPreview(item.imageUrl);
-                      }}
-                      className={`recent-rail-item w-full rounded-xl border transition-all text-left group
-                        ${sidebarCollapsed ? 'p-1.5 flex justify-center' : 'p-3'}
-                        ${currentAnalysis?.id === item.id 
-                          ? 'is-active bg-brand-accent/10 border-brand-accent/45' 
-                          : 'border-transparent hover:bg-brand-elevated/75 hover:border-brand-border/80'}`}
-                    >
-                      {sidebarCollapsed ? (
-                        <div className={`streak-badge ${resultTone}`} aria-label={`${item.symbol} ${resultLabel}${streakCount > 1 ? ` streak ${streakCount}` : ''}`}>
-                          <span>{result ? resultLabel : item.symbol.substring(0, 2)}</span>
-                          {result && streakCount > 1 && <sup>{streakCount}</sup>}
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex justify-between items-start mb-1">
-                            <div className="min-w-0">
-                              <span className="monospace-data block truncate text-xs">{item.symbol}</span>
-                              <span className="font-mono text-[8px] uppercase tracking-[0.16em] text-brand-text-dim/55">{item.side}</span>
-                            </div>
-                            <span className={`streak-pill ${resultTone}`}>
-                              {resultLabel}
-                              {result && streakCount > 1 && <sup>{streakCount}</sup>}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between gap-2 text-[9px] text-brand-text-dim uppercase font-mono">
-                            <span className="flex min-w-0 items-center gap-1.5 truncate">
-                            <Clock size={10} />
-                            {item.date}
-                            </span>
-                            {result && streakCount > 1 && (
-                              <span className="text-[8px] text-brand-text-dim/55">{streakCount}x streak</span>
-                            )}
-                          </div>
-                        </>
-                      )}
-                    </button>
-                  );
-
-                  if (sidebarCollapsed) {
-                    return (
-                      <RadixTooltip.Root key={item.id}>
-                        <RadixTooltip.Trigger asChild>
-                          {content}
-                        </RadixTooltip.Trigger>
-                        <RadixTooltip.Portal>
-                          <RadixTooltip.Content 
-                            side="right" 
-                            sideOffset={10}
-                            className="z-[100] animate-in fade-in zoom-in-95 duration-200"
-                          >
-                            <div className="bg-brand-elevated/80 backdrop-blur-md border border-brand-accent/30 p-3 rounded-xl shadow-2xl min-w-[140px]">
-                              <div className="flex justify-between items-center mb-2 gap-4">
-                                <span className="text-xs font-bold text-brand-text-bright">{item.symbol}</span>
-                                <span className={`streak-pill ${resultTone}`}>
-                                  {resultLabel}
-                                  {result && streakCount > 1 && <sup>{streakCount}</sup>}
-                                </span>
-                              </div>
-                              <div className="grid gap-1.5 text-[9px] text-brand-text-dim font-bold uppercase">
-                                <div className="flex items-center gap-2">
-                                  <Clock size={10} />
-                                  {item.date}
-                                </div>
-                                <div className="flex items-center justify-between gap-3 font-mono text-[8px] tracking-[0.14em]">
-                                  <span>{item.side}</span>
-                                  <span>{result ? `${resultLabel}${streakCount > 1 ? ` x${streakCount}` : ''}` : item.status}</span>
-                                </div>
-                              </div>
-                              <RadixTooltip.Arrow className="fill-brand-elevated/80" />
-                            </div>
-                          </RadixTooltip.Content>
-                        </RadixTooltip.Portal>
-                      </RadixTooltip.Root>
-                    );
-                  }
-
-                  return content;
-                })
-              )}
-            </div>
-          </RadixTooltip.Provider>
-
-          <div className={`p-4 border-t border-brand-border/70 bg-brand-elevated/55 flex flex-col gap-2 ${sidebarCollapsed ? 'items-center px-2' : ''}`}>
-            <div className={`flex items-center gap-2 ${sidebarCollapsed ? 'justify-center w-full' : ''}`}>
-              <div className={`shrink-0 w-2 h-2 rounded-full ${isAnalyzing ? 'bg-brand-warning animate-pulse' : 'bg-trade-long'}`} />
-              {!sidebarCollapsed && (
-                <span className="text-[10px] uppercase font-bold text-brand-text-dim/60">
-                  {isAnalyzing ? t.ui.engine_processing : t.ui.engine_online}
+          {/* Nav Section */}
+          <nav className="p-3 flex flex-col gap-0.5 border-b border-brand-border/40">
+            {([
+              { tab: 'Dashboard' as typeof mainTab, icon: Layout },
+              { tab: 'Analytics' as typeof mainTab, icon: BarChart3 },
+              ...(isAdmin ? [{ tab: 'Performance' as typeof mainTab, icon: Activity }] : []),
+              ...(isAdmin ? [{ tab: 'StrategyLab' as typeof mainTab, icon: Target }] : []),
+              { tab: 'Log' as typeof mainTab, icon: Terminal },
+              { tab: 'Gallery' as typeof mainTab, icon: ImageIcon },
+              { tab: 'System' as typeof mainTab, icon: Cpu },
+              ...(isAdmin ? [{ tab: 'Admin' as typeof mainTab, icon: ShieldCheck }] : []),
+            ] as { tab: typeof mainTab; icon: React.ElementType }[]).map(({ tab, icon: Icon }) => (
+              <button
+                key={tab}
+                onClick={() => setMainTab(tab)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group ${
+                  mainTab === tab
+                    ? 'bg-brand-accent/12 text-brand-accent'
+                    : 'text-brand-text-dim hover:bg-brand-elevated/60 hover:text-brand-text-bright'
+                }`}
+              >
+                <Icon size={15} className={mainTab === tab ? 'text-brand-accent' : 'text-brand-text-dim/60 group-hover:text-brand-text-bright'} />
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em]">
+                  {tab === 'StrategyLab' ? 'Strategy Lab' : tab}
                 </span>
-              )}
-            </div>
-            {!sidebarCollapsed ? (
-              <div className="text-[10px] text-brand-text-dim font-mono tracking-tighter truncate">LATENCY: {isAnalyzing ? '...' : '42ms'} // REGION: US-EAST</div>
+                {mainTab === tab && <span className="ml-auto w-1 h-4 rounded-full bg-brand-accent" />}
+              </button>
+            ))}
+          </nav>
+
+          {/* Extractions Header */}
+          <div className="px-4 py-3 bg-brand-elevated/20">
+            <h2 className="label-caps text-[9px] text-brand-text-bright flex items-center gap-2">
+              <Database size={10} className="text-brand-accent" />
+              {t.ui.recent_extractions}
+            </h2>
+            <p className="font-mono text-[8px] uppercase tracking-[0.16em] text-brand-text-dim/40 mt-0.5">
+              Win/Loss continuity rail
+            </p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+            {history.length === 0 ? (
+              <div className="p-8 text-center opacity-20">
+                <Layout size={28} className="mx-auto mb-2" />
+                <p className="text-[10px] uppercase font-bold">{t.ui.no_signals}</p>
+              </div>
             ) : (
-              <div className="text-[8px] text-brand-text-dim/50 font-mono tracking-tighter">42ms</div>
+              recentExtractionRows.map(({ item, result, streakCount }) => {
+                const resultLabel = result ? result.toUpperCase() : item.status.toUpperCase();
+                const resultTone = result === 'win' ? 'is-win' : result === 'lose' ? 'is-lose' : 'is-neutral';
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { setCurrentAnalysis(item); setPreview(item.imageUrl); }}
+                    className={`recent-rail-item w-full rounded-xl border transition-all text-left group p-3 ${
+                      currentAnalysis?.id === item.id
+                        ? 'is-active bg-brand-accent/10 border-brand-accent/45'
+                        : 'border-transparent hover:bg-brand-elevated/75 hover:border-brand-border/80'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <div className="min-w-0">
+                        <span className="monospace-data block truncate text-xs">{item.symbol}</span>
+                        <span className="font-mono text-[8px] uppercase tracking-[0.16em] text-brand-text-dim/55">{item.side}</span>
+                      </div>
+                      <span className={`streak-pill ${resultTone}`}>
+                        {resultLabel}
+                        {result && streakCount > 1 && <sup>{streakCount}</sup>}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 text-[9px] text-brand-text-dim uppercase font-mono">
+                      <span className="flex min-w-0 items-center gap-1.5 truncate">
+                        <Clock size={10} />{item.date}
+                      </span>
+                      {result && streakCount > 1 && (
+                        <span className="text-brand-accent/70">{streakCount}x streak</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
             )}
           </div>
-        </motion.aside>
+
+          {/* Profile Card */}
+          <div className="p-4 border-t border-brand-border/60 bg-brand-elevated/30 flex items-center gap-3">
+            <div className="shrink-0 w-9 h-9 rounded-full bg-brand-accent/15 border border-brand-accent/30 flex items-center justify-center overflow-hidden">
+              <span className="font-mono text-[11px] font-black text-brand-accent">
+                {user?.email?.[0]?.toUpperCase() ?? 'T'}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] font-bold text-brand-text-bright truncate uppercase tracking-[0.08em]">
+                {user?.email?.split('@')[0] ?? 'Trader'}
+              </p>
+              <p className="font-mono text-[8px] uppercase tracking-[0.16em] text-brand-text-dim/50 flex items-center gap-1.5 mt-0.5">
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isAnalyzing ? 'bg-brand-warning animate-pulse' : 'bg-trade-long'}`} />
+                {isAnalyzing ? 'Processing' : 'Node Online'}
+              </p>
+            </div>
+          </div>
+        </aside>
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto custom-scrollbar bg-brand-bg">
-          <div className={`p-6 mx-auto flex flex-col gap-6 transition-all duration-300 ${sidebarCollapsed ? 'max-w-7xl' : 'max-w-6xl'}`}>
+          <div className="p-6 mx-auto flex flex-col gap-6 max-w-7xl w-full">
             
             {error && !(!user) && (
               <motion.div 
@@ -2888,7 +2990,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                                         setIsValidationOpen(true);
                                       }
                                     }}
-                                    className="px-4 border border-brand-accent/30 text-brand-accent text-[9px] font-bold rounded hover:bg-brand-accent/10 transition-all uppercase flex items-center justify-center gap-2"
+                                    className="btn-ghost px-4 text-[9px] font-semibold uppercase rounded flex items-center justify-center gap-2"
                                     title="Open Validation Overlay"
                                   >
                                     <Activity size={12} />
@@ -2904,7 +3006,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                                   className={`h-12 px-8 rounded-lg flex items-center gap-3 font-bold uppercase tracking-widest text-xs transition-all
                                     ${saveSuccess 
                                       ? 'bg-trade-long text-white cursor-default' 
-                                      : 'bg-brand-accent hover:opacity-90 text-white shadow-lg shadow-brand-accent/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed'}`}
+                                      : 'bg-brand-accent hover:opacity-90 text-white shadow-lg shadow-brand-accent/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed'}`}
                                 >
                                   {isSaving ? (
                                     <Loader2 size={16} className="animate-spin" />
@@ -3099,11 +3201,22 @@ const NoteTooltip = ({ note }: { note: string }) => {
                     </div>
                     <p className="mt-1 text-[11px] text-brand-text-dim uppercase tracking-[0.22em] font-mono">Trading Performance Command Center // Live Edge Telemetry</p>
                   </div>
-                  <StrategyCommandPill
-                    strategies={strategies}
-                    selectedStrategyId={selectedAnalyticsStrategyId}
-                    onStrategyChange={setSelectedAnalyticsStrategyId}
-                  />
+                  <div className="flex items-center gap-2">
+                    {stats && stats.totalTrades > 0 && (
+                      <button
+                        onClick={() => setShareCardOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-accent/40 text-brand-accent hover:bg-brand-accent/10 transition-all text-[10px] font-bold uppercase tracking-widest font-mono"
+                      >
+                        <Share2 size={12} />
+                        Share
+                      </button>
+                    )}
+                    <StrategyCommandPill
+                      strategies={strategies}
+                      selectedStrategyId={selectedAnalyticsStrategyId}
+                      onStrategyChange={setSelectedAnalyticsStrategyId}
+                    />
+                  </div>
                 </div>
 
                 {stats && stats.totalTrades > 0 ? (
@@ -3136,11 +3249,22 @@ const NoteTooltip = ({ note }: { note: string }) => {
                     </div>
                     <p className="mt-1 text-[11px] text-brand-text-dim uppercase tracking-[0.22em] font-mono">Trading Performance Command Center // Live Edge Telemetry</p>
                   </div>
-                  <StrategyCommandPill
-                    strategies={strategies}
-                    selectedStrategyId={selectedAnalyticsStrategyId}
-                    onStrategyChange={setSelectedAnalyticsStrategyId}
-                  />
+                  <div className="flex items-center gap-2">
+                    {stats && stats.totalTrades > 0 && (
+                      <button
+                        onClick={() => setShareCardOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-accent/40 text-brand-accent hover:bg-brand-accent/10 transition-all text-[10px] font-bold uppercase tracking-widest font-mono"
+                      >
+                        <Share2 size={12} />
+                        Share
+                      </button>
+                    )}
+                    <StrategyCommandPill
+                      strategies={strategies}
+                      selectedStrategyId={selectedAnalyticsStrategyId}
+                      onStrategyChange={setSelectedAnalyticsStrategyId}
+                    />
+                  </div>
                 </div>
 
                 {stats && stats.totalTrades > 0 ? (
@@ -3323,7 +3447,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                                onClick={testGeminiKey}
                                disabled={authLoading || !geminiKey}
                                className={`px-6 py-3 text-white text-[10px] font-bold uppercase tracking-[2px] rounded-lg transition-all flex items-center gap-2 ${
-                                 isKeyVerified ? 'bg-trade-long shadow-lg shadow-trade-long/20' : 'bg-brand-accent hover:opacity-80 shadow-lg shadow-brand-accent/20'
+                                 isKeyVerified ? 'bg-trade-long shadow-lg shadow-trade-long/20' : 'bg-brand-accent hover:opacity-80 shadow-lg shadow-brand-accent/15'
                                } disabled:opacity-50 active:scale-95`}
                              >
                                {authLoading ? <Loader2 size={14} className="animate-spin" /> : (isKeyVerified ? <ShieldCheck size={14} /> : <Zap size={14} />)}
@@ -3492,7 +3616,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                           <button 
                             type="submit"
                             disabled={isSubmittingFeedback || !feedbackSubject || !feedbackMessage}
-                            className="w-full py-5 bg-brand-accent text-white font-black uppercase tracking-[6px] text-xs rounded-xl hover:opacity-90 transition-all duration-300 flex items-center justify-center gap-3 shadow-2xl shadow-brand-accent/20 disabled:opacity-50 active:scale-[0.98]"
+                            className="w-full py-5 bg-brand-accent text-white font-black uppercase tracking-[6px] text-xs rounded-xl hover:opacity-90 transition-all duration-300 flex items-center justify-center gap-3 shadow-2xl shadow-brand-accent/15 disabled:opacity-50 active:scale-[0.98]"
                           >
                             {isSubmittingFeedback ? <Loader2 size={18} className="animate-spin" /> : <RefreshCcw size={18} />}
                             {t.system.feedback_button}
@@ -3513,7 +3637,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   <button 
                     onClick={loadAdminData}
                     disabled={isAdminLoading}
-                    className="p-3 bg-brand-accent/10 border border-brand-accent/20 text-brand-accent rounded hover:bg-brand-accent hover:text-white transition-all flex items-center gap-2"
+                    className="btn-ghost p-3 rounded flex items-center gap-2 text-brand-text-dim"
                   >
                     <RefreshCcw size={16} className={isAdminLoading ? 'animate-spin' : ''} />
                     <span className="text-[10px] font-bold uppercase tracking-widest px-2">Synchronize Repository</span>
@@ -3578,7 +3702,7 @@ create policy "Allow individual update" on profiles for update using (auth.uid()
                             <tr key={u.id} className="hover:bg-brand-accent/5 transition-colors group">
                               <td className="p-4">
                                 <div className="flex items-center gap-2">
-                                  <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-trade-long shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-brand-border'}`} />
+                                  <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-trade-long shadow-[0_0_8px_rgba(95,173,122,0.5)]' : 'bg-brand-border'}`} />
                                   <span className={`text-[8px] font-bold uppercase ${isOnline ? 'text-trade-long' : 'text-brand-text-dim opacity-40'}`}>
                                     {isOnline ? 'Active' : 'Offline'}
                                   </span>
@@ -3718,13 +3842,13 @@ create policy "Allow individual update" on profiles for update using (auth.uid()
             <span className="w-1.5 h-1.5 rounded-full bg-brand-accent shadow-[0_0_8px_var(--brand-accent)]" />
             WORKSPACE: TRADER_PRO_NODE_01
           </span>
-          <span className="hidden md:inline">SYSTEM_UPTIME: 124:42:08</span>
+          <span className="hidden md:inline">SESSION: ACTIVE</span>
           <span className="hidden md:inline text-brand-accent/50">SECURE_TUNNEL: ENABLED</span>
           {isRefreshing && <span className="animate-pulse text-brand-accent font-bold">// SYNCING_DB...</span>}
         </div>
         <div className="flex gap-4 items-center">
           <span className="hidden sm:inline">PROCESSED: {history.length} ITEMS</span>
-          <span className="bg-brand-border/30 px-2 py-0.5 rounded text-brand-text-dim/80">2024-05-08 16:21:44 UTC</span>
+          <span className="bg-brand-border/30 px-2 py-0.5 rounded text-brand-text-dim/80">{new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC</span>
         </div>
       </footer>
 

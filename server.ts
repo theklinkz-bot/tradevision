@@ -10,7 +10,7 @@ async function startServer() {
 
   // API Health Check
   app.get("/api/health", (req, res) => {
-    res.json({ status: "TradeVision Engine Online", timestamp: new Date().toISOString() });
+    res.json({ status: "Flow the Edge Engine Online", timestamp: new Date().toISOString() });
   });
 
   // Vite middleware for development
@@ -34,7 +34,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`[TradeVision] Server executing at http://localhost:${PORT}`);
+    console.log(`[Flow the Edge] Server executing at http://localhost:${PORT}`);
   });
 }
 

@@ -410,7 +410,7 @@ const DensityToggle = ({
             onClick={() => onChange(value as boolean)}
             className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
               active
-                ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
+                ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(217,119,87,0.07)]'
                 : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
             }`}
             aria-pressed={active}
@@ -443,7 +443,7 @@ const WorkspacePresetControl = ({
             onClick={() => onChange(option)}
             className={`shrink-0 whitespace-nowrap px-2 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
               active
-                ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
+                ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(217,119,87,0.07)]'
                 : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
             }`}
             aria-pressed={active}
@@ -477,7 +477,7 @@ const LayoutModeControl = ({
             onClick={() => onChange(option.value)}
             className={`shrink-0 whitespace-nowrap px-2 py-1 text-[8px] font-black uppercase tracking-widest transition-colors ${
               active
-                ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(52,211,153,0.08)]'
+                ? 'border border-brand-accent/35 bg-brand-accent/10 text-brand-accent shadow-[0_0_14px_rgba(217,119,87,0.07)]'
                 : 'border border-transparent text-brand-text-dim hover:text-brand-text-bright'
             }`}
             aria-pressed={active}
@@ -1106,7 +1106,7 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
             <LayoutModeControl layoutMode={layoutMode} onChange={setLayoutMode} language={strategyLanguage} />
             <WorkspacePresetControl preset={workspacePreset} onChange={setWorkspacePreset} language={strategyLanguage} />
             {['AI VALIDATION ACTIVE', 'NEURAL ANALYSIS ONLINE'].map((tag) => (
-              <span key={tag} className="rounded-full border border-brand-accent/25 bg-brand-accent/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-brand-accent shadow-[0_0_18px_rgba(52,211,153,0.08)]">
+              <span key={tag} className="rounded-full border border-brand-accent/25 bg-brand-accent/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-brand-accent shadow-[0_0_18px_rgba(217,119,87,0.07)]">
                 {tag}
               </span>
             ))}
@@ -1170,7 +1170,7 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
               </span>
             </div>
             <p className="mb-2 text-[10px] font-black uppercase tracking-[0.28em] text-brand-accent">Start Here</p>
-            <h2 className="max-w-3xl text-3xl font-black uppercase leading-[0.95] tracking-tighter text-brand-text-bright md:text-5xl">
+            <h2 className="max-w-3xl text-3xl font-display font-bold tracking-tight text-brand-text-bright md:text-5xl">
               Strategy Lab
             </h2>
             <p className="mt-4 max-w-3xl text-sm leading-6 text-brand-text-muted md:text-base">
@@ -1247,7 +1247,7 @@ export const StrategyLab: React.FC<StrategyLabProps> = ({ stats, isAdmin = false
                   onClick={() => setWorkspacePreset(option)}
                   className={`min-h-[4.4rem] rounded-xl border p-3 text-left transition-all ${
                     active
-                      ? 'border-brand-accent/50 bg-brand-accent/10 shadow-[0_0_24px_rgba(52,211,153,0.10)]'
+                      ? 'border-brand-accent/50 bg-brand-accent/10 shadow-[0_0_24px_rgba(217,119,87,0.08)]'
                       : 'border-brand-border/60 bg-brand-bg/35 hover:border-brand-accent/30 hover:bg-brand-elevated/35'
                   }`}
                   aria-pressed={active}

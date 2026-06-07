@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tradevision-v1';
+const CACHE_NAME = 'flow-the-edge-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

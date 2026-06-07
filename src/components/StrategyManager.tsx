@@ -19,12 +19,12 @@ interface StrategyManagerProps {
 }
 
 const STRATEGY_COLORS = [
-  '#6366f1', // Indigo
-  '#22d3ee', // Cyan
-  '#10b981', // Emerald
-  '#f59e0b', // Amber
-  '#ef4444', // Red
-  '#a855f7'  // Purple
+  '#D97757', // Claude terracotta
+  '#E8A850', // Warm amber
+  '#5FAD7A', // Muted sage
+  '#C4824A', // Burnt sienna
+  '#E05C5C', // Warm red
+  '#9B7FD4'  // Muted violet
 ];
 
 export const StrategyManager = ({ strategies, onAdd, onUpdate, onDelete }: StrategyManagerProps) => {
@@ -33,16 +33,18 @@ export const StrategyManager = ({ strategies, onAdd, onUpdate, onDelete }: Strat
   const [name, setName] = useState('');
   const [color, setColor] = useState(STRATEGY_COLORS[0]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAdd = async () => {
     if (!name.trim()) return;
     setIsLoading(true);
+    setError(null);
     try {
       await onAdd(name.trim(), color);
       setName('');
       setIsAdding(false);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to save strategy');
     } finally {
       setIsLoading(false);
     }
@@ -51,12 +53,13 @@ export const StrategyManager = ({ strategies, onAdd, onUpdate, onDelete }: Strat
   const handleUpdate = async (id: string) => {
     if (!name.trim()) return;
     setIsLoading(true);
+    setError(null);
     try {
       await onUpdate(id, name.trim(), color);
       setEditingId(null);
       setName('');
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to update strategy');
     } finally {
       setIsLoading(false);
     }
@@ -70,6 +73,9 @@ export const StrategyManager = ({ strategies, onAdd, onUpdate, onDelete }: Strat
 
   return (
     <div className="technical-panel p-4 flex flex-col gap-4 bg-brand-elevated/20 border-brand-border/40">
+      {error && (
+        <p className="text-[9px] text-brand-danger font-mono uppercase px-1">{error}</p>
+      )}
       <div className="flex items-center justify-between border-b border-brand-border/20 pb-3">
         <h3 className="label-caps !mb-0 flex items-center text-brand-text-dim text-[10px]">
           <Zap size={14} className="mr-2 text-brand-accent opacity-50" />
