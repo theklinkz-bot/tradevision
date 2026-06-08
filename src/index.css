@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..500&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 /* ==========================================================================
@@ -9,127 +9,113 @@
 
 :root {
   --brand-bg: #0c0c0d;
-  --brand-elevated: #131315;
-  --brand-surface-2: #1a1a1c;
-  --brand-border: #252528;
-  --brand-border-strong: #323236;
-  --brand-accent: #b8985a;          /* warm amber */
-  --brand-accent-soft: #a07c3e;
-  --brand-text-dim: #5a5a62;
-  --brand-text-bright: #efece5;
-  --brand-success: #5a9472;
-  --brand-danger: #b85252;
-  --brand-warning: #b88c42;
-  --trade-long: #5a9472;
-  --trade-short: #b85252;
-  --status-neutral: #4a4a52;
-  --grid-line: rgba(255,255,255,0.03);
-  --hairline: rgba(255,255,255,0.05);
+  --brand-elevated: #141416;
+  --brand-surface-2: #1b1b1e;
+  --brand-border: #282830;
+  --brand-border-strong: #363642;
+  --brand-accent: #c8a028;          /* golden amber — matches reference */
+  --brand-accent-soft: #a88018;
+  --brand-text-dim: #8c8c9a;
+  --brand-text-bright: #ede9e0;
+  --brand-success: #4ec876;
+  --brand-danger: #e05252;
+  --brand-warning: #d09030;
+  --trade-long: #4ec876;
+  --trade-short: #e05252;
+  --status-neutral: #505060;
+  --grid-line: rgba(255,255,255,0.04);
+  --hairline: rgba(255,255,255,0.07);
 }
 
 [data-theme='claude'] {
-  /* Claude-inspired warm dark — terracotta accent, no neon */
-  --brand-bg: #0F0D0B;
-  --brand-elevated: #1A1712;
-  --brand-surface-2: #232018;
-  --brand-border: #302B24;
-  --brand-border-strong: #3F3830;
-  --brand-accent: #D97757;
-  --brand-accent-soft: #C4633E;
-  --brand-text-dim: #B0A090;
-  --brand-text-bright: #F5EDE0;
-  --brand-success: #5FAD7A;
-  --brand-danger: #E05C5C;
-  --brand-warning: #E8A850;
-  --trade-long: #5FAD7A;
-  --trade-short: #E05C5C;
-  --status-neutral: #6E6358;
-  --grid-line: rgba(255,220,190,0.035);
-  --hairline: rgba(255,220,190,0.07);
+  /* Anthropic brand — coral accent, ivory background */
+  --brand-bg: #FAF8F2;
+  --brand-elevated: #FFFFFF;
+  --brand-surface-2: #F0EDE4;
+  --brand-border: #E2DBCF;
+  --brand-border-strong: #C8BEAe;
+  --brand-accent: #D97757;          /* Anthropic coral */
+  --brand-accent-soft: #C06040;
+  --brand-text-dim: #6A5E52;
+  --brand-text-bright: #1C1410;     /* warm near-black */
+  --brand-success: #3D8A5C;
+  --brand-danger: #C43C3C;
+  --brand-warning: #C07828;
+  --trade-long: #3D8A5C;
+  --trade-short: #C43C3C;
+  --status-neutral: #8A7E72;
+  --grid-line: rgba(180,140,100,0.07);
+  --hairline: rgba(180,140,100,0.12);
 }
 
 [data-theme='light'] {
-  --brand-bg: #FAF7EE;
-  --brand-elevated: #FFFEF6;
-  --brand-surface-2: #F2EBD9;
-  --brand-border: #E2D8C0;
-  --brand-border-strong: #C9BA99;
-  --brand-accent: #8B6F3E;
-  --brand-accent-soft: #B8985A;
-  --brand-text-dim: #7A6A52;
-  --brand-text-bright: #1C1510;
-  --brand-success: #4A7A3A;
-  --brand-danger: #A83228;
-  --brand-warning: #96691A;
-  --trade-long: #4A7A3A;
-  --trade-short: #A83228;
-  --hairline: rgba(80,60,20,0.08);
-  --grid-line: rgba(80,60,20,0.05);
+  /* Notion color palette */
+  --brand-bg: #FFFFFF;
+  --brand-elevated: #F7F6F3;
+  --brand-surface-2: #EFEEEB;
+  --brand-border: #E3E2DE;
+  --brand-border-strong: #CFCECA;
+  --brand-accent: #2383E2;          /* Notion blue */
+  --brand-accent-soft: #1A6BC4;
+  --brand-text-dim: #787774;        /* Notion gray text */
+  --brand-text-bright: #37352F;     /* Notion default text */
+  --brand-success: #0F7B6C;         /* Notion green */
+  --brand-danger: #E03E3E;          /* Notion red */
+  --brand-warning: #DFAB01;         /* Notion yellow */
+  --trade-long: #0F7B6C;
+  --trade-short: #E03E3E;
+  --status-neutral: #9B9A97;
+  --hairline: rgba(55,53,47,0.09);
+  --grid-line: rgba(55,53,47,0.05);
 }
 
-[data-theme='tactical'] {
-  --brand-bg: #14160F;
-  --brand-elevated: #1B1E16;
-  --brand-surface-2: #232720;
-  --brand-border: #2E342A;
-  --brand-border-strong: #3D453A;
-  --brand-accent: #FF7E1A;
-  --brand-accent-soft: #FB923C;
-  --brand-text-dim: #8C9284;
-  --brand-text-bright: #F0F2EE;
-  --brand-success: #A3E635;
-  --brand-danger: #EF4444;
+[data-theme='forest'] {
+  /* Dark forest — green base, golden sunlight accent */
+  --brand-bg: #0C1A10;
+  --brand-elevated: #132218;
+  --brand-surface-2: #1C3024;
+  --brand-border: #284038;
+  --brand-border-strong: #38584A;
+  --brand-accent: #F0C040;          /* golden sunlight */
+  --brand-accent-soft: #D4A028;
+  --brand-text-dim: #6E9A78;
+  --brand-text-bright: #E6F5EB;
+  --brand-success: #4ADE80;         /* bright forest green */
+  --brand-danger: #F87171;
   --brand-warning: #FBBF24;
-  --trade-long: #A3E635;
-  --trade-short: #EF4444;
-  --hairline: rgba(255,255,255,0.05);
+  --trade-long: #4ADE80;
+  --trade-short: #F87171;
+  --status-neutral: #486858;
+  --grid-line: rgba(240,192,64,0.05);
+  --hairline: rgba(240,192,64,0.10);
 }
 
-[data-theme='cyber'] {
-  --brand-bg: #08080A;
-  --brand-elevated: #111114;
-  --brand-surface-2: #181820;
-  --brand-border: #26262E;
-  --brand-border-strong: #34343F;
-  --brand-accent: #FCEE0A;
-  --brand-accent-soft: #FDE047;
-  --brand-text-dim: #888A95;
-  --brand-text-bright: #FFFFFF;
-  --brand-success: #00FFA3;
-  --brand-danger: #FF3366;
-  --brand-warning: #FF8000;
-  --trade-long: #00FFA3;
-  --trade-short: #FF3366;
-  --hairline: rgba(255,255,255,0.06);
+[data-theme='cyberpunk'] {
+  /* Cyberpunk Dark — pure black, neon green/red, high contrast */
+  --brand-bg: #0D1117;
+  --brand-elevated: #161B22;
+  --brand-surface-2: #21262D;
+  --brand-border: #30363D;
+  --brand-border-strong: #484F58;
+  --brand-accent: #00FF41;          /* neon green */
+  --brand-accent-soft: #00CC34;
+  --brand-text-dim: #7D8590;
+  --brand-text-bright: #E6EDF3;
+  --brand-success: #00FF41;
+  --brand-danger: #FF3131;          /* neon red */
+  --brand-warning: #FFD700;
+  --trade-long: #00FF41;
+  --trade-short: #FF3131;
+  --status-neutral: #484F58;
+  --grid-line: rgba(0,255,65,0.05);
+  --hairline: rgba(0,255,65,0.10);
 }
 
-[data-theme='nexus'] {
-  --brand-bg: #0A0712;
-  --brand-elevated: #120E22;
-  --brand-surface-2: #1A1530;
-  --brand-border: #2E2652;
-  --brand-border-strong: #4A3870;
-  --brand-accent: #FF9100;
-  --brand-accent-soft: #FFB800;
-  --brand-text-dim: #9AA1C5;
-  --brand-text-bright: #F8F6FF;
-  --brand-success: #00FFA3;
-  --brand-danger: #FF3D71;
-  --brand-warning: #FFB545;
-  --trade-long: #00FFA3;
-  --trade-short: #FF3D71;
-  --status-neutral: #7C82AA;
-  --grid-line: rgba(0,229,255,0.07);
-  --hairline: rgba(255,255,255,0.07);
-  --nexus-pink: #FF007A;
-  --nexus-cyan: #00E5FF;
-  --nexus-purple: #1E1438;
-}
 
 @theme {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
-  --font-display: "Playfair Display", Georgia, serif;
+  --font-display: "Barlow Condensed", "Inter", ui-sans-serif, sans-serif;
 
   --color-brand-bg: var(--brand-bg);
   --color-brand-elevated: var(--brand-elevated);
@@ -154,39 +140,30 @@
 @layer base {
   html {
     height: 100%;
-    font-size: 106.25%;
+    font-size: 112.5%;
   }
   body, #root { height: 100%; }
   body {
     @apply bg-brand-bg text-brand-text-dim font-sans antialiased;
-    font-weight: 400;
+    font-weight: 450;
+    line-height: 1.55;
     font-feature-settings: "ss01", "ss03";
   }
-  [data-theme='nexus'] body {
-    background-color: var(--brand-bg);
-    background-image:
-      radial-gradient(900px 520px at 4% -12%, rgba(255,0,122,0.18), transparent 58%),
-      radial-gradient(760px 520px at 92% -4%, rgba(0,229,255,0.15), transparent 62%),
-      radial-gradient(680px 520px at 50% 108%, rgba(255,145,0,0.10), transparent 60%),
-      linear-gradient(rgba(0,229,255,0.028) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,0,122,0.024) 1px, transparent 1px);
-    background-size: auto, auto, auto, 42px 42px, 42px 42px;
-  }
-  ::selection { background: color-mix(in oklab, var(--brand-accent) 35%, transparent); color: var(--brand-text-bright); }
+::selection { background: color-mix(in oklab, var(--brand-accent) 35%, transparent); color: var(--brand-text-bright); }
   h1, h2 {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     color: var(--brand-text-bright);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     font-weight: 700;
   }
   h3 {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     color: var(--brand-text-bright);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.01em;
-    line-height: 1.1;
+    line-height: 1.2;
   }
-  h4 { color: var(--brand-text-bright); letter-spacing: -0.01em; }
+  h4 { color: var(--brand-text-bright); letter-spacing: -0.01em; font-weight: 600; }
   .num, .font-mono, table td, table th { font-variant-numeric: tabular-nums; }
 }
 
@@ -205,26 +182,6 @@
 }
 .glass-card:hover { border-color: var(--brand-border-strong); }
 
-[data-theme='nexus'] .technical-panel,
-[data-theme='nexus'] .glass-card {
-  border-color: color-mix(in oklab, var(--nexus-cyan) 13%, var(--hairline));
-  background:
-    linear-gradient(180deg, rgba(23,17,47,0.72), rgba(7,5,26,0.62)),
-    radial-gradient(260px 180px at 100% 0%, rgba(255,0,122,0.055), transparent 70%);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.055),
-    0 18px 46px -34px rgba(0,0,0,0.96),
-    0 0 34px -30px rgba(0,229,255,0.82);
-}
-[data-theme='nexus'] .glass-card:hover,
-[data-theme='nexus'] .technical-panel:hover {
-  border-color: color-mix(in oklab, var(--brand-accent) 22%, var(--nexus-pink));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.07),
-    0 22px 54px -34px rgba(0,0,0,0.98),
-    0 0 34px -26px rgba(255,145,0,0.40),
-    0 0 42px -34px rgba(255,0,122,0.58);
-}
 
 .hairline { border-color: var(--hairline) !important; }
 .hairline-b { border-bottom: 1px solid var(--hairline); }
@@ -242,12 +199,6 @@
   background-size: 22px 22px;
   opacity: 0.35;
 }
-[data-theme='nexus'] .dot-matrix {
-  background-image:
-    radial-gradient(color-mix(in oklab, var(--nexus-cyan) 26%, transparent) 1px, transparent 1px);
-  background-size: 24px 24px;
-  opacity: .28;
-}
 
 .neural-bg {
   background:
@@ -261,8 +212,8 @@
 
 .display-stat {
   font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   line-height: 1;
 }
 
@@ -273,9 +224,9 @@
 .text-num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
 
 .label-caps {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--brand-text-dim);
 }
@@ -489,35 +440,11 @@
   outline: none;
 }
 
-[data-theme='nexus'] .tv-command-header {
-  border-color: color-mix(in oklab, var(--nexus-cyan) 18%, var(--brand-border));
-  background:
-    linear-gradient(180deg, rgba(16,11,36,0.95), rgba(7,5,26,0.92));
-}
-[data-theme='nexus'] .tv-command-header::after { display: none; }
-[data-theme='nexus'] .tv-command-logo {
-  color: var(--brand-accent);
-  border-color: color-mix(in oklab, var(--brand-accent) 30%, var(--brand-border));
-}
-[data-theme='nexus'] .tv-command-nav,
-[data-theme='nexus'] .tv-mode-cluster {
-  border-color: color-mix(in oklab, var(--nexus-cyan) 18%, var(--brand-border));
-  background: rgba(7,5,26,0.6);
-}
-[data-theme='nexus'] .tv-nav-tab.is-active::after {
-  background: linear-gradient(90deg, transparent, var(--nexus-cyan), transparent);
-}
 
 /* --- Recent extraction rail ------------------------------------------- */
 .recent-rail {
   background: var(--brand-elevated);
   border-right: 1px solid var(--brand-border);
-}
-[data-theme='nexus'] .recent-rail {
-  background:
-    linear-gradient(180deg, rgba(16,11,36,0.72), var(--brand-bg)),
-    radial-gradient(260px 360px at 0% 8%, rgba(255,0,122,0.1), transparent 72%),
-    radial-gradient(220px 360px at 100% 0%, rgba(0,229,255,0.08), transparent 70%);
 }
 .recent-rail-item {
   position: relative;
@@ -634,17 +561,6 @@
   pointer-events: none;
   animation: analytics-tip-in .14s ease both;
   isolation: isolate;
-}
-[data-theme='nexus'] .analytics-tip {
-  border-color: color-mix(in oklab, var(--nexus-cyan) 26%, var(--nexus-pink));
-  background:
-    radial-gradient(180px 62px at 18% 0%, rgba(255,0,122,0.16), transparent 70%),
-    radial-gradient(180px 70px at 88% 0%, rgba(0,229,255,0.14), transparent 72%),
-    color-mix(in oklab, var(--brand-elevated) 93%, transparent);
-  box-shadow:
-    0 18px 44px -24px rgba(0,0,0,.95),
-    0 0 28px -18px rgba(255,145,0,0.50),
-    0 0 36px -26px rgba(255,0,122,0.72);
 }
 .analytics-tip::after {
   content: "";
@@ -801,13 +717,9 @@
 
 /* --- Analytics Command Center ----------------------------------------- */
 .analytics-command {
-  --analytics-cyan: #E8A850;   /* warm amber replacing cold cyan */
+  --analytics-cyan: #E8A850;
   --analytics-amber: #E8A850;
   color: var(--brand-text-bright);
-}
-[data-theme='nexus'] .analytics-command {
-  --analytics-cyan: var(--nexus-cyan);
-  --analytics-amber: #FFB545;
 }
 
 /* analytics surfaces — solid, no blur */
@@ -830,114 +742,87 @@
   background-size: 40px 40px;
   mask-image: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.1));
 }
+/* Claude ivory + light (Notion) — shared panel overrides */
+[data-theme='claude'] .analytics-hero,
+[data-theme='claude'] .analytics-core-card,
+[data-theme='claude'] .analytics-panel,
+[data-theme='claude'] .analytics-intel-card,
 [data-theme='light'] .analytics-hero,
 [data-theme='light'] .analytics-core-card,
 [data-theme='light'] .analytics-panel,
 [data-theme='light'] .analytics-intel-card {
   border-color: color-mix(in oklab, var(--brand-accent) 14%, var(--brand-border));
-  background:
-    linear-gradient(180deg, rgba(255,254,246,0.92), rgba(242,235,217,0.70)),
-    radial-gradient(340px 220px at 92% 0%, rgba(139,111,62,0.06), transparent 72%);
+  background: var(--brand-elevated);
   box-shadow:
-    inset 0 1px 0 rgba(255,253,240,0.90),
-    0 24px 64px -44px rgba(60,40,10,0.18),
-    0 0 34px -28px rgba(139,111,62,0.14);
+    inset 0 1px 0 rgba(255,255,255,0.80),
+    0 2px 8px -4px rgba(0,0,0,0.08);
 }
+[data-theme='claude'] .analytics-core-card,
 [data-theme='light'] .analytics-core-card {
-  border-color: color-mix(in oklab, var(--brand-accent) 24%, var(--brand-border));
-  background:
-    linear-gradient(135deg, rgba(248,242,224,0.80), rgba(255,254,246,0.90) 56%, rgba(244,238,220,0.78)),
-    radial-gradient(460px 240px at 16% 8%, rgba(139,111,62,0.08), transparent 62%);
+  border-color: color-mix(in oklab, var(--brand-accent) 22%, var(--brand-border));
+  background: var(--brand-elevated);
 }
+[data-theme='claude'] .analytics-confidence-strip,
 [data-theme='light'] .analytics-confidence-strip {
-  border-color: color-mix(in oklab, var(--brand-accent) 22%, var(--brand-border)) !important;
-  background:
-    linear-gradient(135deg, rgba(248,242,224,0.76), rgba(255,254,246,0.94)) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,253,240,0.94),
-    0 16px 34px -30px rgba(139,111,62,0.18);
+  border-color: color-mix(in oklab, var(--brand-accent) 20%, var(--brand-border)) !important;
+  background: var(--brand-surface-2) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.70) !important;
 }
+[data-theme='claude'] .analytics-micro-card,
 [data-theme='light'] .analytics-micro-card {
-  border-color: color-mix(in oklab, var(--brand-warning) 28%, var(--brand-border)) !important;
-  background:
-    linear-gradient(135deg, rgba(248,238,210,0.84), rgba(255,254,246,0.90)) !important;
+  border-color: color-mix(in oklab, var(--brand-warning) 24%, var(--brand-border)) !important;
+  background: color-mix(in oklab, var(--brand-warning) 6%, var(--brand-elevated)) !important;
 }
+[data-theme='claude'] .analytics-micro-label,
+[data-theme='claude'] .analytics-micro-icon,
+[data-theme='claude'] .analytics-micro-value,
 [data-theme='light'] .analytics-micro-label,
 [data-theme='light'] .analytics-micro-icon,
 [data-theme='light'] .analytics-micro-value {
   color: var(--brand-warning) !important;
 }
+[data-theme='claude'] .analytics-equity-chart-shell,
 [data-theme='light'] .analytics-equity-chart-shell {
-  border-color: color-mix(in oklab, var(--brand-accent) 18%, var(--brand-border)) !important;
-  background:
-    linear-gradient(180deg, rgba(255,254,246,0.94), rgba(242,235,217,0.68)),
-    radial-gradient(420px 220px at 82% 0%, rgba(139,111,62,0.07), transparent 70%) !important;
+  border-color: color-mix(in oklab, var(--brand-accent) 16%, var(--brand-border)) !important;
+  background: var(--brand-elevated) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255,253,240,0.94),
-    0 22px 60px -44px rgba(60,40,10,0.22),
-    0 0 28px -24px rgba(139,111,62,0.12) !important;
+    inset 0 1px 0 rgba(255,255,255,0.80),
+    0 2px 12px -6px rgba(0,0,0,0.08) !important;
 }
+[data-theme='claude'] .analytics-grid-overlay,
 [data-theme='light'] .analytics-grid-overlay {
   background-image:
-    linear-gradient(rgba(80,60,20,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(80,60,20,0.05) 1px, transparent 1px),
-    radial-gradient(circle at 18% 8%, rgba(139,111,62,0.08), transparent 28%),
-    radial-gradient(circle at 90% 0%, rgba(150,105,26,0.06), transparent 32%);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
 }
-[data-theme='nexus'] .analytics-hero,
-[data-theme='nexus'] .analytics-core-card,
-[data-theme='nexus'] .analytics-panel,
-[data-theme='nexus'] .analytics-intel-card {
-  border-color: color-mix(in oklab, var(--nexus-cyan) 15%, var(--hairline));
-  background:
-    linear-gradient(180deg, rgba(23,17,47,0.74), rgba(7,5,26,0.58)),
-    radial-gradient(260px 160px at 88% 0%, rgba(255,0,122,0.06), transparent 72%);
+[data-theme='claude'] .analytics-summary-cell,
+[data-theme='light'] .analytics-summary-cell {
+  background: var(--brand-surface-2);
 }
-[data-theme='nexus'] .analytics-hero {
-  box-shadow:
-    0 26px 86px -44px rgba(0,0,0,0.98),
-    0 0 54px -36px rgba(0,229,255,0.72),
-    0 0 72px -54px rgba(255,0,122,0.68);
+[data-theme='claude'] .analytics-summary-rail,
+[data-theme='light'] .analytics-summary-rail {
+  background: var(--brand-elevated);
+  border-color: var(--brand-border);
 }
-[data-theme='nexus'] .analytics-panel:hover,
-[data-theme='nexus'] .analytics-intel-card:hover {
-  border-color: color-mix(in oklab, var(--brand-accent) 22%, var(--nexus-pink));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 28px 80px -44px rgba(0,0,0,0.98),
-    0 0 44px -30px rgba(255,145,0,0.56),
-    0 0 54px -42px rgba(255,0,122,0.66);
-}
-[data-theme='nexus'] .analytics-grid-overlay {
-  background-image:
-    linear-gradient(rgba(0,229,255,0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,0,122,0.04) 1px, transparent 1px),
-    radial-gradient(circle at 18% 8%, rgba(255,0,122,0.19), transparent 26%),
-    radial-gradient(circle at 88% 0%, rgba(0,229,255,0.18), transparent 32%),
-    radial-gradient(circle at 58% 100%, rgba(255,145,0,0.10), transparent 30%);
-  background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%, 100% 100%;
-}
-[data-theme='nexus'] .analytics-winrate {
-  text-shadow:
-    0 0 16px color-mix(in oklab, currentColor 42%, transparent),
-    0 0 44px rgba(255,145,0,0.34),
-    0 0 76px rgba(0,229,255,0.20);
-}
-[data-theme='nexus'] .analytics-telemetry-sweep {
-  background: linear-gradient(90deg, transparent, rgba(0,229,255,0.17), rgba(255,0,122,0.08), transparent);
+[data-theme='claude'] .technical-panel,
+[data-theme='claude'] .glass-card,
+[data-theme='light'] .technical-panel,
+[data-theme='light'] .glass-card {
+  background: var(--brand-elevated);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .analytics-winrate {
   font-family: var(--font-display);
   font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 0.9;
+  letter-spacing: 0.01em;
+  line-height: 0.88;
 }
 
 .analytics-side-metric-value {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
-  font-weight: 700;
+  letter-spacing: 0em;
+  font-weight: 800;
 }
 
 .analytics-summary-rail {
@@ -973,9 +858,9 @@
 
 .analytics-summary-value {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   color: currentColor;
-  letter-spacing: -0.02em;
+  letter-spacing: 0em;
 }
 
 .analytics-summary-icon {
@@ -1312,28 +1197,6 @@
   }
 }
 
-[data-theme='nexus'] .analytics-strategy-pill {
-  border-color: color-mix(in oklab, var(--nexus-cyan) 18%, var(--brand-border));
-  background:
-    linear-gradient(180deg, rgba(23,17,47,0.72), rgba(7,5,26,0.6)),
-    color-mix(in oklab, var(--nexus-pink) 4%, transparent);
-}
-
-[data-theme='nexus'] .analytics-strategy-pill button:hover,
-[data-theme='nexus'] .analytics-strategy-pill button:focus-visible {
-  background: color-mix(in oklab, var(--nexus-pink) 7%, transparent);
-}
-
-[data-theme='nexus'] .analytics-strategy-pill button.is-active {
-  color: var(--brand-accent);
-  background:
-    linear-gradient(135deg, color-mix(in oklab, var(--brand-accent) 16%, transparent), color-mix(in oklab, var(--nexus-cyan) 9%, transparent));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.09),
-    inset 0 0 0 1px color-mix(in oklab, var(--brand-accent) 30%, var(--nexus-cyan)),
-    0 0 20px -13px rgba(255,145,0,0.80),
-    0 0 26px -20px rgba(0,229,255,0.78);
-}
 
 .analytics-telemetry-sweep {
   position: absolute;
@@ -1375,37 +1238,6 @@
 }
 .recharts-tooltip-label { color: var(--brand-text-dim) !important; font-size: 10px !important; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px !important; }
 .recharts-reference-line line { stroke: color-mix(in oklab, var(--brand-text-dim) 40%, transparent) !important; stroke-dasharray: 3 3; }
-[data-theme='nexus'] .recharts-cartesian-grid line { stroke: rgba(0,229,255,0.075) !important; }
-[data-theme='nexus'] .recharts-line-curve { filter: drop-shadow(0 0 5px color-mix(in oklab, var(--brand-accent) 30%, transparent)); }
-[data-theme='nexus'] .recharts-default-tooltip {
-  border-color: color-mix(in oklab, var(--nexus-cyan) 24%, var(--nexus-pink)) !important;
-  background:
-    linear-gradient(180deg, rgba(16,11,36,0.96), rgba(7,5,26,0.94)) !important;
-  box-shadow:
-    0 18px 42px -24px rgba(0,0,0,0.95),
-    0 0 30px -22px rgba(0,229,255,0.82) !important;
-}
-
-[data-theme='nexus'] .strategy-workbench-hero,
-[data-theme='nexus'] .strategy-focus-board,
-[data-theme='nexus'] .strategy-anchor-rail {
-  border-color: color-mix(in oklab, var(--nexus-cyan) 15%, var(--hairline)) !important;
-  background:
-    linear-gradient(180deg, rgba(23,17,47,0.72), rgba(7,5,26,0.58)),
-    radial-gradient(260px 160px at 100% 0%, rgba(255,0,122,0.065), transparent 70%) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.055),
-    0 18px 46px -34px rgba(0,0,0,0.96),
-    0 0 34px -30px rgba(0,229,255,0.76) !important;
-}
-[data-theme='nexus'] .strategy-control-option button:hover,
-[data-theme='nexus'] .workspace-preset-control button:hover,
-[data-theme='nexus'] .layout-mode-control button:hover {
-  border-color: color-mix(in oklab, var(--nexus-pink) 34%, var(--brand-accent)) !important;
-  box-shadow:
-    0 0 18px -12px rgba(255,0,122,0.8),
-    0 0 22px -14px rgba(0,229,255,0.72) !important;
-}
 
 /* --- Inputs ----------------------------------------------------------- */
 input, select, textarea {

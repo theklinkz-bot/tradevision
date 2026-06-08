@@ -101,7 +101,7 @@ const StrategyLabLoading = ({ language }: { language: 'EN' | 'TH' }) => (
   </div>
 );
 
-type AppTheme = 'default' | 'light' | 'tactical' | 'cyber' | 'nexus' | 'claude';
+type AppTheme = 'default' | 'light' | 'claude' | 'forest' | 'cyberpunk';
 
 const DEMO_USER = {
   id: 'demo-flow-the-edge-session',
@@ -1935,14 +1935,13 @@ const NoteTooltip = ({ note }: { note: string }) => {
 
                 <div className="flex flex-col gap-4">
                   <label className="label-caps text-[10px]">Environment Theme</label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     {[
                       { id: 'default', name: 'Obsidian' },
                       { id: 'claude', name: 'Claude' },
-                      { id: 'nexus', name: 'Nexus Neon' },
-                      { id: 'light', name: 'Light' },
-                      { id: 'tactical', name: 'Tactical' },
-                      { id: 'cyber', name: 'Cyber' }
+                      { id: 'light', name: 'Notion' },
+                      { id: 'forest', name: 'Forest' },
+                      { id: 'cyberpunk', name: 'Cyberpunk' }
                     ].map(t => (
                       <button
                         key={t.id}
@@ -2680,10 +2679,9 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   {[
                     { id: 'default', name: 'Obsidian' },
                     { id: 'claude', name: 'Claude' },
-                    { id: 'nexus', name: 'Nexus Neon' },
-                    { id: 'light', name: 'Light' },
-                    { id: 'tactical', name: 'Tactical Vanguard' },
-                    { id: 'cyber', name: 'Cyberpunk' }
+                    { id: 'light', name: 'Notion' },
+                    { id: 'forest', name: 'Forest' },
+                    { id: 'cyberpunk', name: 'Cyberpunk' }
                   ].map(t => (
                     <button
                       key={t.id}

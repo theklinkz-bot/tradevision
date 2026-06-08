@@ -3,14 +3,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Download, Copy, Check, Share2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { TradeStats } from '../types';
-import { PerformanceShareCard } from './PerformanceShareCard';
+import { PerformanceShareCard, FLIPPED_BG_IMAGES } from './PerformanceShareCard';
 
 type AppTheme = 'default' | 'light' | 'tactical' | 'cyber' | 'nexus' | 'claude';
 
-const THEME_LABEL: Record<AppTheme, string> = {
-  default:'OBSIDIAN', light:'LIGHT', tactical:'TACTICAL',
-  cyber:'CYBER', nexus:'NEXUS', claude:'CLAUDE',
-};
+const BG_IMAGES = Array.from({ length: 10 }, (_, i) => `/assets/sharecards/wild${i + 1}.png`);
 
 interface ShareCardModalProps {
   isOpen: boolean;
@@ -25,6 +22,7 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ isOpen, onClose,
   const [copied, setCopied]         = useState(false);
   const [saving, setSaving]         = useState(false);
   const [previewScale, setScale]    = useState(0.58);
+  const [selectedBg, setSelectedBg] = useState<string>(BG_IMAGES[0]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -102,9 +100,6 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ isOpen, onClose,
                 <span id="share-card-title" className="text-[11px] font-bold uppercase tracking-widest text-brand-text-bright font-mono">
                   Share Card
                 </span>
-                <span className="text-[9px] font-mono text-brand-text-dim/40 ml-1 uppercase tracking-wider">
-                  // {THEME_LABEL[theme]}
-                </span>
               </div>
               <button onClick={onClose} aria-label="Close share card"
                 className="text-brand-text-dim hover:text-brand-text-bright transition-colors p-1 rounded hover:bg-brand-bg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-accent/40">
@@ -116,8 +111,73 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ isOpen, onClose,
             <div ref={previewRef} className="flex justify-center overflow-hidden bg-black/50" style={{ padding: '20px 16px' }}>
               <div style={{ width: Math.round(1640 * previewScale), height: Math.round(922 * previewScale), position: 'relative', flexShrink: 0 }}>
                 <div style={{ transform: `scale(${previewScale})`, transformOrigin: 'top left', position: 'absolute', inset: 0 }}>
-                  <PerformanceShareCard ref={cardRef} stats={stats} theme={theme} />
+                  <PerformanceShareCard ref={cardRef} stats={stats} theme={theme} bgImage={selectedBg} flipped={FLIPPED_BG_IMAGES.includes(selectedBg)} />
                 </div>
+              </div>
+            </div>
+
+            {/* ── Background picker ── */}
+            <div className="px-5 py-3 border-t border-brand-border/50">
+              <p className="text-[9px] font-bold uppercase tracking-[0.20em] text-brand-text-dim/50 font-mono mb-2">
+                Background
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
+                {BG_IMAGES.map((src, i) => (
+                  <button
+                    key={src}
+                    onClick={() => setSelectedBg(src)}
+                    className="shrink-0 relative overflow-hidden transition-all"
+                    style={{
+                      width: 88,
+                      height: 50,
+                      borderRadius: 8,
+                      border: selectedBg === src
+                        ? '2px solid #FF9100'
+                        : '2px solid rgba(255,255,255,0.10)',
+                      boxShadow: selectedBg === src
+                        ? '0 0 12px rgba(255,145,0,0.50)'
+                        : 'none',
+                      padding: 0,
+                    }}
+                    aria-label={`Background ${i + 1}`}
+                    aria-pressed={selectedBg === src}
+                  >
+                    <img
+                      src={src}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                    {selectedBg === src && (
+                      <div
+                        className="absolute inset-0 flex items-center justify-center"
+                        style={{ background: 'rgba(255,145,0,0.20)' }}
+                      >
+                        <div
+                          style={{
+                            width: 16, height: 16, borderRadius: 999,
+                            background: '#FF9100',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}
+                        >
+                          <Check size={10} color="#000" strokeWidth={3} />
+                        </div>
+                      </div>
+                    )}
+                    <div
+                      className="absolute bottom-1 left-1"
+                      style={{
+                        fontSize: 8,
+                        fontFamily: 'monospace',
+                        fontWeight: 900,
+                        color: 'rgba(255,255,255,0.70)',
+                        lineHeight: 1,
+                        textShadow: '0 1px 3px rgba(0,0,0,0.9)',
+                      }}
+                    >
+                      {i + 1}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
 
