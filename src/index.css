@@ -16,6 +16,7 @@
   --brand-accent: #c8a028;          /* golden amber — matches reference */
   --brand-accent-soft: #a88018;
   --brand-text-dim: #8c8c9a;
+  --brand-text-muted: #8a8a96;       /* dimmest tier — still ≥4.5:1 on bg/elevated */
   --brand-text-bright: #ede9e0;
   --brand-success: #4ec876;
   --brand-danger: #e05252;
@@ -37,6 +38,7 @@
   --brand-accent: #D97757;          /* Anthropic coral */
   --brand-accent-soft: #C06040;
   --brand-text-dim: #6A5E52;
+  --brand-text-muted: #5E5347;       /* dimmest tier — still ≥4.5:1 on cream */
   --brand-text-bright: #1C1410;     /* warm near-black */
   --brand-success: #3D8A5C;
   --brand-danger: #C43C3C;
@@ -58,6 +60,7 @@
   --brand-accent: #2383E2;          /* Notion blue */
   --brand-accent-soft: #1A6BC4;
   --brand-text-dim: #787774;        /* Notion gray text */
+  --brand-text-muted: #5C5B57;       /* dimmest tier — still ≥4.5:1 on white */
   --brand-text-bright: #37352F;     /* Notion default text */
   --brand-success: #0F7B6C;         /* Notion green */
   --brand-danger: #E03E3E;          /* Notion red */
@@ -79,6 +82,7 @@
   --brand-accent: #F0C040;          /* golden sunlight */
   --brand-accent-soft: #D4A028;
   --brand-text-dim: #6E9A78;
+  --brand-text-muted: #6E9A78;       /* dimmest tier — passes on deep forest bg */
   --brand-text-bright: #E6F5EB;
   --brand-success: #4ADE80;         /* bright forest green */
   --brand-danger: #F87171;
@@ -100,6 +104,7 @@
   --brand-accent: #00FF41;          /* neon green */
   --brand-accent-soft: #00CC34;
   --brand-text-dim: #7D8590;
+  --brand-text-muted: #7D8590;       /* dimmest tier — passes on near-black bg */
   --brand-text-bright: #E6EDF3;
   --brand-success: #00FF41;
   --brand-danger: #FF3131;          /* neon red */
@@ -125,6 +130,7 @@
   --color-brand-accent: var(--brand-accent);
   --color-brand-accent-soft: var(--brand-accent-soft);
   --color-brand-text-dim: var(--brand-text-dim);
+  --color-brand-text-muted: var(--brand-text-muted);
   --color-brand-text-bright: var(--brand-text-bright);
   --color-brand-success: var(--brand-success);
   --color-brand-danger: var(--brand-danger);
@@ -842,13 +848,13 @@
   padding: 16px;
 }
 
-.analytics-summary-cell::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 2px;
+.analytics-summary-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 999px;
   background: currentColor;
-  opacity: .7;
+  box-shadow: 0 0 8px currentColor;
 }
 
 .analytics-summary-cell.is-positive { color: var(--brand-accent); }

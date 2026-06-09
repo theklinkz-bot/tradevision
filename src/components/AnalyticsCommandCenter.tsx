@@ -355,15 +355,15 @@ const TradeSequenceTape = ({ rValues, language }: { rValues: number[]; language:
       <div className="relative z-10 mt-3 flex gap-4 border-t border-white/[0.05] pt-2.5">
         <div className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-sm bg-brand-accent/60" />
-          <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-dim">Win</span>
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-text-dim">Win</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-sm bg-brand-danger/60" />
-          <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-dim">Loss</span>
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-text-dim">Loss</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-sm bg-white/20" />
-          <span className="font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-dim">BE</span>
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-text-dim">BE</span>
         </div>
         <span className="ml-auto font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-dim/60">highlighted = current streak</span>
       </div>
@@ -420,13 +420,13 @@ const RDistributionChart = ({ rValues, language }: { rValues: number[]; language
         </MetricTooltip>
         <div className="flex gap-2">
           <div className="rounded-xl border border-brand-border/30 bg-brand-elevated/30 px-3 py-2">
-            <p className="font-mono text-[8px] font-black uppercase tracking-[0.16em] text-brand-text-dim">median</p>
+            <p className="font-mono text-[10px] font-black uppercase tracking-[0.08em] text-brand-text-dim">median</p>
             <p className={`mt-0.5 font-mono text-sm font-black tabular-nums ${medianR >= 0 ? 'text-brand-accent' : 'text-brand-danger'}`}>
               {medianR >= 0 ? '+' : ''}{medianR.toFixed(2)}R
             </p>
           </div>
           <div className="rounded-xl border border-brand-border/30 bg-brand-elevated/30 px-3 py-2">
-            <p className="font-mono text-[8px] font-black uppercase tracking-[0.16em] text-brand-text-dim">sample</p>
+            <p className="font-mono text-[10px] font-black uppercase tracking-[0.08em] text-brand-text-dim">sample</p>
             <p className="mt-0.5 font-mono text-sm font-black tabular-nums text-brand-text-bright">{rValues.length}</p>
           </div>
         </div>
@@ -466,9 +466,9 @@ const RDistributionChart = ({ rValues, language }: { rValues: number[]; language
         )}
       </div>
       <div className="relative z-10 mt-1.5 flex justify-between px-2">
-        <span className="font-mono text-[8px] text-brand-text-dim">{min.toFixed(1)}R</span>
-        <span className="font-mono text-[8px] text-brand-text-dim">0R</span>
-        <span className="font-mono text-[8px] text-brand-text-dim">{rawMax > fenceHigh ? `${max.toFixed(1)}R+` : `${max.toFixed(1)}R`}</span>
+        <span className="font-mono text-[10px] text-brand-text-dim">{min.toFixed(1)}R</span>
+        <span className="font-mono text-[10px] text-brand-text-dim">0R</span>
+        <span className="font-mono text-[10px] text-brand-text-dim">{rawMax > fenceHigh ? `${max.toFixed(1)}R+` : `${max.toFixed(1)}R`}</span>
       </div>
     </section>
   );
@@ -882,7 +882,10 @@ export const AnalyticsCommandCenter = ({
             <MetricTooltip key={item.label} tooltipKey={item.tooltipKey} language={language}>
               <div className={`analytics-summary-cell ${item.tone}`}>
                 <div className="min-w-0">
-                  <p className="font-mono text-[8px] font-black uppercase tracking-[0.18em] text-brand-text-dim">{item.label}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="analytics-summary-dot" aria-hidden="true" />
+                    <p className="font-mono text-[10px] font-black uppercase tracking-[0.08em] text-brand-text-dim">{item.label}</p>
+                  </div>
                   <p className="analytics-summary-value mt-1 truncate font-mono text-xl font-black">{item.value}</p>
                   <p className="mt-1 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-brand-text-dim/70">{item.meta}</p>
                 </div>

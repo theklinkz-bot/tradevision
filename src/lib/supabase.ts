@@ -58,20 +58,20 @@ export async function fetchTradesFromSupabase(userId?: string, mode?: 'live' | '
   let query = supabase
     .from('trades')
     .select(`
-      id, 
-      user_id, 
-      symbol, 
-      side, 
-      entry_price, 
-      stop_loss, 
-      take_profit, 
-      fibo_target, 
-      image_url, 
-      trade_status, 
-      timestamp, 
-      confidence, 
-      trading_mode, 
-      trade_notes, 
+      id,
+      user_id,
+      symbol,
+      side,
+      entry_price,
+      stop_loss,
+      take_profit,
+      fibo_target,
+      image_url,
+      trade_status,
+      timestamp,
+      confidence,
+      trading_mode,
+      trade_notes,
       strategy_id,
       strategy_name,
       created_at,
@@ -100,8 +100,8 @@ export async function fetchTradesFromSupabase(userId?: string, mode?: 'live' | '
     let fallbackQuery = supabase
       .from('trades')
       .select(`
-        id, symbol, side, entry_price, stop_loss, take_profit, fibo_target, 
-        image_url, trade_status, timestamp, confidence, trading_mode, 
+        id, symbol, side, entry_price, stop_loss, take_profit, fibo_target,
+        image_url, trade_status, timestamp, confidence, trading_mode,
         trade_notes, strategy_id, strategy_name, created_at
       `);
       

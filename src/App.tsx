@@ -2499,29 +2499,20 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 </div>
                 <div className="flex flex-col gap-1 col-span-2">
                   <label className="label-caps text-[9px]">Entry Date/Time (Chart Timestamp)</label>
-                  <input 
+                  <input
                     type="datetime-local"
                     className="bg-brand-elevated border border-brand-border p-2 monospace-data rounded text-xs"
-                    value={(() => {
-                      try {
-                        if (!editForm.date) return '';
-                        const d = new Date(editForm.date);
-                        if (isNaN(d.getTime())) return '';
-                        return d.toISOString().slice(0, 16);
-                      } catch (e) {
-                        return '';
-                      }
-                    })()}
-                    onChange={e => setEditForm({...editForm, date: e.target.value})}
+                    value={editForm.date ? editForm.date.replace(' ', 'T').slice(0, 16) : ''}
+                    onChange={e => setEditForm({...editForm, date: e.target.value.replace('T', ' ')})}
                   />
                 </div>
                 <div className="flex flex-col gap-1 col-span-2">
                   <label className="label-caps text-[9px]">Exit Date/Time (For Duration)</label>
-                  <input 
+                  <input
                     type="datetime-local"
                     className="bg-brand-elevated border border-brand-border p-2 monospace-data rounded text-xs"
-                    value={editForm.exitDate ? new Date(editForm.exitDate).toISOString().slice(0, 16) : ''}
-                    onChange={e => setEditForm({...editForm, exitDate: e.target.value})}
+                    value={editForm.exitDate ? editForm.exitDate.replace(' ', 'T').slice(0, 16) : ''}
+                    onChange={e => setEditForm({...editForm, exitDate: e.target.value.replace('T', ' ')})}
                   />
                 </div>
                 <div className="flex flex-col gap-1 col-span-2">
@@ -3100,12 +3091,12 @@ const NoteTooltip = ({ note }: { note: string }) => {
               </>
             ) : mainTab === 'Log' ? (
               <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-center justify-between border-b border-brand-border pb-4">
-                  <div>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-brand-border pb-4">
+                  <div className="min-w-0">
                     <h2 className="text-2xl font-bold text-brand-text-bright">{t.ui.trade_intelligence_log}</h2>
                     <p className="text-xs text-brand-text-dim uppercase tracking-[3px] font-mono">Raw Signal Buffer // {history.length} Nodes</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => setIsStrategyEditorOpen(true)}
                       className="flex items-center gap-2 px-4 py-2 bg-brand-danger/10 border border-brand-danger/35 rounded text-[10px] font-bold uppercase tracking-widest text-brand-danger hover:bg-brand-danger hover:text-black transition-all"
@@ -3513,7 +3504,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                         </div>
                         
                         <div className="bg-brand-bg/30 p-5 rounded-2xl border border-brand-border/30 text-[11px] text-brand-text-dim leading-relaxed uppercase tracking-tight font-medium space-y-4">
-                          <p className="text-brand-accent font-black tracking-[2px] border-l-2 border-brand-accent pl-3 text-[10px] sm:text-[11px]">{t.system.persistence_protocol}</p>
+                          <p className="text-brand-accent font-black tracking-[2px] text-[10px] sm:text-[11px]"><span className="font-mono opacity-60 mr-1.5" aria-hidden="true">//</span>{t.system.persistence_protocol}</p>
                           <ul className="grid grid-cols-1 gap-3 ml-1">
                             <li className="flex items-start gap-3">
                                <Shield className="shrink-0 mt-0.5 text-brand-accent" size={14} />

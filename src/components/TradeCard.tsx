@@ -163,16 +163,16 @@ export const TradeRow: React.FC<{
       <td className="p-4">
         <div className="flex items-center gap-2">
           <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'Win' ? 'bg-trade-long' : item.status === 'Loss' ? 'bg-trade-short' : 'bg-status-neutral opacity-40 animate-pulse'}`} />
-          <span className={`text-[10px] uppercase font-bold tracking-wider ${item.status === 'Win' ? 'text-trade-long/80' : item.status === 'Loss' ? 'text-trade-short/80' : 'opacity-40'}`}>{item.status}</span>
+          <span className={`text-[10px] uppercase font-bold tracking-wider ${item.status === 'Win' ? 'text-trade-long/80' : item.status === 'Loss' ? 'text-trade-short/80' : 'text-brand-text-muted'}`}>{item.status}</span>
         </div>
       </td>
       <td className="p-4">
         {item.status !== 'Pending' ? (
-          <span className={`monospace-data text-[10px] font-bold ${calculateRMultiple(item) > 0 ? 'text-trade-long' : calculateRMultiple(item) < 0 ? 'text-trade-short' : 'text-brand-text-dim opacity-50'}`}>
+          <span className={`monospace-data text-[10px] font-bold ${calculateRMultiple(item) > 0 ? 'text-trade-long' : calculateRMultiple(item) < 0 ? 'text-trade-short' : 'text-brand-text-muted'}`}>
             {calculateRMultiple(item) > 0 ? '+' : ''}{calculateRMultiple(item).toFixed(2)}R
           </span>
         ) : (
-          <span className="monospace-data text-[10px] opacity-20">---</span>
+          <span className="monospace-data text-[10px] text-brand-text-muted">---</span>
         )}
       </td>
       <td className="p-4">
@@ -189,12 +189,12 @@ export const TradeRow: React.FC<{
             <span className="truncate">{item.strategyName}</span>
           </span>
         ) : (
-          <span className="text-[9px] font-mono uppercase tracking-widest text-brand-text-dim/35">Unlinked</span>
+          <span className="text-[9px] font-mono uppercase tracking-widest text-brand-text-muted">Unlinked</span>
         )}
       </td>
       <td className="p-4 max-[1500px]:hidden">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono opacity-40 uppercase">{item.date}</span>
+          <span className="text-[10px] font-mono text-brand-text-muted uppercase">{item.date?.replace('T', ' ').slice(0, 16)}</span>
           {item.notes && (
             <NoteTooltip note={item.notes} t={t} />
           )}
@@ -277,7 +277,7 @@ export const MobileLogItem: React.FC<{
             <div className="flex flex-col">
               <span className="monospace-data font-bold text-sm tracking-tight">{item.symbol}</span>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-mono opacity-40 uppercase tracking-tighter">{item.date}</span>
+                <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-tighter">{item.date?.replace('T', ' ').slice(0, 16)}</span>
                 {item.notes && (
                   <div className="flex items-center gap-1 px-1 py-0.5 rounded bg-brand-accent/10 border border-brand-accent/20">
                     <StickyNote size={10} className="text-brand-accent" />
@@ -297,30 +297,30 @@ export const MobileLogItem: React.FC<{
 
         <div className="grid grid-cols-3 gap-2">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[8px] label-caps opacity-40">Entry</span>
+            <span className="text-[8px] label-caps">Entry</span>
             <span className="monospace-data text-[10px]">{item.levels.entry?.toLocaleString() || '---'}</span>
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-[8px] label-caps opacity-40">SL / TP</span>
+            <span className="text-[8px] label-caps">SL / TP</span>
             <div className="flex flex-col">
               <span className="monospace-data text-[10px] text-trade-long">+{item.levels.takeProfit?.toLocaleString() || '---'}</span>
               <span className="monospace-data text-[10px] text-trade-short">-{item.levels.stopLoss?.toLocaleString() || '---'}</span>
             </div>
           </div>
           <div className="flex flex-col gap-0.5 items-end">
-            <span className="text-[8px] label-caps opacity-40">Result</span>
+            <span className="text-[8px] label-caps">Result</span>
             {item.status !== 'Pending' ? (
-              <span className={`monospace-data text-[10px] font-black ${calculateRMultiple(item) > 0 ? 'text-trade-long' : calculateRMultiple(item) < 0 ? 'text-trade-short' : 'text-brand-text-dim opacity-40'}`}>
+              <span className={`monospace-data text-[10px] font-black ${calculateRMultiple(item) > 0 ? 'text-trade-long' : calculateRMultiple(item) < 0 ? 'text-trade-short' : 'text-brand-text-muted'}`}>
                 {calculateRMultiple(item) > 0 ? '+' : ''}{calculateRMultiple(item).toFixed(2)}R
               </span>
             ) : (
-              <span className="monospace-data text-[10px] opacity-30 italic">ANALYZING...</span>
+              <span className="monospace-data text-[10px] text-brand-text-muted italic">ANALYZING...</span>
             )}
           </div>
         </div>
 
         <div className="rounded border border-brand-border/50 bg-brand-elevated/25 px-2 py-1">
-          <span className="text-[8px] label-caps opacity-40">Strategy</span>
+          <span className="text-[8px] label-caps">Strategy</span>
           <div className="mt-0.5 flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: item.strategyColor || 'rgba(148,163,184,.35)' }} />
             <span className="text-[9px] font-black uppercase tracking-tight text-brand-text-bright">
@@ -337,7 +337,7 @@ export const MobileLogItem: React.FC<{
             <ChevronRight size={12} className="text-brand-accent" />
             {t.ui.edit_protocol}
           </button>
-          <div className="lg:hidden text-[8px] font-mono opacity-20 uppercase flex items-center gap-1">
+          <div className="lg:hidden text-[8px] font-mono text-brand-text-muted uppercase flex items-center gap-1">
             <ChevronRight size={10} className="animate-pulse" />
             {t.ui.slide_to_purge}
           </div>

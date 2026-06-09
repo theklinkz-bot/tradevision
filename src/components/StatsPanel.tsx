@@ -409,11 +409,11 @@ export const StatsPanel = ({
                 </div>
                 <div className="flex items-center gap-4 text-right shrink-0 ml-4">
                   <div className="hidden xs:block">
-                    <p className="text-[7px] uppercase font-bold whitespace-nowrap opacity-40">Win Rate</p>
+                    <p className="text-[10px] uppercase font-bold whitespace-nowrap tracking-[0.08em] text-brand-text-muted">Win Rate</p>
                     <p className="text-[10px] font-mono font-bold text-brand-text-bright opacity-80">{s.winRate.toFixed(1)}%</p>
                   </div>
                   <div>
-                    <p className="text-[7px] uppercase font-bold whitespace-nowrap opacity-40">Profit</p>
+                    <p className="text-[10px] uppercase font-bold whitespace-nowrap tracking-[0.08em] text-brand-text-muted">Profit</p>
                     <p className={`text-[10px] font-mono font-bold ${s.profit > 0 ? 'text-trade-long' : s.profit < 0 ? 'text-trade-short' : 'text-brand-text-dim'}`}>
                       {s.profit > 0 ? '+' : ''}{s.profit.toFixed(1)}R
                     </p>
@@ -571,11 +571,11 @@ export const StatsPanel = ({
                     </div>
                     <div className="flex items-center gap-4 text-right shrink-0 ml-4">
                       <div>
-                        <p className="text-[7px] uppercase font-bold whitespace-nowrap opacity-40">Win Rate</p>
+                        <p className="text-[10px] uppercase font-bold whitespace-nowrap tracking-[0.08em] text-brand-text-muted">Win Rate</p>
                         <p className="text-[10px] font-mono font-bold text-brand-text-bright opacity-80">{s.winRate.toFixed(1)}%</p>
                       </div>
                       <div>
-                        <p className="text-[7px] uppercase font-bold whitespace-nowrap opacity-40">Profit</p>
+                        <p className="text-[10px] uppercase font-bold whitespace-nowrap tracking-[0.08em] text-brand-text-muted">Profit</p>
                         <p className={`text-[10px] font-mono font-bold ${s.profit > 0 ? 'text-trade-long' : s.profit < 0 ? 'text-trade-short' : 'text-brand-text-dim'}`}>
                           {s.profit > 0 ? '+' : ''}{s.profit.toFixed(1)}R
                         </p>
