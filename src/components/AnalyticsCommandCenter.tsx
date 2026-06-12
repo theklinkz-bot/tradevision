@@ -365,7 +365,7 @@ const TradeSequenceTape = ({ rValues, language }: { rValues: number[]; language:
           <span className="h-2 w-2 rounded-sm bg-white/20" />
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-text-dim">BE</span>
         </div>
-        <span className="ml-auto font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-dim/60">highlighted = current streak</span>
+        <span className="ml-auto font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-brand-text-muted">highlighted = current streak</span>
       </div>
     </section>
   );
@@ -747,9 +747,9 @@ export const AnalyticsCommandCenter = ({
                   <div className="flex flex-wrap items-center gap-2.5">
                     <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-brand-accent/85">Performance Core</p>
                   </div>
-                  <h2 className="mt-2 text-2xl font-display font-bold tracking-tight text-brand-text-bright sm:text-4xl">
+                  <h3 className="mt-2 text-2xl font-display font-bold tracking-tight text-brand-text-bright sm:text-4xl">
                     Trading Performance Command Center
-                  </h2>
+                  </h3>
                   <p className="mt-2 max-w-2xl font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-text-dim">
                     {strategyContext}
                   </p>
@@ -887,7 +887,7 @@ export const AnalyticsCommandCenter = ({
                     <p className="font-mono text-[10px] font-black uppercase tracking-[0.08em] text-brand-text-dim">{item.label}</p>
                   </div>
                   <p className="analytics-summary-value mt-1 truncate font-mono text-xl font-black">{item.value}</p>
-                  <p className="mt-1 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-brand-text-dim/70">{item.meta}</p>
+                  <p className="mt-1 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-brand-text-muted">{item.meta}</p>
                 </div>
                 <div className="analytics-summary-icon">
                   <item.icon size={15} />

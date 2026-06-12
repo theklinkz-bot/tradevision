@@ -118,7 +118,7 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ isOpen, onClose,
 
             {/* ── Background picker ── */}
             <div className="px-5 py-3 border-t border-brand-border/50">
-              <p className="text-[9px] font-bold uppercase tracking-[0.20em] text-brand-text-dim/50 font-mono mb-2">
+              <p className="text-[9px] font-bold uppercase tracking-[0.20em] text-brand-text-muted font-mono mb-2">
                 Background
               </p>
               <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>

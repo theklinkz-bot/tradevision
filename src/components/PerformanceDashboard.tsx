@@ -198,14 +198,14 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ stat
                 <div className="rounded-lg border border-brand-border bg-brand-bg/40 p-3">
                   <span className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.08em]">Wins / Closed</span>
                   <div className="mt-1 text-xl font-black font-mono text-brand-text-bright">
-                    {wins}<span className="text-brand-text-dim/50 mx-1">/</span>{stats.totalTrades}
+                    {wins}<span className="text-brand-text-dim mx-1">/</span>{stats.totalTrades}
                   </div>
                 </div>
                 <div className="rounded-lg border border-brand-border bg-brand-bg/40 p-3">
                   <span className="text-[10px] font-black text-brand-text-dim uppercase tracking-[0.08em]">Losses + Break-even</span>
                   <div className="mt-1 text-xl font-black font-mono text-brand-text-bright">
                     <span className="text-brand-danger">{losses}</span>
-                    <span className="text-brand-text-dim/50 mx-1">+</span>
+                    <span className="text-brand-text-dim mx-1">+</span>
                     <span className="text-brand-text-dim">{breakEvens}</span>
                   </div>
                 </div>

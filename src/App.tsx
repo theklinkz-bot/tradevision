@@ -78,6 +78,7 @@ import {
   deleteStrategyFromSupabase,
   supabase
 } from './lib/supabase';
+import { getAuthRedirectUrl } from './lib/authRedirect';
 import { User } from '@supabase/supabase-js';
 import { Strategy } from './types';
 
@@ -1062,7 +1063,9 @@ export default function App() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin },
+        options: {
+          redirectTo: getAuthRedirectUrl(import.meta.env.VITE_APP_URL, window.location.origin),
+        },
       });
       if (error) throw error;
     } catch (err: any) {
@@ -1743,7 +1746,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 {/* divider */}
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-white/[0.06]" />
-                  <span className="font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-brand-text-dim/50">or</span>
+                  <span className="font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-brand-text-muted">or</span>
                   <div className="h-px flex-1 bg-white/[0.06]" />
                 </div>
 
@@ -1775,7 +1778,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                   <button
                     type="button"
                     onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                    className="text-center font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-brand-text-dim/60 transition-colors hover:text-brand-accent"
+                    className="text-center font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-brand-text-muted transition-colors hover:text-brand-accent"
                   >
                     {authMode === 'login' ? 'No account yet? Create one' : 'Already have an account? Sign in'}
                   </button>
@@ -1880,7 +1883,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                           </div>
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-[8px] opacity-40 font-mono">{item.date}</span>
-                            <span className="text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/55">{item.side}</span>
+                            <span className="text-[8px] uppercase tracking-[0.14em] text-brand-text-muted">{item.side}</span>
                           </div>
                         </button>
                         );
@@ -2562,11 +2565,11 @@ const NoteTooltip = ({ note }: { note: string }) => {
           <div className="min-w-0">
             <div className="flex items-baseline gap-2">
               <h1 className="truncate text-sm font-semibold tracking-[-0.02em] text-brand-text-bright sm:text-[15px]">Flow the Edge</h1>
-              <span className="hidden rounded-full border border-brand-border/70 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/70 sm:inline-flex">
+              <span className="hidden rounded-full border border-brand-border/70 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-muted sm:inline-flex">
                 V2.0a
               </span>
             </div>
-            <div className="hidden font-mono text-[8px] uppercase tracking-[0.22em] text-brand-text-dim/45 sm:block">
+            <div className="hidden font-mono text-[8px] uppercase tracking-[0.22em] text-brand-text-muted sm:block">
               Discipline.exe Running
             </div>
           </div>
@@ -2594,7 +2597,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
             <span className="w-1.5 h-1.5 rounded-full bg-trade-long animate-pulse" />
             <span className="font-mono text-[9px] font-black uppercase tracking-[0.18em] text-trade-long">Live Matrix Online</span>
           </div>
-          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-brand-text-dim/50">
+          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-brand-text-muted">
             Node: Discipline.exe // Running
           </span>
         </div>
@@ -2728,7 +2731,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group ${
                   mainTab === tab
                     ? 'bg-brand-accent/15 text-brand-accent'
-                    : 'text-brand-text-dim/70 hover:bg-brand-elevated/70 hover:text-brand-text-bright'
+                    : 'text-brand-text-muted hover:bg-brand-elevated/70 hover:text-brand-text-bright'
                 }`}
               >
                 <Icon size={16} className={mainTab === tab ? 'text-brand-accent' : 'opacity-50 group-hover:opacity-100'} />
@@ -2745,7 +2748,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
             <p className="font-mono text-[9px] font-black uppercase tracking-[0.22em] text-brand-accent/80">
               {t.ui.recent_extractions}
             </p>
-            <p className="font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/35 mt-0.5">
+            <p className="font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-muted mt-0.5">
               Win/Loss continuity rail
             </p>
           </div>
@@ -2773,7 +2776,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                     <div className="flex justify-between items-center mb-1">
                       <div className="min-w-0 flex items-center gap-2">
                         <span className="text-[12px] font-black text-brand-text-bright truncate tracking-tight">{item.symbol}</span>
-                        <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-brand-text-dim/60">{item.side}</span>
+                        <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-brand-text-muted">{item.side}</span>
                       </div>
                       <span className={`streak-pill ${resultTone} !text-[9px] !px-2 !py-0.5`}>
                         {resultLabel}
@@ -2781,7 +2784,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="flex min-w-0 items-center gap-1 font-mono text-[9px] text-brand-text-dim/50 uppercase truncate">
+                      <span className="flex min-w-0 items-center gap-1 font-mono text-[9px] text-brand-text-muted uppercase truncate">
                         <Clock size={9} />{item.date}
                       </span>
                       {result && streakCount > 1 && (
@@ -2805,7 +2808,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
               <p className="text-[11px] font-bold text-brand-text-bright truncate uppercase tracking-[0.06em]">
                 {user?.email?.split('@')[0] ?? 'Trader'}
               </p>
-              <p className="font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-dim/55 flex items-center gap-1.5 mt-0.5">
+              <p className="font-mono text-[8px] uppercase tracking-[0.14em] text-brand-text-muted flex items-center gap-1.5 mt-0.5">
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isAnalyzing ? 'bg-brand-warning animate-pulse' : 'bg-trade-long'}`} />
                 {isAnalyzing ? 'Processing' : 'Senior Node Operative'}
               </p>
@@ -2835,6 +2838,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
 
             {mainTab === 'Dashboard' ? (
               <>
+                <h2 className="sr-only">Dashboard</h2>
                 {!geminiKey && (
                   <div className="technical-panel p-4 bg-brand-accent/5 border-brand-accent/30 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
                     <div className="flex items-center gap-3">
@@ -3283,7 +3287,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
               <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-brand-text-bright">{t.ui.gallery}</h1>
+                    <h2 className="text-2xl font-bold tracking-tight text-brand-text-bright">{t.ui.gallery}</h2>
                     <p className="text-sm text-brand-text-dim">{t.ui.visual_repository}</p>
                   </div>
                   <div className="px-3 py-1 bg-brand-elevated border border-brand-border rounded text-[10px] font-mono text-brand-accent">
