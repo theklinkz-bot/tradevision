@@ -48,7 +48,8 @@ import {
   Trash2,
   StickyNote,
   Plus,
-  Share2
+  Share2,
+  Award
 } from 'lucide-react';
 import * as RadixTooltip from '@radix-ui/react-tooltip';
 import { analyzeTradeScreenshot } from './services/geminiService';
@@ -80,7 +81,19 @@ import {
 } from './lib/supabase';
 import { getAuthRedirectUrl } from './lib/authRedirect';
 import { User } from '@supabase/supabase-js';
-import { Strategy } from './types';
+import { Strategy, ProgressionState, AchievementUnlock, SessionNote, JobClass } from './types';
+import ProgressView, { XpBar, JobChangeModal } from './components/progress/ProgressView';
+import { deriveXpState } from './services/xpEngine';
+import { gmt7DayKey } from './lib/tradeUtils';
+import {
+  fetchProgression,
+  fetchAchievementUnlocks,
+  fetchSessionNotes,
+  persistUnlocks,
+  saveJobChange,
+  markFreezeUsed,
+  saveSessionNote,
+} from './lib/progression';
 
 const StrategyLab = lazy(() =>
   import('./components/StrategyLab').then((module) => ({ default: module.StrategyLab }))
@@ -102,7 +115,7 @@ const StrategyLabLoading = ({ language }: { language: 'EN' | 'TH' }) => (
   </div>
 );
 
-type AppTheme = 'default' | 'light' | 'claude' | 'forest' | 'cyberpunk';
+type AppTheme = 'default' | 'light' | 'claude' | 'cyberpunk' | 'amethyst' | 'midnight' | 'ember' | 'nord';
 
 const DEMO_USER = {
   id: 'demo-flow-the-edge-session',
@@ -307,8 +320,8 @@ const TRANSLATIONS: Record<'EN' | 'TH', TranslationSchema> = {
       feedback_title: "SUPPORT & FEEDBACK",
       feedback_subtitle: "Nexus Communications",
       feedback_label_category: "Transmission Category",
-      feedback_label_subject: "Signal Subject",
-      feedback_placeholder_subject: "Core identifier...",
+      feedback_label_subject: "Feedback Topic",
+      feedback_placeholder_subject: "Enter feedback topic...",
       feedback_label_details: "Data Stream Details",
       feedback_placeholder_details: "Describe your feedback or technical issue in detail...",
       feedback_success: "Transmission Success",
@@ -533,8 +546,8 @@ const TRANSLATIONS: Record<'EN' | 'TH', TranslationSchema> = {
       feedback_title: "การสนับสนุนและข้อเสนอแนะ",
       feedback_subtitle: "การสื่อสารเน็กซัส",
       feedback_label_category: "หมวดหมู่การส่ง",
-      feedback_label_subject: "หัวข้อสัญญาณ",
-      feedback_placeholder_subject: "รหัสหลัก...",
+      feedback_label_subject: "หัวข้อ Feedback",
+      feedback_placeholder_subject: "ใส่หัวข้อ Feedback...",
       feedback_label_details: "รายละเอียดสตรีมข้อมูล",
       feedback_placeholder_details: "อธิบายข้อเสนอแนะหรือปัญหาทางเทคนิคของคุณอย่างละเอียด...",
       feedback_success: "ส่งสำเร็จ",
@@ -697,13 +710,19 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'visual' | 'json'>('visual');
-  const [mainTab, setMainTab] = useState<'Dashboard' | 'Analytics' | 'Performance' | 'StrategyLab' | 'Log' | 'Gallery' | 'System' | 'Admin'>('Dashboard');
+  const [mainTab, setMainTab] = useState<'Dashboard' | 'Analytics' | 'Performance' | 'StrategyLab' | 'Log' | 'Gallery' | 'System' | 'Admin' | 'Progress'>('Dashboard');
   const [selectedGalleryItem, setSelectedGalleryItem] = useState<AnalysisHistoryItem | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<TradeStatus>("Pending");
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [purgingId, setPurgingId] = useState<string | null>(null);
+
+  // XP / progression state
+  const [progression, setProgression] = useState<ProgressionState>({ currentJob: 'novice', freezeUsedMonth: null });
+  const [achievementUnlocks, setAchievementUnlocks] = useState<AchievementUnlock[]>([]);
+  const [sessionNotes, setSessionNotes] = useState<SessionNote[]>([]);
+  const [showJobChange, setShowJobChange] = useState<JobClass | null>(null);
   const [showApiKeyGuide, setShowApiKeyGuide] = useState(false);
   const [showCaptureGuide, setShowCaptureGuide] = useState(false);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
@@ -747,6 +766,17 @@ export default function App() {
     setStrategies(DEMO_STRATEGIES);
     setMainTab('Dashboard');
     setError(null);
+    setProgression({ currentJob: 'master', freezeUsedMonth: null });
+    setAchievementUnlocks([
+      { code: 'first_step',       unlockedAt: '2025-01-01T00:00:00Z', xpGranted: 50 },
+      { code: 'ignition',         unlockedAt: '2025-01-07T00:00:00Z', xpGranted: 100 },
+      { code: 'month_warrior',    unlockedAt: '2025-02-01T00:00:00Z', xpGranted: 500 },
+      { code: 'centurion',        unlockedAt: '2025-04-10T00:00:00Z', xpGranted: 2000 },
+      { code: 'obsessive_logger', unlockedAt: '2025-03-01T00:00:00Z', xpGranted: 300 },
+      { code: 'the_chronicler',   unlockedAt: '2025-04-01T00:00:00Z', xpGranted: 1000 },
+      { code: 'ghost_protocol',   unlockedAt: '2025-02-15T00:00:00Z', xpGranted: 250 },
+      { code: 'born_again',       unlockedAt: '2025-03-15T00:00:00Z', xpGranted: 500 },
+    ]);
   }, []);
 
   // Edit State
@@ -920,6 +950,58 @@ export default function App() {
   // Compute stats reactively based on filtered history
   const stats = React.useMemo(() => calculateTradeStatistics(filteredHistory), [filteredHistory]);
 
+  // Derive XP state from ALL live history (not filteredHistory — XP ignores
+  // the date/symbol filters and the backtest mode toggle).
+  const todayKey = React.useMemo(() => gmt7DayKey(new Date()) || '', []);
+  const xpState = React.useMemo(
+    () => deriveXpState({ trades: history, sessionNotes, unlocks: achievementUnlocks, progression }),
+    [history, sessionNotes, achievementUnlocks, progression]
+  );
+
+  // Persist newly-qualified achievements once, then fold them into local state
+  // so they become latched and drop out of pendingUnlocks (no re-fire loop).
+  const pendingKey = xpState.pendingUnlocks.join(',');
+  useEffect(() => {
+    if (isDemoSession || !user?.id || xpState.pendingUnlocks.length === 0) return;
+    const codes = xpState.pendingUnlocks;
+    persistUnlocks(user.id, codes).then(() => {
+      setAchievementUnlocks(prev => {
+        const have = new Set(prev.map(u => u.code));
+        const added = codes
+          .filter(c => !have.has(c))
+          .map(c => ({ code: c, unlockedAt: new Date().toISOString(), xpGranted: xpState.achievements.find(a => a.code === c)?.xp || 0 }));
+        return added.length ? [...prev, ...added] : prev;
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingKey, user?.id, isDemoSession]);
+
+  // Record an auto-consumed streak freeze for the current month (info only).
+  useEffect(() => {
+    if (isDemoSession || !user?.id) return;
+    const month = todayKey.slice(0, 7);
+    if (xpState.freezeConsumed && progression.freezeUsedMonth !== month) {
+      markFreezeUsed(user.id, month);
+      setProgression(prev => ({ ...prev, freezeUsedMonth: month }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [xpState.freezeConsumed, user?.id, isDemoSession]);
+
+  const handleChangeJob = useCallback((job: JobClass) => {
+    if (xpState.eligibleJobChange !== job) return;
+    setProgression(prev => ({ ...prev, currentJob: job }));
+    setShowJobChange(job);
+    if (!isDemoSession && user?.id) saveJobChange(user.id, job);
+  }, [xpState.eligibleJobChange, isDemoSession, user?.id]);
+
+  const handleSaveSessionNote = useCallback(async (kind: 'pre' | 'post', body: string) => {
+    setSessionNotes(prev => {
+      const rest = prev.filter(n => !(n.kind === kind && n.sessionDate === todayKey));
+      return [...rest, { kind, sessionDate: todayKey, body }];
+    });
+    if (!isDemoSession && user?.id) await saveSessionNote(user.id, kind, todayKey, body);
+  }, [todayKey, isDemoSession, user?.id]);
+
   const refreshFromDb = useCallback(async (userId?: string, mode?: 'live' | 'backtest') => {
     if (isDemoSession) return;
     const targetUserId = userId || user?.id;
@@ -934,6 +1016,16 @@ export default function App() {
       // Also fetch strategies to keep trade counts in sync
       const dbStrategies = await fetchStrategiesFromSupabase(targetUserId);
       setStrategies(dbStrategies);
+
+      // XP progression overlay (non-derivable state)
+      const [prog, unlocks, notes] = await Promise.all([
+        fetchProgression(targetUserId),
+        fetchAchievementUnlocks(targetUserId),
+        fetchSessionNotes(targetUserId),
+      ]);
+      setProgression(prog);
+      setAchievementUnlocks(unlocks);
+      setSessionNotes(notes);
     } catch (err) {
       console.error("Supabase fetch failed:", err);
       setError("Database sync failed. Please check your Supabase configuration.");
@@ -1943,8 +2035,11 @@ const NoteTooltip = ({ note }: { note: string }) => {
                       { id: 'default', name: 'Obsidian' },
                       { id: 'claude', name: 'Claude' },
                       { id: 'light', name: 'Notion' },
-                      { id: 'forest', name: 'Forest' },
-                      { id: 'cyberpunk', name: 'Cyberpunk' }
+                      { id: 'cyberpunk', name: 'Cyberpunk' },
+                      { id: 'amethyst', name: 'Amethyst' },
+                      { id: 'midnight', name: 'Midnight' },
+                      { id: 'ember', name: 'Ember' },
+                      { id: 'nord', name: 'Nord' }
                     ].map(t => (
                       <button
                         key={t.id}
@@ -2226,7 +2321,8 @@ const NoteTooltip = ({ note }: { note: string }) => {
           isOpen={shareCardOpen}
           onClose={() => setShareCardOpen(false)}
           stats={stats}
-          theme={theme}
+          xpState={xpState}
+          lang={language}
         />
       )}
 
@@ -2674,8 +2770,11 @@ const NoteTooltip = ({ note }: { note: string }) => {
                     { id: 'default', name: 'Obsidian' },
                     { id: 'claude', name: 'Claude' },
                     { id: 'light', name: 'Notion' },
-                    { id: 'forest', name: 'Forest' },
-                    { id: 'cyberpunk', name: 'Cyberpunk' }
+                    { id: 'cyberpunk', name: 'Cyberpunk' },
+                    { id: 'amethyst', name: 'Amethyst' },
+                    { id: 'midnight', name: 'Midnight' },
+                    { id: 'ember', name: 'Ember' },
+                    { id: 'nord', name: 'Nord' }
                   ].map(t => (
                     <button
                       key={t.id}
@@ -2717,6 +2816,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
           <nav className="px-3 pt-4 pb-3 flex flex-col gap-0.5 border-b border-brand-border/30">
             {([
               { tab: 'Dashboard' as typeof mainTab, icon: Layout },
+              { tab: 'Progress' as typeof mainTab, icon: Award },
               { tab: 'Analytics' as typeof mainTab, icon: BarChart3 },
               ...(isAdmin ? [{ tab: 'Performance' as typeof mainTab, icon: Activity }] : []),
               ...(isAdmin ? [{ tab: 'StrategyLab' as typeof mainTab, icon: Target }] : []),
@@ -2856,6 +2956,7 @@ const NoteTooltip = ({ note }: { note: string }) => {
                     </button>
                   </div>
                 )}
+                <XpBar xp={xpState} lang={language} onClick={() => setMainTab('Progress')} />
                 {/* Stage: Upload Area */}
                 <div className="relative group technical-panel h-[320px] flex flex-col items-center justify-center p-8 overflow-hidden">
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-brand-accent/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -3549,19 +3650,19 @@ const NoteTooltip = ({ note }: { note: string }) => {
                             <HelpCircle size={24} />
                           </div>
                           <div>
-                            <h3 className="label-caps mb-0 text-xl font-black text-brand-text-bright tracking-tight uppercase">{t.system.feedback_title}</h3>
-                            <p className="text-[10px] text-brand-accent uppercase tracking-[4px] opacity-70 font-bold mt-0.5">{t.system.feedback_subtitle}</p>
+                            <h3 className="feedback-section-title">{t.system.feedback_title}</h3>
+                            <p className="feedback-section-subtitle">{t.system.feedback_subtitle}</p>
                           </div>
                         </div>
 
                         <form onSubmit={handleFeedbackSubmit} className="flex flex-col gap-5">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="flex flex-col gap-2">
-                              <label className="text-[10px] font-black uppercase tracking-[2px] text-brand-accent/80 ml-1">{t.system.feedback_label_category}</label>
+                              <label className="feedback-field-label">{t.system.feedback_label_category}</label>
                               <select 
                                 value={feedbackCategory}
                                 onChange={e => setFeedbackCategory(e.target.value)}
-                                className="bg-brand-bg/50 border border-brand-border p-3.5 text-[10px] uppercase font-bold rounded-xl focus:border-brand-accent transition-all outline-none appearance-none cursor-pointer"
+                                className="bg-brand-bg/50 border border-brand-border p-3.5 text-[10px] uppercase font-bold rounded-xl focus:border-brand-accent transition-all outline-none appearance-none cursor-pointer text-brand-text-bright"
                               >
                                 <option value="General">General</option>
                                 <option value="Bug">Bug Report</option>
@@ -3570,27 +3671,27 @@ const NoteTooltip = ({ note }: { note: string }) => {
                               </select>
                             </div>
                             <div className="flex flex-col gap-2">
-                              <label className="text-[10px] font-black uppercase tracking-[2px] text-brand-accent/80 ml-1">{t.system.feedback_label_subject}</label>
+                              <label className="feedback-field-label">{t.system.feedback_label_subject}</label>
                               <input 
                                 type="text"
                                 required
                                 placeholder={t.system.feedback_placeholder_subject}
                                 value={feedbackSubject}
                                 onChange={e => setFeedbackSubject(e.target.value)}
-                                className="bg-brand-bg/50 border border-brand-border p-3.5 text-xs rounded-xl focus:border-brand-accent transition-all outline-none font-medium"
+                                className="bg-brand-bg/50 border border-brand-border p-3.5 text-xs rounded-xl focus:border-brand-accent transition-all outline-none font-medium text-brand-text-bright placeholder:text-brand-text-muted placeholder:font-semibold"
                               />
                             </div>
                           </div>
 
                           <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-black uppercase tracking-[2px] text-brand-accent/80 ml-1">{t.system.feedback_label_details}</label>
+                            <label className="feedback-field-label">{t.system.feedback_label_details}</label>
                             <textarea 
                               required
                               rows={3}
                               placeholder={t.system.feedback_placeholder_details}
                               value={feedbackMessage}
                               onChange={e => setFeedbackMessage(e.target.value)}
-                              className="bg-brand-bg/50 border border-brand-border p-4 text-xs rounded-xl focus:border-brand-accent transition-all outline-none resize-none font-medium leading-relaxed"
+                              className="bg-brand-bg/50 border border-brand-border p-4 text-xs rounded-xl focus:border-brand-accent transition-all outline-none resize-none font-medium leading-relaxed text-brand-text-bright placeholder:text-brand-text-muted"
                             />
                           </div>
 
@@ -3816,6 +3917,16 @@ create policy "Allow individual update" on profiles for update using (auth.uid()
                   )}
                 </div>
               </div>
+            ) : mainTab === 'Progress' ? (
+              <ProgressView
+                xp={xpState}
+                lang={language}
+                todayKey={todayKey}
+                sessionNotes={sessionNotes}
+                onChangeJob={handleChangeJob}
+                onSaveSessionNote={handleSaveSessionNote}
+                onShare={() => setShareCardOpen(true)}
+              />
             ) : (
               <div className="technical-panel p-12 text-center opacity-30">
                 <Terminal size={48} className="mx-auto mb-4" />
@@ -3826,6 +3937,10 @@ create policy "Allow individual update" on profiles for update using (auth.uid()
           </div>
         </main>
       </div>
+
+      {showJobChange && (
+        <JobChangeModal job={showJobChange} lang={language} onClose={() => setShowJobChange(null)} />
+      )}
 
       {/* Footer Status Bar */}
       <footer className="h-8 bg-brand-elevated border-t border-brand-border flex items-center px-4 justify-between text-[10px] font-mono tracking-tighter text-brand-text-dim shrink-0">

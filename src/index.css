@@ -72,28 +72,6 @@
   --grid-line: rgba(55,53,47,0.05);
 }
 
-[data-theme='forest'] {
-  /* Dark forest — green base, golden sunlight accent */
-  --brand-bg: #0C1A10;
-  --brand-elevated: #132218;
-  --brand-surface-2: #1C3024;
-  --brand-border: #284038;
-  --brand-border-strong: #38584A;
-  --brand-accent: #F0C040;          /* golden sunlight */
-  --brand-accent-soft: #D4A028;
-  --brand-text-dim: #6E9A78;
-  --brand-text-muted: #6E9A78;       /* dimmest tier — passes on deep forest bg */
-  --brand-text-bright: #E6F5EB;
-  --brand-success: #4ADE80;         /* bright forest green */
-  --brand-danger: #F87171;
-  --brand-warning: #FBBF24;
-  --trade-long: #4ADE80;
-  --trade-short: #F87171;
-  --status-neutral: #486858;
-  --grid-line: rgba(240,192,64,0.05);
-  --hairline: rgba(240,192,64,0.10);
-}
-
 [data-theme='cyberpunk'] {
   /* Cyberpunk Dark — pure black, neon green/red, high contrast */
   --brand-bg: #0D1117;
@@ -114,6 +92,94 @@
   --status-neutral: #484F58;
   --grid-line: rgba(0,255,65,0.05);
   --hairline: rgba(0,255,65,0.10);
+}
+
+[data-theme='amethyst'] {
+  /* Amethyst & Gold — charcoal-violet base, gold accent. Regal clash, high contrast. */
+  --brand-bg: #14121C;
+  --brand-elevated: #1C1A28;
+  --brand-surface-2: #262338;
+  --brand-border: #332E48;
+  --brand-border-strong: #46406A;
+  --brand-accent: #F2B83C;          /* gold — clashes the violet base */
+  --brand-accent-soft: #D49A24;
+  --brand-text-dim: #9A93B5;        /* violet-grey keeps the amethyst identity */
+  --brand-text-muted: #9A93B5;       /* dimmest tier — ≥4.5:1 on charcoal-violet */
+  --brand-text-bright: #F2EEFA;
+  --brand-success: #4ADE80;
+  --brand-danger: #F87171;
+  --brand-warning: #FBBF24;
+  --trade-long: #4ADE80;
+  --trade-short: #F87171;
+  --status-neutral: #4A4560;
+  --grid-line: rgba(242,184,60,0.05);
+  --hairline: rgba(242,184,60,0.10);
+}
+
+[data-theme='midnight'] {
+  /* Midnight Ocean — deep navy base, warm coral accent. Sunset-on-water clash. */
+  --brand-bg: #0B1220;
+  --brand-elevated: #121C2E;
+  --brand-surface-2: #1B283E;
+  --brand-border: #27374F;
+  --brand-border-strong: #38496A;
+  --brand-accent: #FF7A5C;          /* warm coral — clashes the cool navy */
+  --brand-accent-soft: #E85E40;
+  --brand-text-dim: #8B9CB5;        /* cool blue-grey keeps the ocean identity */
+  --brand-text-muted: #8B9CB5;       /* dimmest tier — ≥4.5:1 on deep navy */
+  --brand-text-bright: #E8F2FB;
+  --brand-success: #34D399;
+  --brand-danger: #F87171;
+  --brand-warning: #FBBF24;
+  --trade-long: #34D399;
+  --trade-short: #F87171;
+  --status-neutral: #3E4F6A;
+  --grid-line: rgba(255,122,92,0.05);
+  --hairline: rgba(255,122,92,0.10);
+}
+
+[data-theme='ember'] {
+  /* Ember — clean white base, bright red accent. Crisp, bold, high contrast. */
+  --brand-bg: #FFFFFF;
+  --brand-elevated: #F8F6F5;
+  --brand-surface-2: #F0EDEC;
+  --brand-border: #E6E1DF;
+  --brand-border-strong: #D2CAC7;
+  --brand-accent: #E5202B;          /* bright red */
+  --brand-accent-soft: #C2161F;
+  --brand-text-dim: #6B5F5C;
+  --brand-text-muted: #5A4F4C;       /* dimmest tier — ≥4.5:1 on white */
+  --brand-text-bright: #1A1413;     /* warm near-black */
+  --brand-success: #1A8A4A;
+  --brand-danger: #E5202B;
+  --brand-warning: #C77A18;
+  --trade-long: #1A8A4A;
+  --trade-short: #E5202B;
+  --status-neutral: #9B9490;
+  --grid-line: rgba(0,0,0,0.05);
+  --hairline: rgba(0,0,0,0.09);
+}
+
+[data-theme='nord'] {
+  /* Nord — muted slate base, aurora-orange accent. Warm clash on cool slate. */
+  --brand-bg: #2E3440;
+  --brand-elevated: #353C4A;
+  --brand-surface-2: #3B4252;
+  --brand-border: #4C566A;
+  --brand-border-strong: #5E6A82;
+  --brand-accent: #D08770;          /* aurora orange — clashes the cool slate */
+  --brand-accent-soft: #BC6E58;
+  --brand-text-dim: #A8B2C4;        /* frost-grey keeps the nord identity */
+  --brand-text-muted: #A8B2C4;       /* dimmest tier — ≥4.5:1 on slate */
+  --brand-text-bright: #ECEFF4;
+  --brand-success: #A3BE8C;
+  --brand-danger: #BF616A;
+  --brand-warning: #EBCB8B;
+  --trade-long: #A3BE8C;
+  --trade-short: #BF616A;
+  --status-neutral: #4C566A;
+  --grid-line: rgba(208,135,112,0.05);
+  --hairline: rgba(208,135,112,0.10);
 }
 
 
@@ -258,6 +324,35 @@
 .pill-positive { color: var(--brand-success); border-color: color-mix(in oklab, var(--brand-success) 28%, transparent); background: color-mix(in oklab, var(--brand-success) 10%, transparent); }
 .pill-negative { color: var(--brand-danger);  border-color: color-mix(in oklab, var(--brand-danger) 28%, transparent);  background: color-mix(in oklab, var(--brand-danger) 10%, transparent); }
 .pill-neutral  { color: var(--brand-text-dim); }
+
+.feedback-field-label {
+  margin-left: 0.25rem;
+  color: var(--brand-text-bright);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.feedback-section-title {
+  margin: 0;
+  color: var(--brand-text-bright);
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.feedback-section-subtitle {
+  margin-top: 0.35rem;
+  color: var(--brand-accent);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.24em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
 
 /* --- Command center navigation ---------------------------------------- */
 .tv-command-header {

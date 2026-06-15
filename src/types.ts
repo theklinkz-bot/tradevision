@@ -27,6 +27,9 @@ export interface AnalysisHistoryItem extends TradeAnalysis {
   id: string;
   imageUrl: string;
   date: string;
+  // DB insert time (row.created_at). Distinct from `date` (the trade timestamp):
+  // used for log-time achievements (e.g. Ghost Protocol) and streak day bucketing.
+  createdAt?: string;
   exitDate?: string;
   status: TradeStatus;
   savedToDb?: boolean;
@@ -72,6 +75,88 @@ export interface TradeStats {
     avgR: number; 
     profit: number 
   }[];
+}
+
+// ─── XP & Trader Progression ────────────────────────────────────────────────
+
+// Linear scalping path. Tactical/Professional branch is deferred: its only
+// differentiator in the spec (avg hold > 30 min) was cut for contradicting the
+// scalping focus, leaving the branch with no gate.
+export type JobClass = 'novice' | 'apprentice' | 'scalper' | 'elite' | 'master';
+
+export type AchievementCode =
+  // Discipline
+  | 'first_step'        // first journal entry            +50
+  | 'ignition'          // streak 7  (= streak milestone)  +100
+  | 'month_warrior'     // streak 30 (= streak milestone)  +500
+  | 'centurion'         // streak 100 (= streak milestone) +2000
+  | 'obsessive_logger'  // 100 live journals               +300
+  | 'the_chronicler'    // 500 live journals               +1000
+  // Hidden
+  | 'ghost_protocol'    // log a trade 02:00–04:00 GMT+7   +250
+  | 'born_again';       // streak broke, rebuilt 30 days   +500
+
+export interface JobDefinition {
+  id: JobClass;
+  // i18n keys resolved in the UI layer.
+  xpRequired: number;
+  minStreakEver: number;   // latched: "ever reached", not current
+  minLiveJournals: number;
+}
+
+export interface AchievementDefinition {
+  code: AchievementCode;
+  xp: number;
+  hidden: boolean;
+}
+
+// One row in achievement_unlocks (XP latched at unlock).
+export interface AchievementUnlock {
+  code: AchievementCode;
+  unlockedAt: string;
+  xpGranted: number;
+}
+
+export interface SessionNote {
+  id?: string;
+  kind: 'pre' | 'post';
+  sessionDate: string;     // 'YYYY-MM-DD' GMT+7
+  body: string;
+  createdAt?: string;
+}
+
+// Persisted overlay (user_progression table). Non-derivable state only.
+export interface ProgressionState {
+  currentJob: JobClass;
+  freezeUsedMonth: string | null;  // 'YYYY-MM' GMT+7, or null = available
+}
+
+export interface XpBreakdown {
+  journal: number;      // +10 per live journal
+  session: number;      // +5 per pre/post session note
+  achievement: number;  // sum of unlocked achievement XP (includes streak milestones)
+}
+
+// Full derived output of xpEngine. Disjoint sources => no double-count.
+export interface XpState {
+  totalXp: number;
+  breakdown: XpBreakdown;
+  streak: number;          // current consecutive streak (GMT+7, freeze-adjusted)
+  maxStreakEver: number;
+  freezeConsumed: boolean; // auto-consume fired this evaluation
+  currentJob: JobClass;
+  nextJob: JobClass | null;
+  xpToNext: number;        // XP remaining to next job's xpRequired (0 if maxed)
+  eligibleJobChange: JobClass | null;  // next job whose reqs are all met, else null
+  achievements: {
+    code: AchievementCode;
+    xp: number;
+    hidden: boolean;
+    unlocked: boolean;
+    unlockedAt?: string;
+  }[];
+  // Newly-qualified achievements not yet persisted (caller persists + toasts).
+  pendingUnlocks: AchievementCode[];
 }
 
 export interface TranslationSchema {

@@ -4,7 +4,7 @@ import { AnalysisHistoryItem, Strategy } from '../types';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const isSupabaseConfigured = supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('your-project-url');
+export const isSupabaseConfigured = supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('your-project-url');
 
 if (!isSupabaseConfigured) {
   console.warn('Supabase configuration is missing or using placeholders. Database features will be disabled until configured in AI Studio Secrets Panel.');
@@ -136,6 +136,7 @@ export async function fetchTradesFromSupabase(userId?: string, mode?: 'live' | '
     timestamp: row.timestamp,
     confidence: row.confidence || 1,
     date: row.timestamp || new Date(row.created_at).toLocaleString(),
+    createdAt: row.created_at,
     tradingMode: row.trading_mode,
     notes: row.trade_notes,
     strategyId: row.strategy_id,

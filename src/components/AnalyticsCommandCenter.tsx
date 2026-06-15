@@ -191,12 +191,12 @@ const formatR = (value: number, signed = false) => {
   return `${prefix}${value.toFixed(2)}R`;
 };
 
-const getNinjaAdvisorCopy = (stats?: TradeStats) => {
+export const getNinjaAdvisorCopy = (stats?: TradeStats) => {
   if (!stats || stats.totalTrades === 0) {
     return {
       tone: 'standby',
       title: 'คำแนะนำจากการวิเคราะห์',
-      message: 'ยังไม่มี node ให้ด่า เอ้ย ให้ดู ไปเก็บภาพมาก่อน'
+      message: 'ยังไม่มีข้อมูลให้ประเมิน ลองบันทึกภาพและผลลัพธ์เพิ่มก่อน'
     };
   }
 
@@ -204,7 +204,7 @@ const getNinjaAdvisorCopy = (stats?: TradeStats) => {
     return {
       tone: 'warning',
       title: 'Sample ยังบาง',
-      message: 'Winrate โหด แต่ node ยังน้อย อย่าเพิ่งทำตัวเป็น legend'
+      message: 'Win rate ดูดี แต่จำนวนรายการยังน้อย ควรเก็บข้อมูลเพิ่มก่อนสรุปผล'
     };
   }
 
@@ -212,23 +212,23 @@ const getNinjaAdvisorCopy = (stats?: TradeStats) => {
     return {
       tone: 'warning',
       title: 'Sample ยังไม่พอ',
-      message: 'Node ยังน้อยไปว่ะ ไปเก็บภาพเพิ่มก่อนค่อยเชื่อ stat'
+      message: 'ข้อมูลยังน้อยเกินไป เก็บภาพและผลลัพธ์เพิ่มก่อนใช้สถิติตัดสินใจจริง'
     };
   }
 
   if (stats.maxDrawdown >= 6) {
     return {
       tone: 'danger',
-      title: 'Risk เริ่มเสียงดัง',
-      message: 'Drawdown เริ่มกัดพอร์ตแล้ว หยุดซ่าแล้วลด risk ก่อน'
+      title: 'Risk เริ่มสูง',
+      message: 'Drawdown เริ่มกดพอร์ตแล้ว ควรลดขนาดความเสี่ยงและพักก่อนเข้าไม้ถัดไป'
     };
   }
 
   if (stats.expectancy > 0 && stats.profitFactor >= 2 && stats.winRate >= 55) {
     return {
       tone: 'positive',
-      title: 'Stat มีของ',
-      message: 'Stat ดีจัด ถ้าวินัยไม่พัง เทรดจริงมีลุ้นรวยไม่ไหว'
+      title: 'Stat มีคุณภาพ',
+      message: 'สถิติกำลังสนับสนุนระบบนี้ รักษาวินัยและใช้ขนาดความเสี่ยงให้คงที่'
     };
   }
 
@@ -236,7 +236,7 @@ const getNinjaAdvisorCopy = (stats?: TradeStats) => {
     return {
       tone: 'warning',
       title: 'RR ยังไม่คุ้ม',
-      message: 'Reward ไม่จ่ายพอสำหรับ risk ที่รับอยู่ แก้ geometry ก่อน'
+      message: 'Reward ยังไม่ชดเชย risk ที่รับอยู่ ควรปรับตำแหน่ง entry, stop หรือ target ก่อน'
     };
   }
 
@@ -244,14 +244,14 @@ const getNinjaAdvisorCopy = (stats?: TradeStats) => {
     return {
       tone: 'danger',
       title: 'Edge ยังไม่มา',
-      message: 'ตอนนี้ยังไม่ใช่เวลาซิ่ง เป็นเวลาตรวจเบรก'
+      message: 'Expectancy ยังติดลบ ควรทบทวนเงื่อนไขเข้าเทรดและหยุดเพิ่มความเสี่ยง'
     };
   }
 
   return {
     tone: 'positive',
     title: 'Edge online',
-    message: 'ระบบเริ่มมีไฟเขียว แต่สมองมึงต้อง online ด้วย'
+    message: 'ระบบเริ่มมีสัญญาณบวก รักษาแผนให้ชัดและทบทวนทุกไม้หลังปิดผล'
   };
 };
 
